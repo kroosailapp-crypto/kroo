@@ -135,7 +135,7 @@ export default function BoatProfilePage() {
 
         {/* Upcoming Regattas */}
         <div className="px-4 py-3 pb-6">
-          <p className="text-sm font-semibold text-gray-900 mb-3">Upcoming Regattas</p>
+          <p className="text-xs text-gray-400 mb-2">Upcoming Regattas</p>
 
           <div className="mb-4">
             <p className="text-sm font-medium text-gray-800 mb-1.5">
