@@ -3,23 +3,23 @@ import Link from "next/link";
 
 function NavFooter({ active }) {
   const items = [
-    { label: "Home", href: "/boat/feed", icon: "🏠" },
+    { label: "Home", href: "/boat/feed", icon: "⚓" },
     { label: "Regattas", href: "/boat/regattas", icon: "📅" },
     { label: "Message", href: "/boat/messages", icon: "💬" },
-    { label: "Following", href: "/boat/following", icon: "⭐" },
+    { label: "Favorites", href: "/boat/favorites", icon: "⭐" },
     { label: "Profile", href: "/boat/profile", icon: "👤" },
   ];
   return (
     <nav
-      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] flex items-center justify-around px-2 py-2 border-t"
-      style={{ backgroundColor: "#fff", borderColor: "#e5e5e5" }}
+      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] flex items-center justify-around px-2 pt-2 pb-1 border-t"
+      style={{ backgroundColor: "#fff", borderColor: "#e8e8e8" }}
     >
       {items.map((item) => (
         <Link
           key={item.label}
           href={item.href}
-          className="flex flex-col items-center gap-1 text-xs"
-          style={{ color: active === item.label ? "#0161f0" : "#888" }}
+          className="flex flex-col items-center gap-0.5 text-[10px]"
+          style={{ color: active === item.label ? "#111" : "#aaa" }}
         >
           <span className="text-xl">{item.icon}</span>
           {item.label}
@@ -29,94 +29,152 @@ function NavFooter({ active }) {
   );
 }
 
+function Divider() {
+  return <div className="h-px w-full" style={{ backgroundColor: "#e8e8e8" }} />;
+}
+
+function Tag({ label }) {
+  return (
+    <span
+      className="px-2.5 py-1 rounded-full text-xs"
+      style={{ backgroundColor: "#f0f0f0", color: "#555" }}
+    >
+      {label}
+    </span>
+  );
+}
+
 export default function BoatProfilePage() {
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
-      {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: "#e5e5e5" }}>
-        <Image src="/kroo-logo-blue.svg" alt="Kroo" width={60} height={24} />
-        <Link
-          href="/boat/edit"
-          className="text-sm font-medium px-4 py-1.5 rounded-full border"
-          style={{ color: "#0161f0", borderColor: "#0161f0" }}
+
+      {/* App Bar */}
+      <div className="flex items-center gap-2 px-4 pt-3 pb-2 flex-shrink-0">
+        <Image src="/kroo-logo-blue.svg" alt="Kroo" width={52} height={20} />
+        <div
+          className="flex-1 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-gray-400"
+          style={{ backgroundColor: "#f0f0f0" }}
         >
-          Edit Profile
-        </Link>
-      </header>
+          <span>🔍</span>
+          <span>Search</span>
+        </div>
+        <span className="text-gray-700 text-xl">＋</span>
+      </div>
 
-      <main className="flex-1 px-5 py-6 flex flex-col gap-6">
+      <div className="overflow-y-auto flex-1">
 
-        {/* Boat photo + name */}
-        <div className="flex flex-col items-center gap-3">
+        {/* Boat Photo + Info */}
+        <div className="flex gap-3.5 px-4 py-3 items-start">
           <div
-            className="w-20 h-20 rounded-full flex items-center justify-center text-white text-3xl font-bold"
-            style={{ backgroundColor: "#0161f0" }}
-          >
-            ⛵
-          </div>
-          <button
-            className="text-xs font-medium px-3 py-1 rounded-full"
-            style={{ backgroundColor: "#e8efff", color: "#0161f0" }}
-          >
-            + Add Photo
-          </button>
-          <p className="text-xl font-bold text-gray-900">Your Boat Name</p>
-          <p className="text-sm text-gray-500">Home Port · Boat Class</p>
-        </div>
-
-        {/* Stats */}
-        <div className="flex justify-around py-3 border-y" style={{ borderColor: "#e5e5e5" }}>
-          <div className="flex flex-col items-center">
-            <span className="font-bold text-lg text-gray-900">0</span>
-            <span className="text-xs text-gray-400">Crew</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="font-bold text-lg text-gray-900">0</span>
-            <span className="text-xs text-gray-400">Regattas</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="font-bold text-lg text-gray-900">0</span>
-            <span className="text-xs text-gray-400">Followers</span>
+            className="rounded-xl flex-shrink-0"
+            style={{ width: 56, height: 56, backgroundColor: "#e0e0e0" }}
+          />
+          <div>
+            <p className="text-xl font-bold text-gray-900 mb-0.5">Boat Name</p>
+            <p className="text-sm text-gray-500 mb-1.5">San Francisco, CA</p>
+            <Tag label="Boat Class" />
+            <p className="text-xs text-gray-400 mt-1.5">0 followers</p>
           </div>
         </div>
 
-        {/* Sections to complete */}
-        <div className="flex flex-col gap-3">
-          <p className="text-sm font-semibold text-gray-700">Complete your profile</p>
+        {/* Bio + Links */}
+        <div className="px-4 pb-4">
+          <p className="text-sm text-gray-600 leading-relaxed mb-3">
+            Add a description of your boat — your racing history, what kind of crew you're looking for, and what makes sailing with you special.
+          </p>
+          <p className="text-xs text-gray-400 mb-0.5">Official Website</p>
+          <p className="text-sm mb-2" style={{ color: "#007AFF" }}>www.boatlink.com</p>
+          <p className="text-xs text-gray-400 mb-0.5">Instagram</p>
+          <p className="text-sm mb-4" style={{ color: "#007AFF" }}>instagram.com/boatname</p>
+          <Link
+            href="/boat/edit"
+            className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium text-white"
+            style={{ backgroundColor: "#111" }}
+          >
+            Edit Boat Profile
+          </Link>
+        </div>
 
-          {[
-            { label: "Add boat description", href: "/boat/edit", done: false },
-            { label: "Add regattas / events", href: "/boat/regattas", done: false },
-            { label: "Set crew positions needed", href: "/boat/edit", done: true },
-            { label: "Add website or social links", href: "/boat/edit", done: false },
-          ].map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className="flex items-center justify-between px-4 py-3 rounded-xl border"
-              style={{ borderColor: "#e5e5e5" }}
-            >
-              <div className="flex items-center gap-3">
-                <span style={{ color: item.done ? "#39e75f" : "#ccc" }}>
-                  {item.done ? "✅" : "○"}
-                </span>
-                <span className="text-sm text-gray-700">{item.label}</span>
+        <Divider />
+
+        {/* Skipper */}
+        <div className="flex items-center gap-2.5 px-4 py-3">
+          <div
+            className="rounded-full flex items-center justify-center flex-shrink-0 text-gray-400"
+            style={{ width: 36, height: 36, backgroundColor: "#d8d8d8" }}
+          >
+            <span className="text-sm">👤</span>
+          </div>
+          <p className="text-sm font-medium text-gray-800">Your Name</p>
+          <span className="text-xs text-gray-400 ml-1">· Skipper</span>
+        </div>
+
+        <Divider />
+
+        {/* Upcoming Regattas */}
+        <div className="px-4 py-3 pb-6">
+          <p className="text-sm font-semibold text-gray-900 mb-3">Upcoming Regattas</p>
+
+          {/* Regatta 1 */}
+          <div className="mb-4">
+            <p className="text-sm font-medium text-gray-800 mb-1.5">
+              Rolex Big Boat Series, 07/25/26, San Francisco
+            </p>
+            <div className="flex flex-wrap gap-2 mb-1">
+              <div className="flex items-center gap-1.5">
+                <Tag label="Jib Trimmer" />
+                <span className="text-[11px] text-gray-500">Mid Level – 2–5 years</span>
               </div>
-              <span className="text-gray-400 text-sm">›</span>
+            </div>
+            <div className="flex flex-wrap gap-2 mb-2">
+              <div className="flex items-center gap-1.5">
+                <Tag label="Bowman" />
+                <span className="text-[11px] text-gray-500">All levels</span>
+              </div>
+            </div>
+            <Link
+              href="/boat/regattas"
+              className="text-xs font-medium px-3 py-1.5 rounded-full"
+              style={{ backgroundColor: "#f0f0f0", color: "#555" }}
+            >
+              Edit regatta
             </Link>
-          ))}
+          </div>
+
+          {/* Regatta 2 */}
+          <div className="mb-4">
+            <p className="text-sm font-medium text-gray-800 mb-1.5">
+              Bay Regatta, 08/10/26, Oakland
+            </p>
+            <div className="flex flex-wrap gap-2 mb-1">
+              <div className="flex items-center gap-1.5">
+                <Tag label="Spin Trimmer" />
+                <span className="text-[11px] text-gray-500">Mid Level – 2–5 years</span>
+              </div>
+            </div>
+          </div>
+
+          <Link
+            href="/boat/regattas"
+            className="text-xs font-medium px-3 py-1.5 rounded-full"
+            style={{ backgroundColor: "#f0f0f0", color: "#555" }}
+          >
+            + Add Regatta
+          </Link>
         </div>
 
-        {/* Browse crew CTA */}
-        <Link
-          href="/boat/feed"
-          className="w-full flex items-center justify-center py-3 rounded-full font-medium text-sm mt-2"
-          style={{ backgroundColor: "#0161f0", color: "#fff" }}
-        >
-          Browse Crew →
-        </Link>
+        {/* Browse Crew CTA */}
+        <div className="px-4 pb-8">
+          <Link
+            href="/boat/feed"
+            className="w-full flex items-center justify-center py-3 rounded-full font-medium text-sm"
+            style={{ backgroundColor: "#0161f0", color: "#fff" }}
+          >
+            Browse Crew →
+          </Link>
+        </div>
 
-      </main>
+      </div>
 
       <NavFooter active="Profile" />
     </div>
