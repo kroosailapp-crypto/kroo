@@ -1,5 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
+import {
+  IconAnchor,
+  IconCalendarEvent,
+  IconMessage,
+  IconStar,
+  IconUser,
+  IconSearch,
+  IconPlus,
+} from "@tabler/icons-react";
 
 // Sample crew data for the boat owner to browse
 const crewMembers = [
@@ -51,11 +60,11 @@ const crewMembers = [
 
 function NavFooter({ active }) {
   const items = [
-    { label: "Home", href: "/boat/feed", icon: "🏠" },
-    { label: "Regattas", href: "/boat/regattas", icon: "📅" },
-    { label: "Message", href: "/boat/messages", icon: "💬" },
-    { label: "Following", href: "/boat/following", icon: "⭐" },
-    { label: "Profile", href: "/boat/profile", icon: "👤" },
+    { label: "Home", href: "/boat/feed", icon: <IconAnchor size={22} /> },
+    { label: "Regattas", href: "/boat/regattas", icon: <IconCalendarEvent size={22} /> },
+    { label: "Message", href: "/boat/messages", icon: <IconMessage size={22} /> },
+    { label: "Following", href: "/boat/following", icon: <IconStar size={22} /> },
+    { label: "Profile", href: "/boat/profile", icon: <IconUser size={22} /> },
   ];
   return (
     <nav
@@ -67,9 +76,9 @@ function NavFooter({ active }) {
           key={item.label}
           href={item.href}
           className="flex flex-col items-center gap-1 text-xs"
-          style={{ color: active === item.label ? "#0161f0" : "#888" }}
+          style={{ color: active === item.label ? "#111" : "#aaa" }}
         >
-          <span className="text-xl">{item.icon}</span>
+          {item.icon}
           {item.label}
         </Link>
       ))}
@@ -96,8 +105,8 @@ function CrewCard({ member }) {
             {member.positions.map((pos) => (
               <span
                 key={pos}
-                className="text-xs px-2 py-0.5 rounded-full font-medium"
-                style={{ backgroundColor: "#e8efff", color: "#0161f0" }}
+                className="text-xs px-2.5 py-1 rounded-lg font-medium"
+                style={{ backgroundColor: "#E8EDF8", color: "#0161f0" }}
               >
                 {pos}
               </span>
@@ -131,13 +140,13 @@ export default function BoatFeedPage() {
       <header className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: "#e5e5e5" }}>
         <Image src="/kroo-logo.png" alt="Kroo" width={60} height={24} />
         <div
-          className="flex items-center gap-2 flex-1 mx-4 px-3 py-2 rounded-full text-sm text-gray-400"
-          style={{ backgroundColor: "#f6f6f6" }}
+          className="flex items-center gap-1.5 flex-1 mx-3 px-3 py-1.5 rounded-full text-xs text-gray-400"
+          style={{ backgroundColor: "#f0f0f0" }}
         >
-          <span>🔍</span>
+          <IconSearch size={14} color="#aaa" />
           <span>Search</span>
         </div>
-        <button className="text-gray-700 text-xl font-light">+</button>
+        <IconPlus size={22} color="#111" />
       </header>
 
       {/* Crew Cards Feed */}

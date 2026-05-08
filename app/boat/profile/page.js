@@ -1,13 +1,22 @@
 import Image from "next/image";
 import Link from "next/link";
+import {
+  IconAnchor,
+  IconCalendarEvent,
+  IconMessage,
+  IconStar,
+  IconUser,
+  IconSearch,
+  IconPlus,
+} from "@tabler/icons-react";
 
 function NavFooter({ active }) {
   const items = [
-    { label: "Home", href: "/boat/feed", icon: "⚓" },
-    { label: "Regattas", href: "/boat/regattas", icon: "📅" },
-    { label: "Message", href: "/boat/messages", icon: "💬" },
-    { label: "Favorites", href: "/boat/favorites", icon: "⭐" },
-    { label: "Profile", href: "/boat/profile", icon: "👤" },
+    { label: "Home", href: "/boat/feed", icon: <IconAnchor size={22} /> },
+    { label: "Regattas", href: "/boat/regattas", icon: <IconCalendarEvent size={22} /> },
+    { label: "Message", href: "/boat/messages", icon: <IconMessage size={22} /> },
+    { label: "Favorites", href: "/boat/favorites", icon: <IconStar size={22} /> },
+    { label: "Profile", href: "/boat/profile", icon: <IconUser size={22} /> },
   ];
   return (
     <nav
@@ -21,7 +30,7 @@ function NavFooter({ active }) {
           className="flex flex-col items-center gap-0.5 text-[10px]"
           style={{ color: active === item.label ? "#111" : "#aaa" }}
         >
-          <span className="text-xl">{item.icon}</span>
+          {item.icon}
           {item.label}
         </Link>
       ))}
@@ -36,8 +45,8 @@ function Divider() {
 function Tag({ label }) {
   return (
     <span
-      className="px-2.5 py-1 rounded-full text-xs"
-      style={{ backgroundColor: "#f0f0f0", color: "#555" }}
+      className="px-2.5 py-1 rounded-lg text-xs font-medium"
+      style={{ backgroundColor: "#E8EDF8", color: "#0161f0" }}
     >
       {label}
     </span>
@@ -55,10 +64,10 @@ export default function BoatProfilePage() {
           className="flex-1 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-gray-400"
           style={{ backgroundColor: "#f0f0f0" }}
         >
-          <span>🔍</span>
+          <IconSearch size={14} color="#aaa" />
           <span>Search</span>
         </div>
-        <span className="text-gray-700 text-xl">＋</span>
+        <IconPlus size={22} color="#111" />
       </div>
 
       <div className="overflow-y-auto flex-1">
@@ -88,7 +97,7 @@ export default function BoatProfilePage() {
           <p className="text-sm mb-4" style={{ color: "#007AFF" }}>instagram.com/boatname</p>
           <Link
             href="/boat/edit"
-            className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium text-white"
+            className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-medium text-white"
             style={{ backgroundColor: "#111" }}
           >
             Edit Boat Profile
@@ -100,10 +109,10 @@ export default function BoatProfilePage() {
         {/* Skipper */}
         <div className="flex items-center gap-2.5 px-4 py-3">
           <div
-            className="rounded-full flex items-center justify-center flex-shrink-0 text-gray-400"
+            className="rounded-full flex items-center justify-center flex-shrink-0"
             style={{ width: 36, height: 36, backgroundColor: "#d8d8d8" }}
           >
-            <span className="text-sm">👤</span>
+            <IconUser size={18} color="#aaa" />
           </div>
           <p className="text-sm font-medium text-gray-800">Your Name</p>
           <span className="text-xs text-gray-400 ml-1">· Skipper</span>
@@ -115,52 +124,45 @@ export default function BoatProfilePage() {
         <div className="px-4 py-3 pb-6">
           <p className="text-sm font-semibold text-gray-900 mb-3">Upcoming Regattas</p>
 
-          {/* Regatta 1 */}
           <div className="mb-4">
             <p className="text-sm font-medium text-gray-800 mb-1.5">
               Rolex Big Boat Series, 07/25/26, San Francisco
             </p>
-            <div className="flex flex-wrap gap-2 mb-1">
-              <div className="flex items-center gap-1.5">
+            <div className="flex flex-col gap-1.5 mb-2">
+              <div className="flex items-center gap-2">
                 <Tag label="Jib Trimmer" />
                 <span className="text-[11px] text-gray-500">Mid Level – 2–5 years</span>
               </div>
-            </div>
-            <div className="flex flex-wrap gap-2 mb-2">
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 <Tag label="Bowman" />
                 <span className="text-[11px] text-gray-500">All levels</span>
               </div>
             </div>
             <Link
               href="/boat/regattas"
-              className="text-xs font-medium px-3 py-1.5 rounded-full"
+              className="inline-flex text-xs font-medium px-3 py-1.5 rounded-full"
               style={{ backgroundColor: "#f0f0f0", color: "#555" }}
             >
               Edit regatta
             </Link>
           </div>
 
-          {/* Regatta 2 */}
           <div className="mb-4">
             <p className="text-sm font-medium text-gray-800 mb-1.5">
               Bay Regatta, 08/10/26, Oakland
             </p>
-            <div className="flex flex-wrap gap-2 mb-1">
-              <div className="flex items-center gap-1.5">
-                <Tag label="Spin Trimmer" />
-                <span className="text-[11px] text-gray-500">Mid Level – 2–5 years</span>
-              </div>
+            <div className="flex items-center gap-2 mb-2">
+              <Tag label="Spin Trimmer" />
+              <span className="text-[11px] text-gray-500">Mid Level – 2–5 years</span>
             </div>
           </div>
 
-          <Link
-            href="/boat/regattas"
+          <button
             className="text-xs font-medium px-3 py-1.5 rounded-full"
             style={{ backgroundColor: "#f0f0f0", color: "#555" }}
           >
             + Add Regatta
-          </Link>
+          </button>
         </div>
 
         {/* Browse Crew CTA */}
