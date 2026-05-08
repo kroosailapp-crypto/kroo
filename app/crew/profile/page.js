@@ -77,7 +77,7 @@ export default function CrewProfilePage() {
         <div className="flex gap-3.5 px-4 py-3 items-start">
           <div
             className="rounded-full flex items-center justify-center flex-shrink-0"
-            style={{ width: 70, height: 70, backgroundColor: "#d8d8d8" }}
+            style={{ width: 105, height: 105, backgroundColor: "#d8d8d8" }}
           >
             <IconUser size={32} color="#aaa" />
           </div>

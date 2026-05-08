@@ -76,7 +76,7 @@ export default function BoatProfilePage() {
         <div className="flex gap-3.5 px-4 py-3 items-start">
           <div
             className="rounded-xl flex-shrink-0"
-            style={{ width: 56, height: 56, backgroundColor: "#e0e0e0" }}
+            style={{ width: 84, height: 84, backgroundColor: "#e0e0e0" }}
           />
           <div>
             <p className="text-xl font-bold text-gray-900 mb-0.5">Boat Name</p>
