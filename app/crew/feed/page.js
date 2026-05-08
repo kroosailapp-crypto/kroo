@@ -76,7 +76,7 @@ function NavFooter({ active }) {
 
 function BoatCard({ boat }) {
   return (
-    <div className="flex flex-col border-b" style={{ borderColor: "#e8e8e8" }}>
+    <Link href={`/boat/${boat.id}`} className="flex flex-col border-b" style={{ borderColor: "#e8e8e8" }}>
 
       {/* Boat name + location + class tag */}
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
@@ -131,7 +131,7 @@ function BoatCard({ boat }) {
         </div>
       </div>
 
-    </div>
+    </Link>
   );
 }
 

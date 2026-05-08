@@ -87,7 +87,7 @@ function NavFooter({ active }) {
 
 function CrewCard({ member }) {
   return (
-    <div className="flex gap-3.5 px-4 py-4 border-b items-start" style={{ borderColor: "#e8e8e8" }}>
+    <Link href={`/crew/${member.id}`} className="flex gap-3.5 px-4 py-4 border-b items-start" style={{ borderColor: "#e8e8e8" }}>
       <Image
         src={member.photo}
         alt={member.name}
@@ -126,7 +126,7 @@ function CrewCard({ member }) {
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
