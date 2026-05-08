@@ -10,7 +10,6 @@ import {
   IconPlus,
 } from "@tabler/icons-react";
 
-// Sample boat data for crew to browse
 const boats = [
   {
     id: 1,
@@ -57,14 +56,14 @@ function NavFooter({ active }) {
   ];
   return (
     <nav
-      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] flex items-center justify-around px-2 py-2 border-t"
-      style={{ backgroundColor: "#fff", borderColor: "#e5e5e5" }}
+      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] flex items-center justify-around px-2 pt-2 pb-1 border-t"
+      style={{ backgroundColor: "#fff", borderColor: "#e8e8e8" }}
     >
       {items.map((item) => (
         <Link
           key={item.label}
           href={item.href}
-          className="flex flex-col items-center gap-1 text-xs"
+          className="flex flex-col items-center gap-0.5 text-[10px]"
           style={{ color: active === item.label ? "#111" : "#aaa" }}
         >
           {item.icon}
@@ -77,12 +76,13 @@ function NavFooter({ active }) {
 
 function BoatCard({ boat }) {
   return (
-    <div className="flex flex-col border-b mb-2" style={{ borderColor: "#e5e5e5" }}>
-      {/* Boat Header */}
+    <div className="flex flex-col border-b" style={{ borderColor: "#e8e8e8" }}>
+
+      {/* Boat name + location + class tag */}
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
         <div>
           <p className="font-bold text-lg text-gray-900">{boat.name}</p>
-          <p className="text-sm text-gray-500">{boat.location}</p>
+          <p className="text-xs text-gray-500">{boat.location}</p>
         </div>
         <span
           className="text-xs px-2.5 py-1 rounded-lg font-bold"
@@ -94,44 +94,43 @@ function BoatCard({ boat }) {
 
       {/* Boat Photo */}
       <div className="relative w-full h-48">
-        <Image
-          src={boat.photo}
-          alt={boat.name}
-          fill
-          className="object-cover"
-        />
+        <Image src={boat.photo} alt={boat.name} fill className="object-cover" />
       </div>
 
-      {/* Regatta & Info */}
+      {/* Regatta + Stats + Skipper */}
       <div className="px-4 py-3">
-        <p className="text-xs text-gray-500 mb-1">Next regatta</p>
+        <p className="text-xs text-gray-400 mb-0.5">Next regatta</p>
         <p className="text-sm font-medium text-gray-900 mb-3">{boat.nextRegatta}</p>
 
         <div className="flex items-center justify-between">
-          <div className="flex gap-6 text-sm">
-            <div className="flex flex-col items-center">
-              <span className="font-semibold text-gray-900">{boat.positions}</span>
-              <span className="text-gray-400 text-xs">Positions</span>
+          {/* Stats — left-aligned, same format as profiles */}
+          <div className="flex gap-5">
+            <div>
+              <p className="text-base font-semibold text-gray-900">{boat.positions}</p>
+              <p className="text-[11px] text-gray-500">Positions</p>
             </div>
-            <div className="flex flex-col items-center">
-              <span className="font-semibold text-gray-900">{boat.followers}</span>
-              <span className="text-gray-400 text-xs">Followers</span>
+            <div>
+              <p className="text-base font-semibold text-gray-900">{boat.followers}</p>
+              <p className="text-[11px] text-gray-500">Followers</p>
             </div>
           </div>
+
+          {/* Skipper */}
           <div className="flex items-center gap-2">
             <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
               style={{ backgroundColor: "#0161f0" }}
             >
               {boat.skipper.charAt(0)}
             </div>
             <div>
               <p className="text-xs font-medium text-gray-900">{boat.skipper}</p>
-              <p className="text-xs text-gray-400">Skipper</p>
+              <p className="text-[11px] text-gray-400">Skipper</p>
             </div>
           </div>
         </div>
       </div>
+
     </div>
   );
 }
@@ -139,20 +138,20 @@ function BoatCard({ boat }) {
 export default function CrewFeedPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
-      {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: "#e5e5e5" }}>
-        <Image src="/kroo-logo.png" alt="Kroo" width={60} height={24} />
+
+      {/* Header — matches profile pages */}
+      <div className="flex items-center gap-2 px-4 pt-3 pb-2 flex-shrink-0">
+        <Image src="/kroo-logo-blue.svg" alt="Kroo" width={52} height={20} />
         <div
-          className="flex items-center gap-1.5 flex-1 mx-3 px-3 py-1.5 rounded-full text-xs text-gray-400"
+          className="flex-1 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-gray-400"
           style={{ backgroundColor: "#f0f0f0" }}
         >
           <IconSearch size={14} color="#aaa" />
           <span>Search</span>
         </div>
         <IconPlus size={22} color="#111" />
-      </header>
+      </div>
 
-      {/* Boat Cards Feed */}
       <main className="flex-1">
         {boats.map((boat) => (
           <BoatCard key={boat.id} boat={boat} />

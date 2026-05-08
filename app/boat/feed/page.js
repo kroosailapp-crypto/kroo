@@ -10,7 +10,6 @@ import {
   IconPlus,
 } from "@tabler/icons-react";
 
-// Sample crew data for the boat owner to browse
 const crewMembers = [
   {
     id: 1,
@@ -68,14 +67,14 @@ function NavFooter({ active }) {
   ];
   return (
     <nav
-      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] flex items-center justify-around px-2 py-2 border-t"
-      style={{ backgroundColor: "#fff", borderColor: "#e5e5e5" }}
+      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] flex items-center justify-around px-2 pt-2 pb-1 border-t"
+      style={{ backgroundColor: "#fff", borderColor: "#e8e8e8" }}
     >
       {items.map((item) => (
         <Link
           key={item.label}
           href={item.href}
-          className="flex flex-col items-center gap-1 text-xs"
+          className="flex flex-col items-center gap-0.5 text-[10px]"
           style={{ color: active === item.label ? "#111" : "#aaa" }}
         >
           {item.icon}
@@ -88,45 +87,43 @@ function NavFooter({ active }) {
 
 function CrewCard({ member }) {
   return (
-    <div className="flex flex-col gap-2 px-4 py-4 border-b" style={{ borderColor: "#e5e5e5" }}>
-      <div className="flex items-center gap-3">
-        <Image
-          src={member.photo}
-          alt={member.name}
-          width={64}
-          height={64}
-          className="rounded-full object-cover"
-          style={{ width: 64, height: 64 }}
-        />
-        <div>
-          <p className="font-semibold text-base text-gray-900">{member.name}</p>
-          <p className="text-sm text-gray-500">{member.location}</p>
-          <div className="flex flex-wrap gap-1 mt-1">
-            {member.positions.map((pos) => (
-              <span
-                key={pos}
-                className="text-xs px-2.5 py-1 rounded-lg font-bold"
-                style={{ backgroundColor: "#E8EDF8", color: "#111" }}
-              >
-                {pos}
-              </span>
-            ))}
+    <div className="flex gap-3.5 px-4 py-4 border-b items-start" style={{ borderColor: "#e8e8e8" }}>
+      <Image
+        src={member.photo}
+        alt={member.name}
+        width={64}
+        height={64}
+        className="rounded-full object-cover flex-shrink-0"
+        style={{ width: 64, height: 64 }}
+      />
+      <div className="flex-1">
+        <p className="font-semibold text-base text-gray-900">{member.name}</p>
+        <p className="text-xs text-gray-500 mb-1.5">{member.location}</p>
+        <div className="flex flex-wrap gap-1.5 mb-1.5">
+          {member.positions.map((pos) => (
+            <span
+              key={pos}
+              className="text-xs px-2.5 py-1 rounded-lg font-bold"
+              style={{ backgroundColor: "#E8EDF8", color: "#111" }}
+            >
+              {pos}
+            </span>
+          ))}
+        </div>
+        <p className="text-xs text-gray-400 mb-2">{member.level}</p>
+        <div className="flex gap-5">
+          <div>
+            <p className="text-base font-semibold text-gray-900">{member.kroo}</p>
+            <p className="text-[11px] text-gray-500">Kroo</p>
           </div>
-        </div>
-      </div>
-      <p className="text-sm text-gray-600">{member.level}</p>
-      <div className="flex gap-6 text-sm text-gray-700">
-        <div className="flex flex-col items-center">
-          <span className="font-semibold">{member.kroo}</span>
-          <span className="text-gray-400 text-xs">Kroo</span>
-        </div>
-        <div className="flex flex-col items-center">
-          <span className="font-semibold">{member.favorites}</span>
-          <span className="text-gray-400 text-xs">Favorites</span>
-        </div>
-        <div className="flex flex-col items-center">
-          <span className="font-semibold">{member.following}</span>
-          <span className="text-gray-400 text-xs">Following</span>
+          <div>
+            <p className="text-base font-semibold text-gray-900">{member.favorites}</p>
+            <p className="text-[11px] text-gray-500">Favorites</p>
+          </div>
+          <div>
+            <p className="text-base font-semibold text-gray-900">{member.following}</p>
+            <p className="text-[11px] text-gray-500">Following</p>
+          </div>
         </div>
       </div>
     </div>
@@ -136,20 +133,20 @@ function CrewCard({ member }) {
 export default function BoatFeedPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
-      {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: "#e5e5e5" }}>
-        <Image src="/kroo-logo.png" alt="Kroo" width={60} height={24} />
+
+      {/* Header — matches profile pages */}
+      <div className="flex items-center gap-2 px-4 pt-3 pb-2 flex-shrink-0">
+        <Image src="/kroo-logo-blue.svg" alt="Kroo" width={52} height={20} />
         <div
-          className="flex items-center gap-1.5 flex-1 mx-3 px-3 py-1.5 rounded-full text-xs text-gray-400"
+          className="flex-1 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-gray-400"
           style={{ backgroundColor: "#f0f0f0" }}
         >
           <IconSearch size={14} color="#aaa" />
           <span>Search</span>
         </div>
         <IconPlus size={22} color="#111" />
-      </header>
+      </div>
 
-      {/* Crew Cards Feed */}
       <main className="flex-1">
         {crewMembers.map((member) => (
           <CrewCard key={member.id} member={member} />
