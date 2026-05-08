@@ -14,12 +14,12 @@ export default function WelcomePage() {
         </p>
 
         <Image
-          src="/kroo-logo.png"
+          src="/kroo-logo-white.svg"
           alt="Kroo"
-          width={220}
-          height={87}
+          width={260}
+          height={93}
           priority
-          className="w-full max-w-[220px]"
+          className="w-full max-w-[260px]"
         />
 
         <p className="text-white text-2xl font-normal text-center">
