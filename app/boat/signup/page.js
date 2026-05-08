@@ -96,7 +96,7 @@ export default function BoatSignupPage() {
 
   function handleNext() {
     if (step < TOTAL_STEPS) setStep(step + 1);
-    else router.push("/boat/feed");
+    else router.push("/boat/profile");
   }
 
   function handleBack() {

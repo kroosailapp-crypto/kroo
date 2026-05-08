@@ -97,7 +97,7 @@ export default function CrewSignupPage() {
     if (step < TOTAL_STEPS) {
       setStep(step + 1);
     } else {
-      router.push("/crew/feed");
+      router.push("/crew/profile");
     }
   }
 

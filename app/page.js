@@ -27,20 +27,20 @@ export default function WelcomePage() {
         </p>
       </div>
 
-      {/* Crew Button */}
+      {/* Boat owner looking for crew */}
       <Link
-        href="/crew/signup"
+        href="/boat/signup"
         className="w-full flex items-center justify-center px-4 py-2 rounded-full mb-6 font-medium text-sm tracking-wide"
         style={{ backgroundColor: "#0161f0", color: "#f6f6f6" }}
       >
-        CREW
+        CREW MEMBER
       </Link>
 
       <p className="text-white text-2xl font-normal text-center mb-6">Or</p>
 
-      {/* Boat Button */}
+      {/* Sailor looking for a boat */}
       <Link
-        href="/boat/signup"
+        href="/crew/signup"
         className="w-full flex items-center justify-center px-4 py-2 rounded-full font-medium text-sm tracking-wide"
         style={{ backgroundColor: "#0161f0", color: "#f6f6f6" }}
       >
