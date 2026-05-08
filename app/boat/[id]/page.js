@@ -155,13 +155,13 @@ export default function BoatPublicProfile({ params }) {
         <div className="flex gap-3.5 px-4 py-3 items-start">
           <div
             className="rounded-xl flex-shrink-0 overflow-hidden"
-            style={{ width: 84, height: 84, backgroundColor: "#e0e0e0" }}
+            style={{ width: 105, height: 105, backgroundColor: "#e0e0e0" }}
           >
             <Image
               src={profile.photo}
               alt={profile.name}
-              width={84}
-              height={84}
+              width={105}
+              height={105}
               className="object-cover w-full h-full"
             />
           </div>
