@@ -46,8 +46,8 @@ function Divider() {
 function Tag({ label }) {
   return (
     <span
-      className="px-2.5 py-1 rounded-lg text-xs font-medium"
-      style={{ backgroundColor: "#E8EDF8", color: "#0161f0" }}
+      className="px-2.5 py-1 rounded-lg text-xs font-bold"
+      style={{ backgroundColor: "#E8EDF8", color: "#111" }}
     >
       {label}
     </span>
@@ -90,16 +90,16 @@ export default function CrewProfilePage() {
               <Tag label="Main Trimmer" />
             </div>
             <p className="text-xs text-gray-400 mb-2.5">Mid-Level</p>
-            <div className="flex gap-4">
-              <div className="text-center">
+            <div className="flex gap-5">
+              <div>
                 <p className="text-base font-semibold text-gray-900">15</p>
                 <p className="text-[11px] text-gray-500">Kroo</p>
               </div>
-              <div className="text-center">
+              <div>
                 <p className="text-base font-semibold text-gray-900">31</p>
                 <p className="text-[11px] text-gray-500">Favorites</p>
               </div>
-              <div className="text-center">
+              <div>
                 <p className="text-base font-semibold text-gray-900">10</p>
                 <p className="text-[11px] text-gray-500">Following</p>
               </div>
@@ -111,8 +111,8 @@ export default function CrewProfilePage() {
         <div className="px-4 pb-3">
           <Link
             href="/crew/edit"
-            className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-medium text-white"
-            style={{ backgroundColor: "#111" }}
+            className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-medium border"
+            style={{ color: "#0161f0", borderColor: "#0161f0" }}
           >
             Edit Profile
           </Link>
@@ -127,8 +127,8 @@ export default function CrewProfilePage() {
           <p className="text-sm text-gray-800 mb-1.5">April 3–6, 2026</p>
           <p className="text-sm text-gray-800 mb-1.5">May 20–22, 2026</p>
           <button
-            className="mt-1 text-xs font-medium px-3 py-1.5 rounded-full"
-            style={{ backgroundColor: "#f0f0f0", color: "#555" }}
+            className="mt-1 text-xs font-medium"
+            style={{ color: "#0161f0" }}
           >
             + Add Availability
           </button>
@@ -143,8 +143,8 @@ export default function CrewProfilePage() {
           <p className="text-sm text-gray-800 mb-1.5">2026 SoCal Ocean Series – Santa Barbara</p>
           <p className="text-sm text-gray-800 mb-1.5">2026 Nationals – San Francisco</p>
           <button
-            className="mt-1 text-xs font-medium px-3 py-1.5 rounded-full"
-            style={{ backgroundColor: "#f0f0f0", color: "#555" }}
+            className="mt-1 text-xs font-medium"
+            style={{ color: "#0161f0" }}
           >
             + Add Regatta
           </button>
@@ -162,8 +162,8 @@ export default function CrewProfilePage() {
             <Tag label="470" />
           </div>
           <button
-            className="mt-2 text-xs font-medium px-3 py-1.5 rounded-full"
-            style={{ backgroundColor: "#f0f0f0", color: "#555" }}
+            className="mt-2 text-xs font-medium"
+            style={{ color: "#0161f0" }}
           >
             + Add Classes
           </button>

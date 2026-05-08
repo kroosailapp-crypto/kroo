@@ -105,8 +105,8 @@ function CrewCard({ member }) {
             {member.positions.map((pos) => (
               <span
                 key={pos}
-                className="text-xs px-2.5 py-1 rounded-lg font-medium"
-                style={{ backgroundColor: "#E8EDF8", color: "#0161f0" }}
+                className="text-xs px-2.5 py-1 rounded-lg font-bold"
+                style={{ backgroundColor: "#E8EDF8", color: "#111" }}
               >
                 {pos}
               </span>

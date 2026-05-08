@@ -45,8 +45,8 @@ function Divider() {
 function Tag({ label }) {
   return (
     <span
-      className="px-2.5 py-1 rounded-lg text-xs font-medium"
-      style={{ backgroundColor: "#E8EDF8", color: "#0161f0" }}
+      className="px-2.5 py-1 rounded-lg text-xs font-bold"
+      style={{ backgroundColor: "#E8EDF8", color: "#111" }}
     >
       {label}
     </span>
@@ -82,7 +82,20 @@ export default function BoatProfilePage() {
             <p className="text-xl font-bold text-gray-900 mb-0.5">Boat Name</p>
             <p className="text-sm text-gray-500 mb-1.5">San Francisco, CA</p>
             <Tag label="Boat Class" />
-            <p className="text-xs text-gray-400 mt-1.5">0 followers</p>
+            <div className="flex gap-5 mt-2">
+              <div>
+                <p className="text-base font-semibold text-gray-900">0</p>
+                <p className="text-[11px] text-gray-500">Crew</p>
+              </div>
+              <div>
+                <p className="text-base font-semibold text-gray-900">0</p>
+                <p className="text-[11px] text-gray-500">Regattas</p>
+              </div>
+              <div>
+                <p className="text-base font-semibold text-gray-900">0</p>
+                <p className="text-[11px] text-gray-500">Followers</p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -97,8 +110,8 @@ export default function BoatProfilePage() {
           <p className="text-sm mb-4" style={{ color: "#007AFF" }}>instagram.com/boatname</p>
           <Link
             href="/boat/edit"
-            className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-medium text-white"
-            style={{ backgroundColor: "#111" }}
+            className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-medium border"
+            style={{ color: "#0161f0", borderColor: "#0161f0" }}
           >
             Edit Boat Profile
           </Link>
@@ -140,8 +153,8 @@ export default function BoatProfilePage() {
             </div>
             <Link
               href="/boat/regattas"
-              className="inline-flex text-xs font-medium px-3 py-1.5 rounded-full"
-              style={{ backgroundColor: "#f0f0f0", color: "#555" }}
+              className="inline-flex text-xs font-medium"
+              style={{ color: "#0161f0" }}
             >
               Edit regatta
             </Link>
@@ -158,8 +171,8 @@ export default function BoatProfilePage() {
           </div>
 
           <button
-            className="text-xs font-medium px-3 py-1.5 rounded-full"
-            style={{ backgroundColor: "#f0f0f0", color: "#555" }}
+            className="text-xs font-medium"
+            style={{ color: "#0161f0" }}
           >
             + Add Regatta
           </button>
