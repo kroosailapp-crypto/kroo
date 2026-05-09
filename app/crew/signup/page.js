@@ -103,14 +103,18 @@ export default function CrewSignupPage() {
     setLoading(true);
     try {
       // 1. Create auth user
-      const { data, error: signUpError } = await supabase.auth.signUp({
+      const { error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: { data: { user_type: "crew" } },
       });
       if (signUpError) throw signUpError;
 
-      // 2. Create crew profile
+      // 2. Sign in immediately to establish a session
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInError) throw signInError;
+
+      // 3. Create crew profile
       const { error: profileError } = await supabase.from("crew_profiles").insert({
         id: data.user.id,
         name,

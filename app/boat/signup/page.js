@@ -108,14 +108,18 @@ export default function BoatSignupPage() {
     setLoading(true);
     try {
       // 1. Create auth user
-      const { data, error: signUpError } = await supabase.auth.signUp({
+      const { error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: { data: { user_type: "boat" } },
       });
       if (signUpError) throw signUpError;
 
-      // 2. Create boat profile
+      // 2. Sign in immediately to establish a session
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInError) throw signInError;
+
+      // 3. Create boat profile
       const { error: profileError } = await supabase.from("boat_profiles").insert({
         id: data.user.id,
         skipper_name: skipperName,
