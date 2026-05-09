@@ -1,3 +1,5 @@
+"use client";
+import { useState, use } from "react";
 import Link from "next/link";
 import {
   IconAnchor,
@@ -6,9 +8,31 @@ import {
   IconStar,
   IconUser,
   IconArrowLeft,
-  IconCircleCheck,
+  IconCheck,
+  IconX,
 } from "@tabler/icons-react";
 
+const POSITIONS = [
+  "Helm",
+  "Tactician",
+  "Navigator",
+  "Mainsail Trimmer",
+  "Jib Trimmer",
+  "Spin Trimmer",
+  "Bowman",
+  "Foredeck",
+  "Pitman",
+  "Grinder",
+  "Mast",
+  "Runner",
+];
+
+const LEVELS = [
+  "All levels",
+  "Entry Level",
+  "Mid Level – 2–5 years",
+  "Advanced",
+];
 
 const regattas = {
   1: {
@@ -146,11 +170,120 @@ function CrewRow({ crew, action }) {
   );
 }
 
+function AddPositionModal({ onAdd, onClose }) {
+  const [role, setRole] = useState(null);
+  const [level, setLevel] = useState(null);
+
+  function handleAdd() {
+    if (role) {
+      onAdd({ role, level: level ?? "" });
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center"
+      style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-t-2xl w-full max-w-[430px] px-5 pt-5 pb-8 flex flex-col gap-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <p className="text-base font-semibold text-gray-900">Add position</p>
+          <button onClick={onClose}>
+            <IconX size={18} color="#999" />
+          </button>
+        </div>
+
+        {/* Position list */}
+        <div>
+          <p className="text-xs text-gray-400 mb-2">Position</p>
+          <div className="flex flex-wrap gap-2">
+            {POSITIONS.map((p) => (
+              <button
+                key={p}
+                onClick={() => setRole(p)}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors"
+                style={{
+                  backgroundColor: role === p ? "#111" : "#F4F4F4",
+                  color: role === p ? "#fff" : "#111",
+                  borderColor: role === p ? "#111" : "#F4F4F4",
+                }}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Level list */}
+        <div>
+          <p className="text-xs text-gray-400 mb-2">Level</p>
+          <div className="flex flex-wrap gap-2">
+            {LEVELS.map((l) => (
+              <button
+                key={l}
+                onClick={() => setLevel(l)}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors"
+                style={{
+                  backgroundColor: level === l ? "#111" : "#F4F4F4",
+                  color: level === l ? "#fff" : "#111",
+                  borderColor: level === l ? "#111" : "#F4F4F4",
+                }}
+              >
+                {l}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Add button */}
+        <button
+          onClick={handleAdd}
+          disabled={!role}
+          className="w-full py-3.5 rounded-full text-sm font-semibold text-white mt-1"
+          style={{ backgroundColor: role ? "#0161F0" : "#c0c0c0" }}
+        >
+          Add position
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function RegattaDetail({ params }) {
-  const regatta = regattas[params.id] ?? regattas[1];
+  const { id } = use(params);
+  const base = regattas[id] ?? regattas[1];
+  const [positions, setPositions] = useState(base.positions);
+  const [showModal, setShowModal] = useState(false);
+
+  function handleAddPosition({ role, level }) {
+    setPositions((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        role,
+        level,
+        status: "open",
+        selectedCrew: null,
+        otherApplicants: [],
+      },
+    ]);
+    setShowModal(false);
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
+
+      {showModal && (
+        <AddPositionModal
+          onAdd={handleAddPosition}
+          onClose={() => setShowModal(false)}
+        />
+      )}
 
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-4 pb-3">
@@ -178,25 +311,25 @@ export default function RegattaDetail({ params }) {
 
         {/* Regatta name + date */}
         <div className="px-4 pt-4 pb-3">
-          <p className="text-xs text-gray-400 mb-0.5">{regatta.date}, {regatta.location}</p>
-          <p className="text-xl font-bold text-gray-900 mb-4">{regatta.name}</p>
+          <p className="text-xs text-gray-400 mb-0.5">{base.date}, {base.location}</p>
+          <p className="text-xl font-bold text-gray-900 mb-4">{base.name}</p>
 
           {/* Stats */}
           <div className="flex gap-5">
             <div>
-              <p className="text-base font-semibold text-gray-900">{regatta.invited}</p>
+              <p className="text-base font-semibold text-gray-900">{base.invited}</p>
               <p className="text-[11px] text-gray-500">Invited</p>
             </div>
             <div>
-              <p className="text-base font-semibold text-gray-900">{regatta.confirmed}</p>
+              <p className="text-base font-semibold text-gray-900">{base.confirmed}</p>
               <p className="text-[11px] text-gray-500">Confirmed</p>
             </div>
             <div>
-              <p className="text-base font-semibold text-gray-900">{regatta.pending}</p>
+              <p className="text-base font-semibold text-gray-900">{base.pending}</p>
               <p className="text-[11px] text-gray-500">Pending</p>
             </div>
             <div>
-              <p className="text-base font-semibold text-gray-900">{regatta.declined}</p>
+              <p className="text-base font-semibold text-gray-900">{base.declined}</p>
               <p className="text-[11px] text-gray-500">Declined</p>
             </div>
           </div>
@@ -205,14 +338,19 @@ export default function RegattaDetail({ params }) {
         <Divider />
 
         {/* Positions */}
-        {regatta.positions.map((pos) => (
+        {positions.map((pos) => (
           <div key={pos.id}>
             {/* Position header */}
             <div className="flex items-center gap-2 px-4 py-3">
               <Tag label={pos.role} />
               <span className="text-xs text-gray-500 flex-1">{pos.level}</span>
               {pos.status === "filled" && (
-                <IconCircleCheck size={20} color="#111" />
+                <div
+                  className="flex items-center justify-center rounded-full flex-shrink-0"
+                  style={{ width: 22, height: 22, backgroundColor: "#111" }}
+                >
+                  <IconCheck size={13} color="white" strokeWidth={2.5} />
+                </div>
               )}
             </div>
 
@@ -295,6 +433,7 @@ export default function RegattaDetail({ params }) {
         {/* Actions */}
         <div className="flex items-center gap-4 px-4 py-4 pb-8">
           <button
+            onClick={() => setShowModal(true)}
             className="text-xs font-medium px-3 py-1.5 rounded-full border"
             style={{ color: "#0161f0", borderColor: "#0161f0" }}
           >
