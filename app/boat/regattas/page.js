@@ -118,8 +118,8 @@ function RegattaCard({ regatta }) {
     <div className="py-4">
       {/* Regatta name + date */}
       <div className="px-4 mb-3">
-        <p className="text-xl font-bold text-gray-900 mb-0.5">{regatta.name}</p>
-        <p className="text-xs text-gray-400">{regatta.date} · {regatta.location}</p>
+        <p className="text-xs text-gray-400 mb-0.5">{regatta.date} · {regatta.location}</p>
+        <p className="text-xl font-bold text-gray-900">{regatta.name}</p>
       </div>
 
       {/* Stats row */}

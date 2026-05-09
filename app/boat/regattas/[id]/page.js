@@ -177,8 +177,8 @@ export default function RegattaDetail({ params }) {
 
         {/* Regatta name + date */}
         <div className="px-4 pt-4 pb-3">
-          <p className="text-xl font-bold text-gray-900 mb-0.5">{regatta.name}</p>
-          <p className="text-xs text-gray-400 mb-4">{regatta.date} · {regatta.location}</p>
+          <p className="text-xs text-gray-400 mb-0.5">{regatta.date} · {regatta.location}</p>
+          <p className="text-xl font-bold text-gray-900 mb-4">{regatta.name}</p>
 
           {/* Stats */}
           <div className="flex gap-5">
