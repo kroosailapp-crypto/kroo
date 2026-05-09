@@ -38,6 +38,19 @@ const myRegattas = [
     skipperName: "Carlos Mendes",
     skipperPhoto: null,
   },
+  {
+    id: 3,
+    status: "cancelled_by_boat",
+    name: "Bay Regatta",
+    date: "08/10/2026",
+    location: "Oakland, CA",
+    position: "Jib Trimmer",
+    boatName: "Dilema",
+    boatLocation: "San Francisco",
+    boatPhoto: null,
+    skipperName: "Linda Petterson",
+    skipperPhoto: null,
+  },
 ];
 
 function NavFooter({ active }) {
@@ -84,16 +97,23 @@ function Tag({ label }) {
 }
 
 function StatusTag({ status }) {
-  const confirmed = status === "confirmed";
+  if (status === "confirmed") {
+    return (
+      <span className="text-xs font-bold px-2.5 py-1 rounded-lg" style={{ backgroundColor: "#111", color: "#fff" }}>
+        Confirmed
+      </span>
+    );
+  }
+  if (status === "cancelled_by_boat") {
+    return (
+      <span className="text-xs font-bold px-2.5 py-1 rounded-lg" style={{ backgroundColor: "#FF3B30", color: "#fff" }}>
+        Cancelled by Boat
+      </span>
+    );
+  }
   return (
-    <span
-      className="text-xs font-bold px-2.5 py-1 rounded-lg"
-      style={{
-        backgroundColor: confirmed ? "#111" : "#fff7e6",
-        color: confirmed ? "#fff" : "#b96b00",
-      }}
-    >
-      {confirmed ? "Confirmed" : "Applied"}
+    <span className="text-xs font-bold px-2.5 py-1 rounded-lg" style={{ backgroundColor: "#fff7e6", color: "#b96b00" }}>
+      Applied
     </span>
   );
 }
@@ -135,8 +155,8 @@ function ConfirmModal({ regatta, verb, confirmLabel, onConfirm, onClose }) {
   );
 }
 
-function RegattaCard({ regatta, onCancel, onWithdraw }) {
-  const isConfirmed = regatta.status === "confirmed";
+function RegattaCard({ regatta, onCancel, onWithdraw, onRemove }) {
+  const { status } = regatta;
 
   return (
     <div className="px-4 py-5">
@@ -191,7 +211,15 @@ function RegattaCard({ regatta, onCancel, onWithdraw }) {
 
       {/* Action buttons */}
       <div className="flex gap-3">
-        {isConfirmed ? (
+        {status === "cancelled_by_boat" ? (
+          <button
+            onClick={onRemove}
+            className="flex-1 py-2 rounded-full text-sm font-medium border"
+            style={{ color: "#111", borderColor: "#d0d0d0" }}
+          >
+            Remove
+          </button>
+        ) : status === "confirmed" ? (
           <>
             <button
               onClick={onCancel}
@@ -288,6 +316,7 @@ export default function CrewRegattas() {
                 regatta={regatta}
                 onCancel={() => setCancelTarget(regatta)}
                 onWithdraw={() => setWithdrawTarget(regatta)}
+                onRemove={() => removeRegatta(regatta.id)}
               />
               {i < regattas.length - 1 && (
                 <div className="h-2" style={{ backgroundColor: "#F6F6F6" }} />
