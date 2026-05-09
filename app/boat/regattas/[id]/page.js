@@ -237,8 +237,11 @@ export default function RegattaDetail({ params }) {
                         Confirmed
                       </span>
                     </div>
-                    <button className="flex-shrink-0">
-                      <IconMessage size={20} color="#0161f0" />
+                    <button
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-white flex-shrink-0"
+                      style={{ backgroundColor: "#111" }}
+                    >
+                      <IconMessage size={13} color="white" /> Message
                     </button>
                   </div>
                 </div>
@@ -268,7 +271,12 @@ export default function RegattaDetail({ params }) {
                       >
                         Select
                       </button>
-                      <IconMessage size={16} color="#aaa" />
+                      <button
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-white"
+                        style={{ backgroundColor: "#111" }}
+                      >
+                        <IconMessage size={13} color="white" /> Message
+                      </button>
                     </>
                   }
                 />

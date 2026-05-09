@@ -162,10 +162,10 @@ function RegattaCard({ regatta }) {
               Cancel
             </button>
             <button
-              className="flex-1 py-2 rounded-full text-sm font-medium border"
-              style={{ color: "#111", borderColor: "#d0d0d0" }}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-sm font-medium text-white"
+              style={{ backgroundColor: "#111" }}
             >
-              Send Message
+              <IconMessage size={13} /> Send Message
             </button>
           </>
         ) : (
@@ -177,10 +177,10 @@ function RegattaCard({ regatta }) {
               Withdraw
             </button>
             <button
-              className="flex-1 py-2 rounded-full text-sm font-medium border"
-              style={{ color: "#111", borderColor: "#d0d0d0" }}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-sm font-medium text-white"
+              style={{ backgroundColor: "#111" }}
             >
-              Send Message
+              <IconMessage size={13} /> Send Message
             </button>
           </>
         )}
