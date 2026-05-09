@@ -33,7 +33,7 @@ const crewMembers = [
     id: 3,
     name: "Mike Chen",
     location: "Sausalito, CA",
-    positions: ["Bowman"],
+    positions: ["Bow"],
     level: "Entry Level",
     kroo: 6,
     favorites: 12,

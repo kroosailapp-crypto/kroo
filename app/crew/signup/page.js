@@ -6,9 +6,9 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 const POSITIONS = [
-  "Jib Trimmer", "Spin Trimmer", "Tactician", "Bowman",
-  "Main Trimmer", "Helm", "Pitman", "Grinder",
-  "Navigator", "Foredeck",
+  "Helm", "Tactician", "Navigator", "Mainsail Trimmer",
+  "Jib Trimmer", "Spin Trimmer", "Foredeck", "Bow",
+  "Pitman", "Grinder", "Mast", "Runner",
 ];
 
 const EXPERIENCE_LEVELS = ["Beginner", "Mid-Level", "Advanced", "Expert"];

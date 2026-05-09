@@ -6,8 +6,9 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 const POSITIONS_NEEDED = [
-  "Jib Trimmer", "Spin Trimmer", "Tactician", "Bowman",
-  "Main Trimmer", "Navigator", "Pitman", "Grinder",
+  "Helm", "Tactician", "Navigator", "Mainsail Trimmer",
+  "Jib Trimmer", "Spin Trimmer", "Foredeck", "Bow",
+  "Pitman", "Grinder", "Mast", "Runner",
 ];
 
 function ProgressBar({ step, total }) {

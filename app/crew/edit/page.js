@@ -9,7 +9,7 @@ import { supabase } from "@/lib/supabase";
 
 const POSITIONS = [
   "Helm", "Tactician", "Navigator", "Mainsail Trimmer",
-  "Jib Trimmer", "Spin Trimmer", "Bowman", "Foredeck",
+  "Jib Trimmer", "Spin Trimmer", "Foredeck", "Bow",
   "Pitman", "Grinder", "Mast", "Runner",
 ];
 

@@ -30,7 +30,7 @@ const boatProfiles = {
         location: "San Francisco, CA",
         positions: [
           { role: "Jib Trimmer", level: "Mid Level – 2–5 years" },
-          { role: "Bowman", level: "All levels" },
+          { role: "Bow", level: "All levels" },
         ],
       },
       {

@@ -18,7 +18,7 @@ const boatRegattas = [
     id: 1,
     name: "Rolex Big Boat Series",
     date: "07/25/2026",
-    positions: ["Jib Trimmer", "Bowman", "Spin Trimmer"],
+    positions: ["Jib Trimmer", "Bow", "Spin Trimmer"],
   },
   {
     id: 2,
@@ -200,7 +200,7 @@ const crewProfiles = {
   3: {
     name: "Mike Chen",
     location: "Sausalito, CA",
-    positions: ["Bowman"],
+    positions: ["Bow"],
     level: "Entry Level",
     kroo: 6,
     favorites: 12,

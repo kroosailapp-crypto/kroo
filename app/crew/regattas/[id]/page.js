@@ -62,7 +62,7 @@ const regattas = {
     positions: [
       {
         id: 1,
-        role: "Bowman",
+        role: "Bow",
         level: "All levels",
         status: "open",
         applicants: 4,

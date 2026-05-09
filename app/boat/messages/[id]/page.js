@@ -11,7 +11,7 @@ import BoatNavFooter from "@/app/components/BoatNavFooter";
 const sailors = {
   1: { name: "Andre Peixoto", role: "Jib Trimmer" },
   2: { name: "Sara Lopes", role: "Tactician" },
-  3: { name: "Mike Chen", role: "Bowman" },
+  3: { name: "Mike Chen", role: "Bow" },
   4: { name: "Julia Martins", role: "Main Trimmer" },
 };
 

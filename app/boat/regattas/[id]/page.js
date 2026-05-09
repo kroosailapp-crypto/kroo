@@ -18,7 +18,7 @@ const POSITIONS = [
   "Mainsail Trimmer",
   "Jib Trimmer",
   "Spin Trimmer",
-  "Bowman",
+  "Bow",
   "Foredeck",
   "Pitman",
   "Grinder",
@@ -57,7 +57,7 @@ const regattas = {
       },
       {
         id: 2,
-        role: "Bowman",
+        role: "Bow",
         level: "All levels",
         status: "open",
         selectedCrew: null,

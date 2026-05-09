@@ -31,7 +31,7 @@ const regattas = [
       },
       {
         id: 2,
-        role: "Bowman",
+        role: "Bow",
         level: "All levels",
         status: "open",
         crew: null,

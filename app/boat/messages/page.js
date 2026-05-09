@@ -34,7 +34,7 @@ const conversations = [
   {
     id: 3,
     name: "Mike Chen",
-    role: "Bowman",
+    role: "Bow",
     lastMessage: "I'm interested in the position.",
     time: "2d ago",
     unread: 0,
