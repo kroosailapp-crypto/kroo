@@ -150,14 +150,6 @@ export default function CrewRegattaDetail({ params }) {
               {/* Position row */}
               <div className="flex items-center gap-2">
                 <Tag label={pos.role} />
-                {pos.status === "open" && pos.applicants > 0 && (
-                  <span
-                    className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
-                    style={{ backgroundColor: "#e53935" }}
-                  >
-                    {pos.applicants}
-                  </span>
-                )}
                 <span className="text-xs text-gray-500 flex-1">{pos.level}</span>
                 {pos.status === "open" && (
                   <button
