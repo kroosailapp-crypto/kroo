@@ -10,9 +10,10 @@ import {
   IconSearch,
 } from "@tabler/icons-react";
 
-const confirmedRegattas = [
+const myRegattas = [
   {
     id: 1,
+    status: "confirmed",
     name: "2026 The Great Vallejo Race",
     date: "05/12/2026",
     location: "San Francisco, CA",
@@ -25,6 +26,7 @@ const confirmedRegattas = [
   },
   {
     id: 2,
+    status: "applied",
     name: "Rolex Big Boat Series",
     date: "07/25/2026",
     location: "San Francisco, CA",
@@ -80,7 +82,24 @@ function Tag({ label }) {
   );
 }
 
+function StatusTag({ status }) {
+  const confirmed = status === "confirmed";
+  return (
+    <span
+      className="text-xs font-semibold px-3 py-1 rounded-full"
+      style={{
+        backgroundColor: confirmed ? "#e6f9ee" : "#fff7e6",
+        color: confirmed ? "#1a9e4a" : "#b96b00",
+      }}
+    >
+      {confirmed ? "Confirmed" : "Applied"}
+    </span>
+  );
+}
+
 function RegattaCard({ regatta }) {
+  const isConfirmed = regatta.status === "confirmed";
+
   return (
     <div className="px-4 py-5">
       {/* Date + location */}
@@ -89,9 +108,10 @@ function RegattaCard({ regatta }) {
       {/* Regatta name */}
       <p className="text-2xl font-bold text-gray-900 mb-3 leading-tight">{regatta.name}</p>
 
-      {/* Position tag */}
-      <div className="mb-4">
+      {/* Position tag + status tag */}
+      <div className="flex items-center gap-2 mb-4">
         <Tag label={regatta.position} />
+        <StatusTag status={regatta.status} />
       </div>
 
       {/* Boat + Skipper row */}
@@ -102,9 +122,9 @@ function RegattaCard({ regatta }) {
             className="rounded-xl flex-shrink-0 overflow-hidden"
             style={{ width: 48, height: 48, backgroundColor: "#e0e0e0" }}
           >
-            {regatta.boatPhoto ? (
+            {regatta.boatPhoto && (
               <Image src={regatta.boatPhoto} alt={regatta.boatName} width={48} height={48} className="object-cover w-full h-full" />
-            ) : null}
+            )}
           </div>
           <div>
             <p className="text-sm font-semibold text-gray-900">{regatta.boatName}</p>
@@ -133,18 +153,37 @@ function RegattaCard({ regatta }) {
 
       {/* Action buttons */}
       <div className="flex gap-3">
-        <button
-          className="flex-1 py-2 rounded-full text-sm font-medium border"
-          style={{ color: "#111", borderColor: "#d0d0d0" }}
-        >
-          Cancel
-        </button>
-        <button
-          className="flex-1 py-2 rounded-full text-sm font-medium border"
-          style={{ color: "#111", borderColor: "#d0d0d0" }}
-        >
-          Send Message
-        </button>
+        {isConfirmed ? (
+          <>
+            <button
+              className="flex-1 py-2 rounded-full text-sm font-medium border"
+              style={{ color: "#111", borderColor: "#d0d0d0" }}
+            >
+              Cancel
+            </button>
+            <button
+              className="flex-1 py-2 rounded-full text-sm font-medium border"
+              style={{ color: "#111", borderColor: "#d0d0d0" }}
+            >
+              Send Message
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              className="flex-1 py-2 rounded-full text-sm font-medium border"
+              style={{ color: "#111", borderColor: "#d0d0d0" }}
+            >
+              Withdraw
+            </button>
+            <button
+              className="flex-1 py-2 rounded-full text-sm font-medium border"
+              style={{ color: "#111", borderColor: "#d0d0d0" }}
+            >
+              Send Message
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
@@ -167,18 +206,18 @@ export default function CrewRegattas() {
       </div>
 
       <main className="flex-1 overflow-y-auto">
-        {confirmedRegattas.length === 0 ? (
+        {myRegattas.length === 0 ? (
           <div className="flex flex-col items-center justify-center px-8 py-20">
-            <p className="text-sm text-gray-400 text-center">You haven't been selected for any regattas yet.</p>
+            <p className="text-sm text-gray-400 text-center">No regattas yet. Apply from a boat's profile.</p>
             <Link href="/crew/feed" className="mt-4 text-xs font-medium" style={{ color: "#0161f0" }}>
               Browse boats →
             </Link>
           </div>
         ) : (
-          confirmedRegattas.map((regatta, i) => (
+          myRegattas.map((regatta, i) => (
             <div key={regatta.id}>
               <RegattaCard regatta={regatta} />
-              {i < confirmedRegattas.length - 1 && <Divider />}
+              {i < myRegattas.length - 1 && <Divider />}
             </div>
           ))
         )}
