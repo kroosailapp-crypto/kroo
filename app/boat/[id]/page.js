@@ -169,6 +169,12 @@ export default function BoatPublicProfile({ params }) {
   const { id } = use(params);
   const profile = boatProfiles[id] ?? boatProfiles[1];
   const [showModal, setShowModal] = useState(false);
+  const [appliedPositions, setAppliedPositions] = useState(new Set());
+
+  function handleApply(key) {
+    setAppliedPositions((prev) => new Set(prev).add(key));
+    setShowModal(true);
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
@@ -277,19 +283,32 @@ export default function BoatPublicProfile({ params }) {
               <p className="text-sm font-semibold text-gray-900 mb-0.5">{regatta.name}</p>
               <p className="text-xs text-gray-400 mb-2">{regatta.date} · {regatta.location}</p>
               <div className="flex flex-col gap-2">
-                {regatta.positions.map((pos) => (
-                  <div key={pos.role} className="flex items-center gap-2">
-                    <Tag label={pos.role} />
-                    <span className="text-[11px] text-gray-500 flex-1">{pos.level}</span>
-                    <button
-                      onClick={() => setShowModal(true)}
-                      className="text-xs font-semibold px-3 py-1 rounded-full text-white flex-shrink-0"
-                      style={{ backgroundColor: "#0161f0" }}
-                    >
-                      Apply
-                    </button>
-                  </div>
-                ))}
+                {regatta.positions.map((pos) => {
+                  const key = `${regatta.name}-${pos.role}`;
+                  const applied = appliedPositions.has(key);
+                  return (
+                    <div key={pos.role} className="flex items-center gap-2">
+                      <Tag label={pos.role} />
+                      <span className="text-[11px] text-gray-500 flex-1">{pos.level}</span>
+                      {applied ? (
+                        <span
+                          className="text-xs font-semibold px-3 py-1 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: "#fff7e6", color: "#b96b00" }}
+                        >
+                          Applied
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => handleApply(key)}
+                          className="text-xs font-semibold px-3 py-1 rounded-full text-white flex-shrink-0"
+                          style={{ backgroundColor: "#0161f0" }}
+                        >
+                          Apply
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ))}
