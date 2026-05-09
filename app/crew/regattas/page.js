@@ -98,7 +98,7 @@ function StatusTag({ status }) {
   );
 }
 
-function CancelModal({ regatta, onConfirm, onClose }) {
+function ConfirmModal({ regatta, verb, confirmLabel, onConfirm, onClose }) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center px-8"
@@ -110,9 +110,9 @@ function CancelModal({ regatta, onConfirm, onClose }) {
         onClick={(e) => e.stopPropagation()}
       >
         <p className="text-base font-semibold text-gray-900 text-center leading-snug">
-          Are you sure you want to cancel{" "}
-          <span className="text-gray-900">"{regatta.name}"</span> with{" "}
-          <span className="text-gray-900">"{regatta.boatName}"</span>?
+          Are you sure you want to {verb}{" "}
+          <span>"{regatta.name}"</span> with{" "}
+          <span>"{regatta.boatName}"</span>?
         </p>
         <div className="flex gap-3">
           <button
@@ -127,7 +127,7 @@ function CancelModal({ regatta, onConfirm, onClose }) {
             className="flex-1 py-2.5 rounded-full text-sm font-semibold text-white"
             style={{ backgroundColor: "#111" }}
           >
-            Yes, Cancel
+            {confirmLabel}
           </button>
         </div>
       </div>
@@ -135,7 +135,7 @@ function CancelModal({ regatta, onConfirm, onClose }) {
   );
 }
 
-function RegattaCard({ regatta, onCancel }) {
+function RegattaCard({ regatta, onCancel, onWithdraw }) {
   const isConfirmed = regatta.status === "confirmed";
 
   return (
@@ -210,6 +210,7 @@ function RegattaCard({ regatta, onCancel }) {
         ) : (
           <>
             <button
+              onClick={onWithdraw}
               className="flex-1 py-2 rounded-full text-sm font-medium border"
               style={{ color: "#111", borderColor: "#d0d0d0" }}
             >
@@ -231,20 +232,32 @@ function RegattaCard({ regatta, onCancel }) {
 export default function CrewRegattas() {
   const [regattas, setRegattas] = useState(myRegattas);
   const [cancelTarget, setCancelTarget] = useState(null);
+  const [withdrawTarget, setWithdrawTarget] = useState(null);
 
-  function handleConfirmCancel() {
-    setRegattas((prev) => prev.filter((r) => r.id !== cancelTarget.id));
-    setCancelTarget(null);
+  function removeRegatta(id) {
+    setRegattas((prev) => prev.filter((r) => r.id !== id));
   }
 
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
 
       {cancelTarget && (
-        <CancelModal
+        <ConfirmModal
           regatta={cancelTarget}
-          onConfirm={handleConfirmCancel}
+          verb="cancel"
+          confirmLabel="Yes, Cancel"
+          onConfirm={() => { removeRegatta(cancelTarget.id); setCancelTarget(null); }}
           onClose={() => setCancelTarget(null)}
+        />
+      )}
+
+      {withdrawTarget && (
+        <ConfirmModal
+          regatta={withdrawTarget}
+          verb="withdraw from"
+          confirmLabel="Yes, Withdraw"
+          onConfirm={() => { removeRegatta(withdrawTarget.id); setWithdrawTarget(null); }}
+          onClose={() => setWithdrawTarget(null)}
         />
       )}
 
@@ -274,6 +287,7 @@ export default function CrewRegattas() {
               <RegattaCard
                 regatta={regatta}
                 onCancel={() => setCancelTarget(regatta)}
+                onWithdraw={() => setWithdrawTarget(regatta)}
               />
               {i < regattas.length - 1 && (
                 <div className="h-2" style={{ backgroundColor: "#F6F6F6" }} />
