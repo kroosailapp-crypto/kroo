@@ -267,7 +267,7 @@ export default function BoatRegattas() {
           <div key={regatta.id}>
             <RegattaCard regatta={regatta} />
             {i < regattas.length - 1 && (
-              <div className="h-2" style={{ backgroundColor: "#f5f5f5" }} />
+              <div className="h-2" style={{ backgroundColor: "#F6F6F6" }} />
             )}
           </div>
         ))}

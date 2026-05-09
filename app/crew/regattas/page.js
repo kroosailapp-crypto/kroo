@@ -217,7 +217,9 @@ export default function CrewRegattas() {
           myRegattas.map((regatta, i) => (
             <div key={regatta.id}>
               <RegattaCard regatta={regatta} />
-              {i < myRegattas.length - 1 && <Divider />}
+              {i < myRegattas.length - 1 && (
+                <div className="h-2" style={{ backgroundColor: "#F6F6F6" }} />
+              )}
             </div>
           ))
         )}
