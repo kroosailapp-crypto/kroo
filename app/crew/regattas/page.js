@@ -1,3 +1,5 @@
+"use client";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -14,6 +16,7 @@ const regattas = [
   {
     id: 1,
     name: "2026 The Great Vallejo Race",
+    boatName: "Dilema",
     date: "05/12/2026",
     location: "San Francisco, CA",
     positions: [
@@ -54,6 +57,7 @@ const regattas = [
   {
     id: 2,
     name: "Rolex Big Boat Series",
+    boatName: "Bravura",
     date: "07/25/2026",
     location: "San Francisco, CA",
     positions: [
@@ -120,7 +124,36 @@ function Tag({ label }) {
   );
 }
 
-function RegattaCard({ regatta }) {
+function ApplyModal({ boatName, onClose }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center px-8"
+      style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl px-6 py-7 w-full max-w-[320px] flex flex-col items-center gap-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <p className="text-base font-semibold text-gray-900 text-center leading-snug">
+          Application sent!
+        </p>
+        <p className="text-sm text-gray-500 text-center leading-relaxed">
+          A notification was sent to the skipper of <span className="font-semibold text-gray-800">"{boatName}"</span>. If you are selected, we will notify you.
+        </p>
+        <button
+          onClick={onClose}
+          className="mt-1 w-full py-2.5 rounded-full text-sm font-semibold text-white"
+          style={{ backgroundColor: "#0161f0" }}
+        >
+          Got it
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function RegattaCard({ regatta, onApply }) {
   return (
     <div className="py-4">
       {/* Date + location + name */}
@@ -143,6 +176,7 @@ function RegattaCard({ regatta }) {
               <span className="text-xs text-gray-500 flex-1">{pos.level}</span>
               {pos.status === "open" && (
                 <button
+                  onClick={() => onApply(regatta.boatName)}
                   className="text-xs font-semibold px-4 py-1.5 rounded-full text-white flex-shrink-0"
                   style={{ backgroundColor: "#0161f0" }}
                 >
@@ -189,8 +223,14 @@ function RegattaCard({ regatta }) {
 }
 
 export default function CrewRegattas() {
+  const [appliedBoat, setAppliedBoat] = useState(null);
+
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
+
+      {appliedBoat && (
+        <ApplyModal boatName={appliedBoat} onClose={() => setAppliedBoat(null)} />
+      )}
 
       {/* Header */}
       <div className="flex items-center gap-2 px-4 pt-3 pb-2 flex-shrink-0">
@@ -207,7 +247,7 @@ export default function CrewRegattas() {
       <main className="flex-1 overflow-y-auto">
         {regattas.map((regatta, i) => (
           <div key={regatta.id}>
-            <RegattaCard regatta={regatta} />
+            <RegattaCard regatta={regatta} onApply={setAppliedBoat} />
             {i < regattas.length - 1 && (
               <div className="h-2" style={{ backgroundColor: "#f5f5f5" }} />
             )}
