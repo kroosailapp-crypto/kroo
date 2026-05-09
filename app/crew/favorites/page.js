@@ -80,7 +80,7 @@ function BoatCard({ boat }) {
           >
             {boat.boatClass}
           </span>
-          <IconStar size={18} color="#111" fill="#111" />
+          <IconStar size={18} color="#08FF00" fill="#08FF00" />
         </div>
       </div>
 

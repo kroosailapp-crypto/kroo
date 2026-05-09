@@ -81,7 +81,7 @@ function CrewCard({ member }) {
       <div className="flex-1">
         <div className="flex items-start justify-between mb-0.5">
           <p className="font-semibold text-base text-gray-900">{member.name}</p>
-          <IconStar size={18} color="#111" fill="#111" />
+          <IconStar size={18} color="#08FF00" fill="#08FF00" />
         </div>
         <p className="text-xs text-gray-500 mb-1.5">{member.location}</p>
         <div className="flex flex-wrap gap-1.5 mb-1.5">
