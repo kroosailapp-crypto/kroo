@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { IconArrowLeft, IconCamera, IconAnchor } from "@tabler/icons-react";
+import { IconArrowLeft, IconCamera, IconAnchor, IconUser } from "@tabler/icons-react";
 import BoatNavFooter from "@/app/components/BoatNavFooter";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
@@ -24,9 +24,12 @@ export default function EditBoatProfile() {
   const router = useRouter();
   const { user } = useAuth();
   const fileRef = useRef(null);
+  const skipperFileRef = useRef(null);
 
   const [photo, setPhoto] = useState(null);
   const [photoFile, setPhotoFile] = useState(null);
+  const [skipperPhoto, setSkipperPhoto] = useState(null);
+  const [skipperPhotoFile, setSkipperPhotoFile] = useState(null);
   const [skipperName, setSkipperName] = useState("");
   const [boatName, setBoatName] = useState("");
   const [location, setLocation] = useState("");
@@ -55,6 +58,7 @@ export default function EditBoatProfile() {
       setWebsite(data.website || "");
       setInstagram(data.instagram || "");
       if (data.photo_url) setPhoto(data.photo_url);
+      if (data.skipper_photo_url) setSkipperPhoto(data.skipper_photo_url);
     }
     setLoading(false);
   }
@@ -64,6 +68,14 @@ export default function EditBoatProfile() {
     if (file) {
       setPhotoFile(file);
       setPhoto(URL.createObjectURL(file));
+    }
+  }
+
+  function handleSkipperPhotoChange(e) {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSkipperPhotoFile(file);
+      setSkipperPhoto(URL.createObjectURL(file));
     }
   }
 
@@ -88,8 +100,26 @@ export default function EditBoatProfile() {
       photo_url = data.publicUrl;
     }
 
+    // Upload skipper photo if selected
+    let skipper_photo_url = skipperPhoto && !skipperPhotoFile ? skipperPhoto : null;
+    if (skipperPhotoFile) {
+      const ext = skipperPhotoFile.name.split(".").pop();
+      const path = `skipper/${user.id}.${ext}`;
+      const { error: skipperStorageError } = await supabase.storage
+        .from("profile-photos")
+        .upload(path, skipperPhotoFile, { upsert: true });
+      if (skipperStorageError) {
+        setUploadError("Skipper photo upload failed: " + skipperStorageError.message);
+        setSaving(false);
+        return;
+      }
+      const { data: skipperData } = supabase.storage.from("profile-photos").getPublicUrl(path);
+      skipper_photo_url = skipperData.publicUrl;
+    }
+
     const update = { skipper_name: skipperName, boat_name: boatName, home_port: location, boat_class: boatClass, about, website, instagram };
     if (photo_url) update.photo_url = photo_url;
+    if (skipper_photo_url) update.skipper_photo_url = skipper_photo_url;
 
     await supabase.from("boat_profiles").update(update).eq("id", user.id);
     setSaving(false);
@@ -129,6 +159,29 @@ export default function EditBoatProfile() {
 
         <Divider />
         <Field label="Skipper Name" placeholder="Your full name" value={skipperName} onChange={setSkipperName} />
+        <Divider />
+
+        {/* Skipper photo upload */}
+        <div className="px-4 py-4">
+          <p className="text-xs text-gray-400 mb-3">Skipper Photo</p>
+          <div className="flex items-center gap-4">
+            <div className="relative flex-shrink-0">
+              <div className="rounded-full overflow-hidden flex items-center justify-center" style={{ width: 72, height: 72, backgroundColor: "#d8d8d8" }}>
+                {skipperPhoto
+                  ? <img src={skipperPhoto} alt="Skipper" className="w-full h-full object-cover" />
+                  : <IconUser size={28} color="#aaa" />}
+              </div>
+              <button onClick={() => skipperFileRef.current?.click()} className="absolute bottom-0 right-0 flex items-center justify-center rounded-full" style={{ width: 24, height: 24, backgroundColor: "#0161F0", border: "2px solid #fff" }}>
+                <IconCamera size={12} color="white" />
+              </button>
+            </div>
+            <button onClick={() => skipperFileRef.current?.click()} className="text-xs font-medium" style={{ color: "#0161F0" }}>
+              {skipperPhoto ? "Change skipper photo" : "Add skipper photo"}
+            </button>
+            <input ref={skipperFileRef} type="file" accept="image/*" className="hidden" onChange={handleSkipperPhotoChange} />
+          </div>
+        </div>
+
         <Divider />
         <Field label="Boat Name" placeholder="e.g. Dilema" value={boatName} onChange={setBoatName} />
         <Divider />

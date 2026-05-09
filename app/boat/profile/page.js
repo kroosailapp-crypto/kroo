@@ -105,8 +105,10 @@ export default function BoatProfilePage() {
 
         {/* Skipper */}
         <div className="flex items-center gap-2.5 px-4 py-3">
-          <div className="rounded-full flex items-center justify-center flex-shrink-0" style={{ width: 36, height: 36, backgroundColor: "#d8d8d8" }}>
-            <IconUser size={18} color="#aaa" />
+          <div className="rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden" style={{ width: 36, height: 36, backgroundColor: "#d8d8d8" }}>
+            {profile?.skipper_photo_url
+              ? <img src={profile.skipper_photo_url} alt="Skipper" className="w-full h-full object-cover" />
+              : <IconUser size={18} color="#aaa" />}
           </div>
           <p className="text-sm font-medium text-gray-800">{profile?.skipper_name || "—"}</p>
           <span className="text-xs text-gray-400 ml-1">· Skipper</span>
