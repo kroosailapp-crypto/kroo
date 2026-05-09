@@ -8,7 +8,6 @@ import {
   IconStar,
   IconUser,
   IconSearch,
-  IconCheck,
 } from "@tabler/icons-react";
 
 const confirmedRegattas = [
@@ -17,18 +16,24 @@ const confirmedRegattas = [
     name: "2026 The Great Vallejo Race",
     date: "05/12/2026",
     location: "San Francisco, CA",
-    boatName: "Dilema",
-    position: "Jib Trimmer",
-    skipper: "Linda Petterson",
+    position: "Bow",
+    boatName: "Flyer",
+    boatLocation: "San Francisco",
+    boatPhoto: null,
+    skipperName: "Gordon Petterson",
+    skipperPhoto: null,
   },
   {
     id: 2,
     name: "Rolex Big Boat Series",
     date: "07/25/2026",
     location: "San Francisco, CA",
-    boatName: "Bravura",
     position: "Spin Trimmer",
-    skipper: "Carlos Mendes",
+    boatName: "Bravura",
+    boatLocation: "San Francisco",
+    boatPhoto: null,
+    skipperName: "Carlos Mendes",
+    skipperPhoto: null,
   },
 ];
 
@@ -75,6 +80,76 @@ function Tag({ label }) {
   );
 }
 
+function RegattaCard({ regatta }) {
+  return (
+    <div className="px-4 py-5">
+      {/* Date + location */}
+      <p className="text-xs text-gray-400 mb-1">{regatta.date}, {regatta.location}</p>
+
+      {/* Regatta name */}
+      <p className="text-2xl font-bold text-gray-900 mb-3 leading-tight">{regatta.name}</p>
+
+      {/* Position tag */}
+      <div className="mb-4">
+        <Tag label={regatta.position} />
+      </div>
+
+      {/* Boat + Skipper row */}
+      <div className="flex gap-4 mb-5">
+        {/* Boat */}
+        <div className="flex items-center gap-2.5 flex-1">
+          <div
+            className="rounded-xl flex-shrink-0 overflow-hidden"
+            style={{ width: 48, height: 48, backgroundColor: "#e0e0e0" }}
+          >
+            {regatta.boatPhoto ? (
+              <Image src={regatta.boatPhoto} alt={regatta.boatName} width={48} height={48} className="object-cover w-full h-full" />
+            ) : null}
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-900">{regatta.boatName}</p>
+            <p className="text-xs text-gray-400">{regatta.boatLocation}</p>
+          </div>
+        </div>
+
+        {/* Skipper */}
+        <div className="flex items-center gap-2.5 flex-1">
+          <div
+            className="rounded-full flex items-center justify-center flex-shrink-0"
+            style={{ width: 48, height: 48, backgroundColor: "#d8d8d8" }}
+          >
+            {regatta.skipperPhoto ? (
+              <Image src={regatta.skipperPhoto} alt={regatta.skipperName} width={48} height={48} className="object-cover w-full h-full rounded-full" />
+            ) : (
+              <IconUser size={20} color="#aaa" />
+            )}
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-900">{regatta.skipperName}</p>
+            <p className="text-xs text-gray-400">Skipper</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Action buttons */}
+      <div className="flex gap-3">
+        <button
+          className="flex-1 py-2 rounded-full text-sm font-medium border"
+          style={{ color: "#111", borderColor: "#d0d0d0" }}
+        >
+          Cancel
+        </button>
+        <button
+          className="flex-1 py-2 rounded-full text-sm font-medium border"
+          style={{ color: "#111", borderColor: "#d0d0d0" }}
+        >
+          Send Message
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function CrewRegattas() {
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
@@ -92,7 +167,6 @@ export default function CrewRegattas() {
       </div>
 
       <main className="flex-1 overflow-y-auto">
-
         {confirmedRegattas.length === 0 ? (
           <div className="flex flex-col items-center justify-center px-8 py-20">
             <p className="text-sm text-gray-400 text-center">You haven't been selected for any regattas yet.</p>
@@ -103,46 +177,11 @@ export default function CrewRegattas() {
         ) : (
           confirmedRegattas.map((regatta, i) => (
             <div key={regatta.id}>
-              <div className="px-4 py-4">
-                {/* Date + location */}
-                <p className="text-xs text-gray-400 mb-0.5">{regatta.date}, {regatta.location}</p>
-
-                {/* Regatta name */}
-                <p className="text-xl font-bold text-gray-900 mb-3">{regatta.name}</p>
-
-                {/* Confirmed card */}
-                <div className="rounded-xl p-3" style={{ backgroundColor: "#f5f5f5" }}>
-                  <div className="flex items-center gap-3">
-                    {/* Boat thumbnail */}
-                    <div
-                      className="rounded-xl flex-shrink-0"
-                      style={{ width: 46, height: 46, backgroundColor: "#d8d8d8" }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 mb-0.5">{regatta.boatName}</p>
-                      <p className="text-xs text-gray-500 mb-2">{regatta.skipper} · Skipper</p>
-                      <Tag label={regatta.position} />
-                    </div>
-                    {/* Confirmed badge */}
-                    <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
-                      <div
-                        className="flex items-center justify-center rounded-full"
-                        style={{ width: 28, height: 28, backgroundColor: "#111" }}
-                      >
-                        <IconCheck size={15} color="white" strokeWidth={2.5} />
-                      </div>
-                      <span className="text-[10px] font-semibold text-gray-500">Confirmed</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {i < confirmedRegattas.length - 1 && (
-                <div className="h-2" style={{ backgroundColor: "#f5f5f5" }} />
-              )}
+              <RegattaCard regatta={regatta} />
+              {i < confirmedRegattas.length - 1 && <Divider />}
             </div>
           ))
         )}
-
       </main>
 
       <NavFooter active="Regattas" />
