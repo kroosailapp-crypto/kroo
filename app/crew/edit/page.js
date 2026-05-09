@@ -35,6 +35,7 @@ export default function EditCrewProfile() {
   const [instagram, setInstagram] = useState("");
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [uploadError, setUploadError] = useState("");
 
   useEffect(() => {
     if (user === undefined) return;
@@ -72,19 +73,22 @@ export default function EditCrewProfile() {
   async function handleSave() {
     if (!user) return;
     setSaving(true);
+    setUploadError("");
     let avatar_url = photo && !photoFile ? photo : null;
 
-    // Upload new photo if selected
     if (photoFile) {
       const ext = photoFile.name.split(".").pop();
       const path = `crew/${user.id}.${ext}`;
-      const { error: uploadError } = await supabase.storage
+      const { error: storageError } = await supabase.storage
         .from("profile-photos")
         .upload(path, photoFile, { upsert: true });
-      if (!uploadError) {
-        const { data } = supabase.storage.from("profile-photos").getPublicUrl(path);
-        avatar_url = data.publicUrl;
+      if (storageError) {
+        setUploadError("Photo upload failed: " + storageError.message);
+        setSaving(false);
+        return;
       }
+      const { data } = supabase.storage.from("profile-photos").getPublicUrl(path);
+      avatar_url = data.publicUrl;
     }
 
     const update = { name, location, positions, experience_level: level, about, website, instagram };
@@ -123,6 +127,7 @@ export default function EditCrewProfile() {
           </div>
           <button onClick={() => fileRef.current?.click()} className="text-xs font-medium" style={{ color: "#0161F0" }}>Change photo</button>
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
+          {uploadError && <p className="text-xs text-center px-4" style={{ color: "#e00" }}>{uploadError}</p>}
         </div>
 
         <Divider />

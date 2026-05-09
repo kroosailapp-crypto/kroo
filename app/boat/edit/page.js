@@ -36,6 +36,7 @@ export default function EditBoatProfile() {
   const [instagram, setInstagram] = useState("");
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [uploadError, setUploadError] = useState("");
 
   useEffect(() => {
     if (user === undefined) return;
@@ -69,18 +70,22 @@ export default function EditBoatProfile() {
   async function handleSave() {
     if (!user) return;
     setSaving(true);
+    setUploadError("");
     let photo_url = photo && !photoFile ? photo : null;
 
     if (photoFile) {
       const ext = photoFile.name.split(".").pop();
       const path = `boat/${user.id}.${ext}`;
-      const { error: uploadError } = await supabase.storage
+      const { error: storageError } = await supabase.storage
         .from("profile-photos")
         .upload(path, photoFile, { upsert: true });
-      if (!uploadError) {
-        const { data } = supabase.storage.from("profile-photos").getPublicUrl(path);
-        photo_url = data.publicUrl;
+      if (storageError) {
+        setUploadError("Photo upload failed: " + storageError.message);
+        setSaving(false);
+        return;
       }
+      const { data } = supabase.storage.from("profile-photos").getPublicUrl(path);
+      photo_url = data.publicUrl;
     }
 
     const update = { skipper_name: skipperName, boat_name: boatName, home_port: location, boat_class: boatClass, about, website, instagram };
@@ -119,6 +124,7 @@ export default function EditBoatProfile() {
           </div>
           <button onClick={() => fileRef.current?.click()} className="text-xs font-medium" style={{ color: "#0161F0" }}>Change photo</button>
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
+          {uploadError && <p className="text-xs text-center px-4" style={{ color: "#e00" }}>{uploadError}</p>}
         </div>
 
         <Divider />
