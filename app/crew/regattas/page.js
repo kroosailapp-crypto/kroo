@@ -88,8 +88,8 @@ function StatusTag({ status }) {
     <span
       className="text-xs font-semibold px-3 py-1 rounded-full"
       style={{
-        backgroundColor: confirmed ? "#e6f9ee" : "#fff7e6",
-        color: confirmed ? "#1a9e4a" : "#b96b00",
+        backgroundColor: confirmed ? "#111" : "#fff7e6",
+        color: confirmed ? "#fff" : "#b96b00",
       }}
     >
       {confirmed ? "Confirmed" : "Applied"}
