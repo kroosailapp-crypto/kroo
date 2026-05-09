@@ -163,7 +163,7 @@ function RegattaCard({ regatta }) {
             </button>
             <button
               className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-sm font-medium text-white"
-              style={{ backgroundColor: "#111" }}
+              style={{ backgroundColor: "#2C65BB" }}
             >
               <IconMessage size={13} /> Send Message
             </button>
@@ -178,7 +178,7 @@ function RegattaCard({ regatta }) {
             </button>
             <button
               className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-sm font-medium text-white"
-              style={{ backgroundColor: "#111" }}
+              style={{ backgroundColor: "#2C65BB" }}
             >
               <IconMessage size={13} /> Send Message
             </button>
