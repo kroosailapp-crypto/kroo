@@ -52,13 +52,35 @@ function Tag({ label }) {
   );
 }
 
+const POSITIONS = [
+  "Helm",
+  "Tactician",
+  "Navigator",
+  "Mainsail Trimmer",
+  "Jib Trimmer",
+  "Spin Trimmer",
+  "Bowman",
+  "Foredeck",
+  "Pitman",
+  "Grinder",
+  "Mast",
+  "Runner",
+];
+
+const LEVELS = [
+  "All levels",
+  "Entry Level",
+  "Mid Level – 2–5 years",
+  "Advanced",
+];
+
 function AddPositionModal({ onAdd, onClose }) {
-  const [role, setRole] = useState("");
-  const [level, setLevel] = useState("");
+  const [role, setRole] = useState(null);
+  const [level, setLevel] = useState(null);
 
   function handleAdd() {
-    if (role.trim()) {
-      onAdd({ role: role.trim(), level: level.trim() });
+    if (role) {
+      onAdd({ role, level: level ?? "" });
     }
   }
 
@@ -69,34 +91,65 @@ function AddPositionModal({ onAdd, onClose }) {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-t-2xl w-full max-w-[430px] px-5 pt-5 pb-8 flex flex-col gap-3"
+        className="bg-white rounded-t-2xl w-full max-w-[430px] px-5 pt-5 pb-8 flex flex-col gap-4"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between mb-1">
+        {/* Header */}
+        <div className="flex items-center justify-between">
           <p className="text-base font-semibold text-gray-900">Add position</p>
           <button onClick={onClose}>
             <IconX size={18} color="#999" />
           </button>
         </div>
-        <input
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
-          placeholder="Position (e.g. Jib Trimmer)"
-          className="w-full px-4 py-3.5 rounded-2xl text-sm text-gray-900 border outline-none"
-          style={{ borderColor: "#e0e0e0" }}
-          autoFocus
-        />
-        <input
-          value={level}
-          onChange={(e) => setLevel(e.target.value)}
-          placeholder="Level (e.g. Mid Level – 2–5 years)"
-          className="w-full px-4 py-3.5 rounded-2xl text-sm text-gray-900 border outline-none"
-          style={{ borderColor: "#e0e0e0" }}
-        />
+
+        {/* Position list */}
+        <div>
+          <p className="text-xs text-gray-400 mb-2">Position</p>
+          <div className="flex flex-wrap gap-2">
+            {POSITIONS.map((p) => (
+              <button
+                key={p}
+                onClick={() => setRole(p)}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors"
+                style={{
+                  backgroundColor: role === p ? "#111" : "#F4F4F4",
+                  color: role === p ? "#fff" : "#111",
+                  borderColor: role === p ? "#111" : "#F4F4F4",
+                }}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Level list */}
+        <div>
+          <p className="text-xs text-gray-400 mb-2">Level</p>
+          <div className="flex flex-wrap gap-2">
+            {LEVELS.map((l) => (
+              <button
+                key={l}
+                onClick={() => setLevel(l)}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors"
+                style={{
+                  backgroundColor: level === l ? "#111" : "#F4F4F4",
+                  color: level === l ? "#fff" : "#111",
+                  borderColor: level === l ? "#111" : "#F4F4F4",
+                }}
+              >
+                {l}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Add button */}
         <button
           onClick={handleAdd}
+          disabled={!role}
           className="w-full py-3.5 rounded-full text-sm font-semibold text-white mt-1"
-          style={{ backgroundColor: "#0161F0" }}
+          style={{ backgroundColor: role ? "#0161F0" : "#c0c0c0" }}
         >
           Add position
         </button>
