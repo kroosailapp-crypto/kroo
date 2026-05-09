@@ -8,7 +8,6 @@ import {
   IconUser,
   IconSearch,
   IconPlus,
-  IconCircleCheck,
 } from "@tabler/icons-react";
 
 const regattas = [
@@ -27,7 +26,7 @@ const regattas = [
         role: "Jib Trimmer",
         level: "Mid Level – 2–5 years",
         status: "filled",
-        crew: { name: "Andre Peixoto", level: "Mid-Level" },
+        crew: { name: "Andre Peixoto", location: "San Francisco, CA" },
         applicants: 3,
       },
       {
@@ -118,7 +117,7 @@ function RegattaCard({ regatta }) {
     <div className="py-4">
       {/* Regatta name + date */}
       <div className="px-4 mb-3">
-        <p className="text-xs text-gray-400 mb-0.5">{regatta.date} · {regatta.location}</p>
+        <p className="text-xs text-gray-400 mb-0.5">{regatta.date}, {regatta.location}</p>
         <p className="text-xl font-bold text-gray-900">{regatta.name}</p>
       </div>
 
@@ -148,71 +147,53 @@ function RegattaCard({ regatta }) {
       {regatta.positions.map((pos) => (
         <div key={pos.id}>
           <div className="px-4 py-3">
-            {/* Position tag + level + status icon */}
+            {/* Position tag + applicant count + level + View — all one row */}
             <div className="flex items-center gap-2 mb-2">
               <Tag label={pos.role} />
-              <span className="text-xs text-gray-500 flex-1">{pos.level}</span>
-              {pos.status === "filled" && (
-                <IconCircleCheck size={20} color="#111" />
-              )}
-            </div>
-
-            {/* Filled: show selected crew */}
-            {pos.status === "filled" && pos.crew && (
-              <div className="mt-2 mx-0 p-3 rounded-xl border" style={{ borderColor: "#e8e8e8" }}>
-                <div className="flex items-center gap-3">
-                  {/* Avatar with checkmark badge */}
-                  <div className="relative flex-shrink-0">
-                    <div
-                      className="rounded-full flex items-center justify-center"
-                      style={{ width: 46, height: 46, backgroundColor: "#d8d8d8" }}
-                    >
-                      <IconUser size={20} color="#aaa" />
-                    </div>
-                    <div
-                      className="absolute flex items-center justify-center rounded-full bg-white"
-                      style={{ width: 16, height: 16, bottom: -2, right: -3 }}
-                    >
-                      <IconCircleCheck size={16} color="#111" />
-                    </div>
-                  </div>
-                  {/* Name + level + Confirmed tag */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <p className="text-sm font-medium text-gray-900">{pos.crew.name}</p>
-                      <span
-                        className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                        style={{ backgroundColor: "#e6f9ee", color: "#1a9e4a" }}
-                      >
-                        Confirmed
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-400">{pos.crew.level}</p>
-                    <button className="mt-2">
-                      <IconMessage size={16} color="#888" />
-                    </button>
-                  </div>
-                  <IconStar size={18} color="#ccc" className="flex-shrink-0" />
-                </div>
-              </div>
-            )}
-
-            {/* Open with applicants: count badge + View button */}
-            {pos.status === "open" && pos.applicants > 0 && (
-              <div className="flex items-center gap-2 mt-2">
+              {pos.status === "open" && pos.applicants > 0 && (
                 <span
-                  className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
-                  style={{ backgroundColor: "#111" }}
+                  className="px-2 py-0.5 rounded-full text-[11px] font-bold text-white"
+                  style={{ backgroundColor: "#0161f0" }}
                 >
                   {pos.applicants}
                 </span>
+              )}
+              <span className="text-xs text-gray-500 flex-1">{pos.level}</span>
+              {pos.status === "open" && pos.applicants > 0 && (
                 <Link
                   href={`/boat/regattas/${regatta.id}`}
-                  className="text-xs font-medium px-3 py-1.5 rounded-full text-white"
-                  style={{ backgroundColor: "#0161f0" }}
+                  className="text-xs font-medium"
+                  style={{ color: "#0161f0" }}
                 >
                   View
                 </Link>
+              )}
+            </div>
+
+            {/* Filled: confirmed crew card */}
+            {pos.status === "filled" && pos.crew && (
+              <div className="rounded-xl p-3" style={{ backgroundColor: "#f5f5f5" }}>
+                <div className="flex items-center gap-3">
+                  <div
+                    className="rounded-full flex items-center justify-center flex-shrink-0"
+                    style={{ width: 52, height: 52, backgroundColor: "#d8d8d8" }}
+                  >
+                    <IconUser size={22} color="#aaa" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 mb-0.5">{pos.crew.name}</p>
+                    <p className="text-xs text-gray-500 mb-2">{pos.crew.location}</p>
+                    <span
+                      className="text-xs font-semibold px-3 py-1 rounded-full text-white"
+                      style={{ backgroundColor: "#111" }}
+                    >
+                      Confirmed
+                    </span>
+                  </div>
+                  <button className="flex-shrink-0">
+                    <IconMessage size={20} color="#0161f0" />
+                  </button>
+                </div>
               </div>
             )}
 
@@ -228,8 +209,8 @@ function RegattaCard({ regatta }) {
       {/* Actions */}
       <div className="flex items-center gap-4 px-4 py-3">
         <button
-          className="text-xs font-medium px-3 py-1.5 rounded-full border"
-          style={{ color: "#0161f0", borderColor: "#0161f0" }}
+          className="text-xs font-semibold px-4 py-2 rounded-full text-white"
+          style={{ backgroundColor: "#111" }}
         >
           + Add Position
         </button>
