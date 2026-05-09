@@ -86,7 +86,7 @@ function StatusTag({ status }) {
   const confirmed = status === "confirmed";
   return (
     <span
-      className="text-xs font-semibold px-3 py-1 rounded-full"
+      className="text-xs font-bold px-2.5 py-1 rounded-lg"
       style={{
         backgroundColor: confirmed ? "#111" : "#fff7e6",
         color: confirmed ? "#fff" : "#b96b00",

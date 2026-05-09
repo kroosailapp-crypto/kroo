@@ -231,7 +231,7 @@ export default function RegattaDetail({ params }) {
                       <p className="text-sm font-semibold text-gray-900 mb-0.5">{pos.selectedCrew.name}</p>
                       <p className="text-xs text-gray-500 mb-2">{pos.selectedCrew.location}</p>
                       <span
-                        className="text-xs font-semibold px-3 py-1 rounded-full text-white"
+                        className="text-xs font-bold px-2.5 py-1 rounded-lg text-white"
                         style={{ backgroundColor: "#111" }}
                       >
                         Confirmed
