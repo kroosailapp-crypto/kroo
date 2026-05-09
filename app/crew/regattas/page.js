@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -97,7 +98,44 @@ function StatusTag({ status }) {
   );
 }
 
-function RegattaCard({ regatta }) {
+function CancelModal({ regatta, onConfirm, onClose }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center px-8"
+      style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl px-6 py-7 w-full max-w-[320px] flex flex-col gap-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <p className="text-base font-semibold text-gray-900 text-center leading-snug">
+          Are you sure you want to cancel{" "}
+          <span className="text-gray-900">"{regatta.name}"</span> with{" "}
+          <span className="text-gray-900">"{regatta.boatName}"</span>?
+        </p>
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 py-2.5 rounded-full text-sm font-semibold border"
+            style={{ color: "#111", borderColor: "#d0d0d0" }}
+          >
+            No
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 py-2.5 rounded-full text-sm font-semibold text-white"
+            style={{ backgroundColor: "#111" }}
+          >
+            Yes, Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RegattaCard({ regatta, onCancel }) {
   const isConfirmed = regatta.status === "confirmed";
 
   return (
@@ -156,6 +194,7 @@ function RegattaCard({ regatta }) {
         {isConfirmed ? (
           <>
             <button
+              onClick={onCancel}
               className="flex-1 py-2 rounded-full text-sm font-medium border"
               style={{ color: "#111", borderColor: "#d0d0d0" }}
             >
@@ -190,8 +229,24 @@ function RegattaCard({ regatta }) {
 }
 
 export default function CrewRegattas() {
+  const [regattas, setRegattas] = useState(myRegattas);
+  const [cancelTarget, setCancelTarget] = useState(null);
+
+  function handleConfirmCancel() {
+    setRegattas((prev) => prev.filter((r) => r.id !== cancelTarget.id));
+    setCancelTarget(null);
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
+
+      {cancelTarget && (
+        <CancelModal
+          regatta={cancelTarget}
+          onConfirm={handleConfirmCancel}
+          onClose={() => setCancelTarget(null)}
+        />
+      )}
 
       {/* Header */}
       <div className="flex items-center gap-2 px-4 pt-3 pb-2 flex-shrink-0">
@@ -206,7 +261,7 @@ export default function CrewRegattas() {
       </div>
 
       <main className="flex-1 overflow-y-auto">
-        {myRegattas.length === 0 ? (
+        {regattas.length === 0 ? (
           <div className="flex flex-col items-center justify-center px-8 py-20">
             <p className="text-sm text-gray-400 text-center">No regattas yet. Apply from a boat's profile.</p>
             <Link href="/crew/feed" className="mt-4 text-xs font-medium" style={{ color: "#0161f0" }}>
@@ -214,10 +269,13 @@ export default function CrewRegattas() {
             </Link>
           </div>
         ) : (
-          myRegattas.map((regatta, i) => (
+          regattas.map((regatta, i) => (
             <div key={regatta.id}>
-              <RegattaCard regatta={regatta} />
-              {i < myRegattas.length - 1 && (
+              <RegattaCard
+                regatta={regatta}
+                onCancel={() => setCancelTarget(regatta)}
+              />
+              {i < regattas.length - 1 && (
                 <div className="h-2" style={{ backgroundColor: "#F6F6F6" }} />
               )}
             </div>
