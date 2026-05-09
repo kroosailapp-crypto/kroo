@@ -243,7 +243,9 @@ export default function BoatRegattas() {
           <IconSearch size={14} color="#aaa" />
           <span>Search</span>
         </div>
-        <IconPlus size={22} color="#111" />
+        <Link href="/boat/regattas/new">
+          <IconPlus size={22} color="#111" />
+        </Link>
       </div>
 
       {/* Boat identifier */}
