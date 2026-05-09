@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
 const POSITIONS_NEEDED = [
   "Jib Trimmer", "Spin Trimmer", "Tactician", "Bowman",
@@ -75,7 +76,7 @@ export default function BoatSignupPage() {
   const [step, setStep] = useState(1);
   const TOTAL_STEPS = 5;
 
-  // Account credentials
+  // Account
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -89,6 +90,8 @@ export default function BoatSignupPage() {
   const [instagram, setInstagram] = useState("");
   const [positions, setPositions] = useState([]);
   const [experienceRequired, setExperienceRequired] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const passwordsMatch = password && confirmPassword && password === confirmPassword;
   const passwordMismatch = confirmPassword.length > 0 && password !== confirmPassword;
@@ -99,9 +102,44 @@ export default function BoatSignupPage() {
     );
   }
 
+  async function handleFinish() {
+    setError("");
+    setLoading(true);
+    try {
+      // 1. Create auth user
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { user_type: "boat" } },
+      });
+      if (signUpError) throw signUpError;
+
+      // 2. Create boat profile
+      const { error: profileError } = await supabase.from("boat_profiles").insert({
+        id: data.user.id,
+        skipper_name: skipperName,
+        boat_name: boatName,
+        boat_class: boatClass,
+        home_port: homePort,
+        website,
+        instagram,
+        positions_needed: positions,
+        experience_required: experienceRequired,
+        about: "",
+        photo_url: "",
+      });
+      if (profileError) throw profileError;
+
+      router.push("/boat/profile");
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+  }
+
   function handleNext() {
     if (step < TOTAL_STEPS) setStep(step + 1);
-    else router.push("/boat/profile");
+    else handleFinish();
   }
 
   function handleBack() {
@@ -111,7 +149,6 @@ export default function BoatSignupPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-white px-5 py-5">
-      {/* Logo */}
       <div className="mb-6">
         <Image src="/kroo-logo-blue.svg" alt="Kroo" width={60} height={24} />
       </div>
@@ -122,36 +159,15 @@ export default function BoatSignupPage() {
       {step === 1 && (
         <div className="flex flex-col gap-4">
           <p className="text-gray-800 font-semibold text-lg mb-1">Create your account</p>
-          <Field
-            placeholder="Email"
-            type="email"
-            inputMode="email"
-            value={email}
-            onChange={setEmail}
-          />
-          <Field
-            placeholder="Password"
-            type="password"
-            value={password}
-            onChange={setPassword}
-          />
+          <Field placeholder="Email" type="email" inputMode="email" value={email} onChange={setEmail} />
+          <Field placeholder="Password" type="password" value={password} onChange={setPassword} />
           <div>
-            <Field
-              placeholder="Confirm Password"
-              type="password"
-              value={confirmPassword}
-              onChange={setConfirmPassword}
-            />
+            <Field placeholder="Confirm Password" type="password" value={confirmPassword} onChange={setConfirmPassword} />
             {passwordMismatch && (
-              <p className="text-xs mt-1.5 ml-1" style={{ color: "#e00" }}>
-                Passwords don't match
-              </p>
+              <p className="text-xs mt-1.5 ml-1" style={{ color: "#e00" }}>Passwords don't match</p>
             )}
           </div>
-          <NextButton
-            onClick={handleNext}
-            disabled={!email || !passwordsMatch}
-          />
+          <NextButton onClick={handleNext} disabled={!email || !passwordsMatch} />
         </div>
       )}
 
@@ -170,11 +186,7 @@ export default function BoatSignupPage() {
       {step === 3 && (
         <div className="flex flex-col gap-4">
           <p className="text-gray-800 font-semibold text-lg mb-1">Where is your home port?</p>
-          <Field
-            placeholder="City, State (e.g. San Francisco, CA)"
-            value={homePort}
-            onChange={setHomePort}
-          />
+          <Field placeholder="City, State (e.g. San Francisco, CA)" value={homePort} onChange={setHomePort} />
           <div className="flex flex-wrap gap-2 mt-2">
             {["San Francisco, CA", "Oakland, CA", "Sausalito, CA"].map((port) => (
               <button
@@ -195,33 +207,19 @@ export default function BoatSignupPage() {
         </div>
       )}
 
-      {/* Step 4 — Crew Positions Needed */}
+      {/* Step 4 — Crew Positions */}
       {step === 4 && (
         <div className="flex flex-col gap-4">
-          <p className="text-gray-800 font-semibold text-lg mb-1">
-            What positions do you need?
-          </p>
+          <p className="text-gray-800 font-semibold text-lg mb-1">What positions do you need?</p>
           <div className="flex flex-wrap gap-2">
             {POSITIONS_NEEDED.map((pos) => (
-              <Tag
-                key={pos}
-                label={pos}
-                selected={positions.includes(pos)}
-                onToggle={togglePosition}
-              />
+              <Tag key={pos} label={pos} selected={positions.includes(pos)} onToggle={togglePosition} />
             ))}
           </div>
-          <p className="text-gray-800 font-semibold text-base mt-4 mb-1">
-            Experience required
-          </p>
+          <p className="text-gray-800 font-semibold text-base mt-4 mb-1">Experience required</p>
           <div className="flex flex-wrap gap-2">
             {["All levels", "Beginner", "Mid-Level", "Advanced"].map((lvl) => (
-              <Tag
-                key={lvl}
-                label={lvl}
-                selected={experienceRequired === lvl}
-                onToggle={() => setExperienceRequired(lvl)}
-              />
+              <Tag key={lvl} label={lvl} selected={experienceRequired === lvl} onToggle={() => setExperienceRequired(lvl)} />
             ))}
           </div>
           <NextButton onClick={handleNext} disabled={positions.length === 0} />
@@ -234,26 +232,18 @@ export default function BoatSignupPage() {
           <p className="text-gray-800 font-semibold text-lg mb-1">
             Add your links <span className="text-gray-400 font-normal text-sm">(optional)</span>
           </p>
-          <Field
-            placeholder="Official Website (e.g. www.boatname.com)"
-            value={website}
-            onChange={setWebsite}
+          <Field placeholder="Official Website (e.g. www.boatname.com)" value={website} onChange={setWebsite} />
+          <Field placeholder="Instagram (e.g. instagram.com/boatname)" value={instagram} onChange={setInstagram} />
+          {error && <p className="text-xs" style={{ color: "#e00" }}>{error}</p>}
+          <NextButton
+            onClick={handleNext}
+            label={loading ? "Creating profile…" : "CREATE PROFILE"}
+            disabled={loading}
           />
-          <Field
-            placeholder="Instagram (e.g. instagram.com/boatname)"
-            value={instagram}
-            onChange={setInstagram}
-          />
-          <NextButton onClick={handleNext} label="CREATE PROFILE" />
         </div>
       )}
 
-      {/* Back link */}
-      <button
-        onClick={handleBack}
-        className="mt-auto pt-8 text-left text-sm"
-        style={{ color: "#aaa" }}
-      >
+      <button onClick={handleBack} className="mt-auto pt-8 text-left text-sm" style={{ color: "#aaa" }}>
         ← Back
       </button>
     </div>

@@ -230,6 +230,11 @@ export default function RegattaDetail({ params }) {
   const base = regattas[id] ?? regattas[1];
   const [positions, setPositions] = useState(base.positions);
   const [showModal, setShowModal] = useState(false);
+  const [collapsedOthers, setCollapsedOthers] = useState({});
+
+  function toggleOthers(posId) {
+    setCollapsedOthers((prev) => ({ ...prev, [posId]: !prev[posId] }));
+  }
 
   function handleAddPosition({ role, level }) {
     setPositions((prev) => [
@@ -383,8 +388,16 @@ export default function RegattaDetail({ params }) {
 
                 {pos.otherApplicants.length > 0 && (
                   <>
-                    <p className="text-xs text-gray-400 px-4 pb-2">Others interested</p>
-                    {pos.otherApplicants.map((crew) => (
+                    <button
+                      onClick={() => toggleOthers(pos.id)}
+                      className="flex items-center gap-1 px-4 pb-2 text-xs text-gray-400"
+                    >
+                      Others interested ({pos.otherApplicants.length})
+                      <span className="ml-0.5" style={{ fontSize: 10 }}>
+                        {collapsedOthers[pos.id] ? "▲" : "▼"}
+                      </span>
+                    </button>
+                    {!collapsedOthers[pos.id] && pos.otherApplicants.map((crew) => (
                       <CrewRow key={crew.name} crew={crew} />
                     ))}
                   </>

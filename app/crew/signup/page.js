@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
 const POSITIONS = [
   "Jib Trimmer", "Spin Trimmer", "Tactician", "Bowman",
@@ -10,9 +11,7 @@ const POSITIONS = [
   "Navigator", "Foredeck",
 ];
 
-const EXPERIENCE_LEVELS = [
-  "Beginner", "Mid-Level", "Advanced", "Expert",
-];
+const EXPERIENCE_LEVELS = ["Beginner", "Mid-Level", "Advanced", "Expert"];
 
 function ProgressBar({ step, total }) {
   return (
@@ -80,7 +79,6 @@ export default function CrewSignupPage() {
   const [step, setStep] = useState(1);
   const TOTAL_STEPS = 4;
 
-  // Form state
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -88,6 +86,8 @@ export default function CrewSignupPage() {
   const [location, setLocation] = useState("");
   const [experience, setExperience] = useState("");
   const [positions, setPositions] = useState([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const passwordsMatch = password && confirmPassword && password === confirmPassword;
   const passwordMismatch = confirmPassword.length > 0 && password !== confirmPassword;
@@ -98,12 +98,44 @@ export default function CrewSignupPage() {
     );
   }
 
-  function handleNext() {
-    if (step < TOTAL_STEPS) {
-      setStep(step + 1);
-    } else {
+  async function handleFinish() {
+    setError("");
+    setLoading(true);
+    try {
+      // 1. Create auth user
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { user_type: "crew" } },
+      });
+      if (signUpError) throw signUpError;
+
+      // 2. Create crew profile
+      const { error: profileError } = await supabase.from("crew_profiles").insert({
+        id: data.user.id,
+        name,
+        location,
+        experience_level: experience,
+        positions,
+        about: "",
+        website: "",
+        instagram: "",
+        availability: [],
+        interested_regattas: [],
+        boat_classes: [],
+      });
+      if (profileError) throw profileError;
+
       router.push("/crew/profile");
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
     }
+  }
+
+  function handleNext() {
+    if (step < TOTAL_STEPS) setStep(step + 1);
+    else handleFinish();
   }
 
   function handleBack() {
@@ -113,7 +145,6 @@ export default function CrewSignupPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-white px-5 py-5">
-      {/* Logo */}
       <div className="mb-6">
         <Image src="/kroo-logo-blue.svg" alt="Kroo" width={60} height={24} />
       </div>
@@ -125,25 +156,12 @@ export default function CrewSignupPage() {
         <div className="flex flex-col gap-4">
           <p className="text-gray-800 font-semibold text-lg mb-1">Create your account</p>
           <Field placeholder="Full Name" value={name} onChange={setName} />
-          <Field
-            placeholder="Email"
-            type="email"
-            inputMode="email"
-            value={email}
-            onChange={setEmail}
-          />
+          <Field placeholder="Email" type="email" inputMode="email" value={email} onChange={setEmail} />
           <Field placeholder="Password" type="password" value={password} onChange={setPassword} />
           <div>
-            <Field
-              placeholder="Confirm Password"
-              type="password"
-              value={confirmPassword}
-              onChange={setConfirmPassword}
-            />
+            <Field placeholder="Confirm Password" type="password" value={confirmPassword} onChange={setConfirmPassword} />
             {passwordMismatch && (
-              <p className="text-xs mt-1.5 ml-1" style={{ color: "#e00" }}>
-                Passwords don't match
-              </p>
+              <p className="text-xs mt-1.5 ml-1" style={{ color: "#e00" }}>Passwords don't match</p>
             )}
           </div>
           <NextButton onClick={handleNext} disabled={!name || !email || !passwordsMatch} />
@@ -154,11 +172,7 @@ export default function CrewSignupPage() {
       {step === 2 && (
         <div className="flex flex-col gap-4">
           <p className="text-gray-800 font-semibold text-lg mb-1">Where are you based?</p>
-          <Field
-            placeholder="City, State (e.g. San Francisco, CA)"
-            value={location}
-            onChange={setLocation}
-          />
+          <Field placeholder="City, State (e.g. San Francisco, CA)" value={location} onChange={setLocation} />
           <div className="flex flex-wrap gap-2 mt-2">
             {["San Francisco, CA", "Oakland, CA", "Sausalito, CA"].map((loc) => (
               <button
@@ -185,12 +199,7 @@ export default function CrewSignupPage() {
           <p className="text-gray-800 font-semibold text-lg mb-1">Experience level</p>
           <div className="flex flex-wrap gap-2">
             {EXPERIENCE_LEVELS.map((level) => (
-              <Tag
-                key={level}
-                label={level}
-                selected={experience === level}
-                onToggle={() => setExperience(level)}
-              />
+              <Tag key={level} label={level} selected={experience === level} onToggle={() => setExperience(level)} />
             ))}
           </div>
           <NextButton onClick={handleNext} disabled={!experience} />
@@ -203,28 +212,19 @@ export default function CrewSignupPage() {
           <p className="text-gray-800 font-semibold text-lg mb-1">What positions do you sail?</p>
           <div className="flex flex-wrap gap-2">
             {POSITIONS.map((pos) => (
-              <Tag
-                key={pos}
-                label={pos}
-                selected={positions.includes(pos)}
-                onToggle={togglePosition}
-              />
+              <Tag key={pos} label={pos} selected={positions.includes(pos)} onToggle={togglePosition} />
             ))}
           </div>
+          {error && <p className="text-xs" style={{ color: "#e00" }}>{error}</p>}
           <NextButton
             onClick={handleNext}
-            label="CREATE PROFILE"
-            disabled={positions.length === 0}
+            label={loading ? "Creating profile…" : "CREATE PROFILE"}
+            disabled={positions.length === 0 || loading}
           />
         </div>
       )}
 
-      {/* Back link */}
-      <button
-        onClick={handleBack}
-        className="mt-auto pt-8 text-left text-sm"
-        style={{ color: "#aaa" }}
-      >
+      <button onClick={handleBack} className="mt-auto pt-8 text-left text-sm" style={{ color: "#aaa" }}>
         ← Back
       </button>
     </div>

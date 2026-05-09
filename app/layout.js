@@ -1,5 +1,6 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/lib/auth-context";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -15,9 +16,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${inter.className} h-full`}>
       <body className="min-h-full bg-white">
-        <div id="app-root">
-          {children}
-        </div>
+        <AuthProvider>
+          <div id="app-root">
+            {children}
+          </div>
+        </AuthProvider>
       </body>
     </html>
   );

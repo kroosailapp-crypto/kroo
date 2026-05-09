@@ -222,12 +222,6 @@ function RegattaCard({ regatta, onCancel }) {
 
       {/* Actions */}
       <div className="flex items-center gap-4 px-4 py-3">
-        <button
-          className="text-xs font-semibold px-4 py-2 rounded-full text-white"
-          style={{ backgroundColor: "#111" }}
-        >
-          + Add Position
-        </button>
         <Link
           href={`/boat/regattas/${regatta.id}`}
           className="text-xs font-medium"
