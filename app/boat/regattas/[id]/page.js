@@ -215,32 +215,46 @@ export default function RegattaDetail({ params }) {
               )}
             </div>
 
-            {/* Filled: selected crew at top, others below */}
+            {/* Filled: confirmed crew card */}
             {pos.status === "filled" && pos.selectedCrew && (
               <>
-                <div className="mx-4 mb-2 p-3 rounded-xl border" style={{ borderColor: "#e8e8e8" }}>
-                  <div className="flex items-center gap-2.5">
-                    <div className="relative">
+                <div className="mx-4 mb-3 p-3 rounded-xl border" style={{ borderColor: "#e8e8e8" }}>
+                  <div className="flex items-center gap-3">
+                    {/* Avatar with checkmark badge */}
+                    <div className="relative flex-shrink-0">
                       <div
-                        className="rounded-full flex items-center justify-center flex-shrink-0"
+                        className="rounded-full flex items-center justify-center"
                         style={{ width: 46, height: 46, backgroundColor: "#d8d8d8" }}
                       >
                         <IconUser size={20} color="#aaa" />
                       </div>
-                      <IconCircleCheck
-                        size={16}
-                        color="#111"
-                        style={{ position: "absolute", bottom: -2, right: -3, background: "#fff", borderRadius: "50%" }}
-                      />
+                      <div
+                        className="absolute flex items-center justify-center rounded-full bg-white"
+                        style={{ width: 16, height: 16, bottom: -2, right: -3 }}
+                      >
+                        <IconCircleCheck size={16} color="#111" />
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">{pos.selectedCrew.name}</p>
+
+                    {/* Name + level + Confirmed tag */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <p className="text-sm font-medium text-gray-900">{pos.selectedCrew.name}</p>
+                        <span
+                          className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                          style={{ backgroundColor: "#e6f9ee", color: "#1a9e4a" }}
+                        >
+                          Confirmed
+                        </span>
+                      </div>
                       <p className="text-xs text-gray-400">{pos.selectedCrew.level}</p>
-                      <button className="mt-1" style={{ color: "#0161f0" }}>
-                        <IconMessage size={15} color="#0161f0" />
+                      {/* Message icon as standalone action */}
+                      <button className="mt-2">
+                        <IconMessage size={16} color="#888" />
                       </button>
                     </div>
-                    <IconStar size={18} color="#ccc" />
+
+                    <IconStar size={18} color="#ccc" className="flex-shrink-0" />
                   </div>
                 </div>
 
