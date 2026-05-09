@@ -173,7 +173,7 @@ function RegattaCard({ regatta }) {
             {/* Filled: confirmed crew card */}
             {pos.status === "filled" && pos.crew && (
               <div className="rounded-xl p-3" style={{ backgroundColor: "#f5f5f5" }}>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 mb-2.5">
                   <div
                     className="rounded-full flex items-center justify-center flex-shrink-0"
                     style={{ width: 52, height: 52, backgroundColor: "#d8d8d8" }}
@@ -182,16 +182,18 @@ function RegattaCard({ regatta }) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900 mb-0.5">{pos.crew.name}</p>
-                    <p className="text-xs text-gray-500 mb-2">{pos.crew.location}</p>
-                    <span
-                      className="text-xs font-bold px-2.5 py-1 rounded-lg text-white"
-                      style={{ backgroundColor: "#111" }}
-                    >
-                      Confirmed
-                    </span>
+                    <p className="text-xs text-gray-500">{pos.crew.location}</p>
                   </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span
+                    className="text-xs font-bold px-2.5 py-1 rounded-lg text-white"
+                    style={{ backgroundColor: "#111" }}
+                  >
+                    Confirmed
+                  </span>
                   <button
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-white flex-shrink-0"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-white"
                     style={{ backgroundColor: "#024BB9" }}
                   >
                     <IconMessage size={13} color="white" /> Message
