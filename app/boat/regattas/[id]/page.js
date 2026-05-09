@@ -279,6 +279,21 @@ export default function RegattaDetail({ params }) {
     setPositions((prev) => prev.filter((p) => p.id !== posId));
   }
 
+  function handleSelectCrew(posId, crew) {
+    setPositions((prev) =>
+      prev.map((p) =>
+        p.id === posId
+          ? {
+              ...p,
+              status: "filled",
+              selectedCrew: { name: crew.name, location: crew.level },
+              otherApplicants: p.otherApplicants.filter((a) => a.name !== crew.name),
+            }
+          : p
+      )
+    );
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
 
@@ -411,6 +426,7 @@ export default function RegattaDetail({ params }) {
                   action={
                     <>
                       <button
+                        onClick={() => handleSelectCrew(pos.id, crew)}
                         className="text-xs font-medium px-3 py-1 rounded-full text-white"
                         style={{ backgroundColor: "#111" }}
                       >
