@@ -1,119 +1,89 @@
+"use client";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  IconSearch,
-  IconPlus,
-} from "@tabler/icons-react";
+import { IconSearch, IconPlus, IconAnchor, IconUser } from "@tabler/icons-react";
 import CrewNavFooter from "@/app/components/CrewNavFooter";
-
-const boats = [
-  {
-    id: 1,
-    name: "Dilema",
-    location: "Salvador, BA",
-    boatClass: "Melges 24",
-    nextRegatta: "Rolex Big Boat Series, 07/25/26",
-    positions: 3,
-    followers: 40,
-    skipper: "Linda Petterson",
-    photo: "/boat-image.jpeg",
-  },
-  {
-    id: 2,
-    name: "Bravura",
-    location: "San Francisco, CA",
-    boatClass: "J/24",
-    nextRegatta: "Bay Regatta, 08/10/26",
-    positions: 2,
-    followers: 27,
-    skipper: "Carlos Mendes",
-    photo: "/boat-image.jpeg",
-  },
-  {
-    id: 3,
-    name: "Wild Card",
-    location: "Newport, RI",
-    boatClass: "Etchells",
-    nextRegatta: "Newport Regatta, 09/05/26",
-    positions: 1,
-    followers: 55,
-    skipper: "Tom Walsh",
-    photo: "/boat-image.jpeg",
-  },
-];
+import { supabase } from "@/lib/supabase";
 
 function BoatCard({ boat }) {
   return (
     <Link href={`/boat/${boat.id}`} className="flex flex-col">
-
-      {/* Boat name + location + class tag */}
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
         <div>
-          <p className="font-bold text-lg text-gray-900">{boat.name}</p>
-          <p className="text-xs text-gray-500">{boat.location}</p>
+          <p className="font-bold text-lg text-gray-900">{boat.boat_name}</p>
+          <p className="text-xs text-gray-500">{boat.home_port}</p>
         </div>
-        <span
-          className="text-xs px-2.5 py-1 rounded-lg font-bold"
-          style={{ backgroundColor: "#E8EDF8", color: "#111" }}
-        >
-          {boat.boatClass}
-        </span>
+        {boat.boat_class && (
+          <span className="text-xs px-2.5 py-1 rounded-lg font-bold" style={{ backgroundColor: "#E8EDF8", color: "#111" }}>
+            {boat.boat_class}
+          </span>
+        )}
       </div>
 
-      {/* Boat Photo */}
-      <div className="relative w-full h-48">
-        <Image src={boat.photo} alt={boat.name} fill className="object-cover" />
+      {/* Boat photo */}
+      <div className="relative w-full h-48 flex items-center justify-center" style={{ backgroundColor: "#f0f0f0" }}>
+        {boat.photo_url
+          ? <img src={boat.photo_url} alt={boat.boat_name} className="w-full h-full object-cover" />
+          : <IconAnchor size={40} color="#ccc" />}
       </div>
 
-      {/* Regatta + Stats + Skipper */}
       <div className="px-4 py-3">
-        <p className="text-xs text-gray-400 mb-0.5">Next regatta</p>
-        <p className="text-sm font-medium text-gray-900 mb-3">{boat.nextRegatta}</p>
-
         <div className="flex items-center justify-between">
-          {/* Stats — left-aligned, same format as profiles */}
           <div className="flex gap-5">
             <div>
-              <p className="text-base font-semibold text-gray-900">{boat.positions}</p>
+              <p className="text-base font-semibold text-gray-900">{(boat.positions_needed || []).length}</p>
               <p className="text-[11px] text-gray-500">Positions</p>
             </div>
-            <div>
-              <p className="text-base font-semibold text-gray-900">{boat.followers}</p>
-              <p className="text-[11px] text-gray-500">Followers</p>
-            </div>
           </div>
 
-          {/* Skipper */}
-          <div className="flex items-center gap-2">
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-              style={{ backgroundColor: "#0161f0" }}
-            >
-              {boat.skipper.charAt(0)}
+          {boat.skipper_name && (
+            <div className="flex items-center gap-2">
+              <div className="rounded-full overflow-hidden flex items-center justify-center flex-shrink-0" style={{ width: 32, height: 32, backgroundColor: "#d8d8d8" }}>
+                {boat.skipper_photo_url
+                  ? <img src={boat.skipper_photo_url} alt={boat.skipper_name} className="w-full h-full object-cover" />
+                  : <IconUser size={16} color="#aaa" />}
+              </div>
+              <div>
+                <p className="text-xs font-medium text-gray-900">{boat.skipper_name}</p>
+                <p className="text-[11px] text-gray-400">Skipper</p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs font-medium text-gray-900">{boat.skipper}</p>
-              <p className="text-[11px] text-gray-400">Skipper</p>
-            </div>
-          </div>
+          )}
         </div>
       </div>
-
     </Link>
   );
 }
 
+function EmptyState() {
+  return (
+    <div className="flex flex-col items-center justify-center px-8 py-24">
+      <IconAnchor size={40} color="#e0e0e0" />
+      <p className="text-sm font-medium text-gray-400 text-center mt-4">No boats yet</p>
+      <p className="text-xs text-gray-400 text-center mt-1">Boats looking for crew will appear here.</p>
+    </div>
+  );
+}
+
 export default function CrewFeedPage() {
+  const [boats, setBoats] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      const { data } = await supabase.from("boat_profiles").select("*").order("created_at", { ascending: false });
+      setBoats(data || []);
+      setLoading(false);
+    }
+    load();
+  }, []);
+
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
-
-      {/* Header — matches profile pages */}
       <div className="flex items-center gap-2 px-4 pt-3 pb-2 flex-shrink-0">
         <Image src="/kroo-logo-blue.svg" alt="Kroo" width={52} height={20} />
-        <div
-          className="flex-1 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-gray-400"
-          style={{ backgroundColor: "#f0f0f0" }}
-        >
+        <div className="flex-1 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-gray-400" style={{ backgroundColor: "#f0f0f0" }}>
           <IconSearch size={14} color="#aaa" />
           <span>Search</span>
         </div>
@@ -121,14 +91,20 @@ export default function CrewFeedPage() {
       </div>
 
       <main className="flex-1">
-        {boats.map((boat, i) => (
-          <div key={boat.id}>
-            <BoatCard boat={boat} />
-            {i < boats.length - 1 && (
-              <div className="h-2" style={{ backgroundColor: "#F6F6F6" }} />
-            )}
+        {loading ? (
+          <div className="flex items-center justify-center py-24">
+            <p className="text-sm text-gray-400">Loading…</p>
           </div>
-        ))}
+        ) : boats.length === 0 ? (
+          <EmptyState />
+        ) : (
+          boats.map((boat, i) => (
+            <div key={boat.id}>
+              <BoatCard boat={boat} />
+              {i < boats.length - 1 && <div className="h-2" style={{ backgroundColor: "#F6F6F6" }} />}
+            </div>
+          ))
+        )}
       </main>
 
       <CrewNavFooter active="Home" />
