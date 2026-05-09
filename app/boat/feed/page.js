@@ -1,14 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
-  IconAnchor,
-  IconCalendarEvent,
-  IconMessage,
-  IconStar,
-  IconUser,
   IconSearch,
   IconPlus,
 } from "@tabler/icons-react";
+import BoatNavFooter from "@/app/components/BoatNavFooter";
 
 const crewMembers = [
   {
@@ -56,34 +52,6 @@ const crewMembers = [
     photo: "/boat-image-placeholder.png",
   },
 ];
-
-function NavFooter({ active }) {
-  const items = [
-    { label: "Home", href: "/boat/feed", icon: <IconAnchor size={22} /> },
-    { label: "Regattas", href: "/boat/regattas", icon: <IconCalendarEvent size={22} /> },
-    { label: "Message", href: "/boat/messages", icon: <IconMessage size={22} /> },
-    { label: "Favorites", href: "/boat/favorites", icon: <IconStar size={22} /> },
-    { label: "Profile", href: "/boat/profile", icon: <IconUser size={22} /> },
-  ];
-  return (
-    <nav
-      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] flex items-center justify-around px-2 pt-2 pb-1 border-t"
-      style={{ backgroundColor: "#fff", borderColor: "#e8e8e8" }}
-    >
-      {items.map((item) => (
-        <Link
-          key={item.label}
-          href={item.href}
-          className="flex flex-col items-center gap-0.5 text-[10px]"
-          style={{ color: active === item.label ? "#111" : "#aaa" }}
-        >
-          {item.icon}
-          {item.label}
-        </Link>
-      ))}
-    </nav>
-  );
-}
 
 function CrewCard({ member }) {
   return (
@@ -158,7 +126,7 @@ export default function BoatFeedPage() {
         ))}
       </main>
 
-      <NavFooter active="Home" />
+      <BoatNavFooter active="Home" />
     </div>
   );
 }

@@ -3,14 +3,12 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  IconAnchor,
-  IconCalendarEvent,
-  IconMessage,
-  IconStar,
-  IconUser,
   IconSearch,
   IconPlus,
+  IconUser,
+  IconMessage,
 } from "@tabler/icons-react";
+import BoatNavFooter from "@/app/components/BoatNavFooter";
 
 const regattas = [
   {
@@ -28,7 +26,7 @@ const regattas = [
         role: "Jib Trimmer",
         level: "Mid Level – 2–5 years",
         status: "filled",
-        crew: { name: "Andre Peixoto", location: "San Francisco, CA" },
+        crew: { id: 1, name: "Andre Peixoto", location: "San Francisco, CA" },
         applicants: 3,
       },
       {
@@ -70,34 +68,6 @@ const regattas = [
     ],
   },
 ];
-
-function NavFooter({ active }) {
-  const items = [
-    { label: "Home", href: "/boat/feed", icon: <IconAnchor size={22} /> },
-    { label: "Regattas", href: "/boat/regattas", icon: <IconCalendarEvent size={22} /> },
-    { label: "Message", href: "/boat/messages", icon: <IconMessage size={22} /> },
-    { label: "Favorites", href: "/boat/favorites", icon: <IconStar size={22} /> },
-    { label: "Profile", href: "/boat/profile", icon: <IconUser size={22} /> },
-  ];
-  return (
-    <nav
-      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] flex items-center justify-around px-2 pt-2 pb-1 border-t"
-      style={{ backgroundColor: "#fff", borderColor: "#e8e8e8" }}
-    >
-      {items.map((item) => (
-        <Link
-          key={item.label}
-          href={item.href}
-          className="flex flex-col items-center gap-0.5 text-[10px]"
-          style={{ color: active === item.label ? "#111" : "#aaa" }}
-        >
-          {item.icon}
-          {item.label}
-        </Link>
-      ))}
-    </nav>
-  );
-}
 
 function Divider() {
   return <div className="h-px w-full" style={{ backgroundColor: "#e8e8e8" }} />;
@@ -230,12 +200,13 @@ function RegattaCard({ regatta, onCancel }) {
                   >
                     Confirmed
                   </span>
-                  <button
+                  <Link
+                    href={`/boat/messages/${pos.crew.id}`}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-white"
                     style={{ backgroundColor: "#024BB9" }}
                   >
                     <IconMessage size={13} color="white" /> Message
-                  </button>
+                  </Link>
                 </div>
               </div>
             )}
@@ -283,6 +254,7 @@ export default function BoatRegattas() {
   useEffect(() => {
     const extra = JSON.parse(localStorage.getItem("kroo_extra_regattas") || "[]");
     if (extra.length > 0) setRegattaList([...regattas, ...extra]);
+    localStorage.removeItem("kroo_boat_regatta_notif");
   }, []);
 
   function handleConfirmCancel() {
@@ -353,7 +325,7 @@ export default function BoatRegattas() {
         </div>
       </main>
 
-      <NavFooter active="Regattas" />
+      <BoatNavFooter active="Regattas" />
     </div>
   );
 }

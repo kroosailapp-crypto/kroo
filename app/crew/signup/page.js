@@ -28,13 +28,14 @@ function ProgressBar({ step, total }) {
   );
 }
 
-function Field({ placeholder, type = "text", value, onChange }) {
+function Field({ placeholder, type = "text", value, onChange, inputMode }) {
   return (
     <input
       type={type}
       placeholder={placeholder}
       value={value}
       onChange={(e) => onChange(e.target.value)}
+      inputMode={inputMode}
       className="w-full px-4 py-3 rounded-xl text-sm text-gray-800 outline-none border"
       style={{ borderColor: "#e5e5e5", backgroundColor: "#fff" }}
     />
@@ -83,9 +84,13 @@ export default function CrewSignupPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [location, setLocation] = useState("");
   const [experience, setExperience] = useState("");
   const [positions, setPositions] = useState([]);
+
+  const passwordsMatch = password && confirmPassword && password === confirmPassword;
+  const passwordMismatch = confirmPassword.length > 0 && password !== confirmPassword;
 
   function togglePosition(pos) {
     setPositions((prev) =>
@@ -115,13 +120,33 @@ export default function CrewSignupPage() {
 
       <ProgressBar step={step} total={TOTAL_STEPS} />
 
-      {/* Step 1 — Basic Info */}
+      {/* Step 1 — Account */}
       {step === 1 && (
         <div className="flex flex-col gap-4">
-          <Field placeholder="Name" value={name} onChange={setName} />
-          <Field placeholder="Mobile Number or Email" value={email} onChange={setEmail} />
+          <p className="text-gray-800 font-semibold text-lg mb-1">Create your account</p>
+          <Field placeholder="Full Name" value={name} onChange={setName} />
+          <Field
+            placeholder="Email"
+            type="email"
+            inputMode="email"
+            value={email}
+            onChange={setEmail}
+          />
           <Field placeholder="Password" type="password" value={password} onChange={setPassword} />
-          <NextButton onClick={handleNext} disabled={!name || !email || !password} />
+          <div>
+            <Field
+              placeholder="Confirm Password"
+              type="password"
+              value={confirmPassword}
+              onChange={setConfirmPassword}
+            />
+            {passwordMismatch && (
+              <p className="text-xs mt-1.5 ml-1" style={{ color: "#e00" }}>
+                Passwords don't match
+              </p>
+            )}
+          </div>
+          <NextButton onClick={handleNext} disabled={!name || !email || !passwordsMatch} />
         </div>
       )}
 

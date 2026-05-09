@@ -4,11 +4,6 @@ import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
-const BOAT_CLASSES = [
-  "Melges 24", "J/24", "Etchells", "Laser (ILCA)", "Snipe",
-  "J/105", "Farr 40", "J/70", "Lightning", "Flying Scot",
-];
-
 const POSITIONS_NEEDED = [
   "Jib Trimmer", "Spin Trimmer", "Tactician", "Bowman",
   "Main Trimmer", "Navigator", "Pitman", "Grinder",
@@ -28,13 +23,14 @@ function ProgressBar({ step, total }) {
   );
 }
 
-function Field({ placeholder, type = "text", value, onChange }) {
+function Field({ placeholder, type = "text", value, onChange, inputMode }) {
   return (
     <input
       type={type}
       placeholder={placeholder}
       value={value}
       onChange={(e) => onChange(e.target.value)}
+      inputMode={inputMode}
       className="w-full px-4 py-3 rounded-xl text-sm text-gray-800 outline-none border"
       style={{ borderColor: "#e5e5e5", backgroundColor: "#fff" }}
     />
@@ -77,9 +73,15 @@ function Tag({ label, selected, onToggle }) {
 export default function BoatSignupPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
-  const TOTAL_STEPS = 4;
+  const TOTAL_STEPS = 5;
 
-  // Form state
+  // Account credentials
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  // Boat info
+  const [skipperName, setSkipperName] = useState("");
   const [boatName, setBoatName] = useState("");
   const [boatClass, setBoatClass] = useState("");
   const [homePort, setHomePort] = useState("");
@@ -87,6 +89,9 @@ export default function BoatSignupPage() {
   const [instagram, setInstagram] = useState("");
   const [positions, setPositions] = useState([]);
   const [experienceRequired, setExperienceRequired] = useState("");
+
+  const passwordsMatch = password && confirmPassword && password === confirmPassword;
+  const passwordMismatch = confirmPassword.length > 0 && password !== confirmPassword;
 
   function togglePosition(pos) {
     setPositions((prev) =>
@@ -108,44 +113,61 @@ export default function BoatSignupPage() {
     <div className="flex flex-col min-h-screen bg-white px-5 py-5">
       {/* Logo */}
       <div className="mb-6">
-        <Image
-          src="/kroo-logo-blue.svg"
-          alt="Kroo"
-          width={60}
-          height={24}
-        />
+        <Image src="/kroo-logo-blue.svg" alt="Kroo" width={60} height={24} />
       </div>
 
       <ProgressBar step={step} total={TOTAL_STEPS} />
 
-      {/* Step 1 — Boat Info */}
+      {/* Step 1 — Account */}
       {step === 1 && (
         <div className="flex flex-col gap-4">
-          <p className="text-gray-800 font-semibold text-lg mb-1">Tell us about your boat</p>
-          <Field placeholder="Boat Name" value={boatName} onChange={setBoatName} />
-          <Field placeholder="Boat Class (e.g. Melges 24)" value={boatClass} onChange={setBoatClass} />
-          <div className="flex flex-wrap gap-2 mt-1">
-            {BOAT_CLASSES.map((cls) => (
-              <button
-                key={cls}
-                onClick={() => setBoatClass(cls)}
-                className="px-3 py-1.5 rounded-full text-sm border"
-                style={{
-                  backgroundColor: boatClass === cls ? "#0161f0" : "#fff",
-                  color: boatClass === cls ? "#fff" : "#0161f0",
-                  borderColor: "#0161f0",
-                }}
-              >
-                {cls}
-              </button>
-            ))}
+          <p className="text-gray-800 font-semibold text-lg mb-1">Create your account</p>
+          <Field
+            placeholder="Email"
+            type="email"
+            inputMode="email"
+            value={email}
+            onChange={setEmail}
+          />
+          <Field
+            placeholder="Password"
+            type="password"
+            value={password}
+            onChange={setPassword}
+          />
+          <div>
+            <Field
+              placeholder="Confirm Password"
+              type="password"
+              value={confirmPassword}
+              onChange={setConfirmPassword}
+            />
+            {passwordMismatch && (
+              <p className="text-xs mt-1.5 ml-1" style={{ color: "#e00" }}>
+                Passwords don't match
+              </p>
+            )}
           </div>
-          <NextButton onClick={handleNext} disabled={!boatName || !boatClass} />
+          <NextButton
+            onClick={handleNext}
+            disabled={!email || !passwordsMatch}
+          />
         </div>
       )}
 
-      {/* Step 2 — Home Port */}
+      {/* Step 2 — Boat Info */}
       {step === 2 && (
+        <div className="flex flex-col gap-4">
+          <p className="text-gray-800 font-semibold text-lg mb-1">Tell us about your boat</p>
+          <Field placeholder="Your name (Skipper)" value={skipperName} onChange={setSkipperName} />
+          <Field placeholder="Boat Name" value={boatName} onChange={setBoatName} />
+          <Field placeholder="Boat Class (e.g. Melges 24)" value={boatClass} onChange={setBoatClass} />
+          <NextButton onClick={handleNext} disabled={!skipperName || !boatName || !boatClass} />
+        </div>
+      )}
+
+      {/* Step 3 — Home Port */}
+      {step === 3 && (
         <div className="flex flex-col gap-4">
           <p className="text-gray-800 font-semibold text-lg mb-1">Where is your home port?</p>
           <Field
@@ -173,8 +195,8 @@ export default function BoatSignupPage() {
         </div>
       )}
 
-      {/* Step 3 — Crew Positions Needed */}
-      {step === 3 && (
+      {/* Step 4 — Crew Positions Needed */}
+      {step === 4 && (
         <div className="flex flex-col gap-4">
           <p className="text-gray-800 font-semibold text-lg mb-1">
             What positions do you need?
@@ -189,7 +211,6 @@ export default function BoatSignupPage() {
               />
             ))}
           </div>
-
           <p className="text-gray-800 font-semibold text-base mt-4 mb-1">
             Experience required
           </p>
@@ -207,8 +228,8 @@ export default function BoatSignupPage() {
         </div>
       )}
 
-      {/* Step 4 — Links */}
-      {step === 4 && (
+      {/* Step 5 — Links */}
+      {step === 5 && (
         <div className="flex flex-col gap-4">
           <p className="text-gray-800 font-semibold text-lg mb-1">
             Add your links <span className="text-gray-400 font-normal text-sm">(optional)</span>

@@ -3,14 +3,10 @@ import { useState, use, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
-  IconAnchor,
-  IconCalendarEvent,
-  IconMessage,
-  IconStar,
-  IconUser,
   IconArrowLeft,
   IconSend,
 } from "@tabler/icons-react";
+import CrewNavFooter from "@/app/components/CrewNavFooter";
 
 const boats = {
   1: { name: "Dilema", skipper: "Linda Petterson", photo: "/boat-image.jpeg" },
@@ -33,34 +29,6 @@ const initialMessages = {
     { id: 2, from: "me", text: "I've raced Etchells before. Happy to chat!", time: "Yesterday" },
   ],
 };
-
-function NavFooter() {
-  const items = [
-    { label: "Home", href: "/crew/feed", icon: <IconAnchor size={22} /> },
-    { label: "Regattas", href: "/crew/regattas", icon: <IconCalendarEvent size={22} /> },
-    { label: "Message", href: "/crew/messages", icon: <IconMessage size={22} /> },
-    { label: "Favorites", href: "/crew/favorites", icon: <IconStar size={22} /> },
-    { label: "Profile", href: "/crew/profile", icon: <IconUser size={22} /> },
-  ];
-  return (
-    <nav
-      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] flex items-center justify-around px-2 pt-2 pb-1 border-t"
-      style={{ backgroundColor: "#fff", borderColor: "#e8e8e8" }}
-    >
-      {items.map((item) => (
-        <Link
-          key={item.label}
-          href={item.href}
-          className="flex flex-col items-center gap-0.5 text-[10px]"
-          style={{ color: item.label === "Message" ? "#111" : "#aaa" }}
-        >
-          {item.icon}
-          {item.label}
-        </Link>
-      ))}
-    </nav>
-  );
-}
 
 export default function CrewChat({ params }) {
   const { id } = use(params);
@@ -166,7 +134,7 @@ export default function CrewChat({ params }) {
         </div>
       </div>
 
-      <NavFooter />
+      <CrewNavFooter active="Message" />
     </div>
   );
 }

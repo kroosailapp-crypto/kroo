@@ -1,16 +1,15 @@
+"use client";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  IconAnchor,
-  IconCalendarEvent,
-  IconMessage,
   IconStar,
-  IconUser,
   IconSearch,
   IconPlus,
 } from "@tabler/icons-react";
+import CrewNavFooter from "@/app/components/CrewNavFooter";
 
-const favoritedBoats = [
+const initialFavoritedBoats = [
   {
     id: 1,
     name: "Dilema",
@@ -35,44 +34,16 @@ const favoritedBoats = [
   },
 ];
 
-function NavFooter() {
-  const items = [
-    { label: "Home", href: "/crew/feed", icon: <IconAnchor size={22} /> },
-    { label: "Regattas", href: "/crew/regattas", icon: <IconCalendarEvent size={22} /> },
-    { label: "Message", href: "/crew/messages", icon: <IconMessage size={22} /> },
-    { label: "Favorites", href: "/crew/favorites", icon: <IconStar size={22} /> },
-    { label: "Profile", href: "/crew/profile", icon: <IconUser size={22} /> },
-  ];
+function BoatCard({ boat, onUnfavorite }) {
   return (
-    <nav
-      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] flex items-center justify-around px-2 pt-2 pb-1 border-t"
-      style={{ backgroundColor: "#fff", borderColor: "#e8e8e8" }}
-    >
-      {items.map((item) => (
-        <Link
-          key={item.label}
-          href={item.href}
-          className="flex flex-col items-center gap-0.5 text-[10px]"
-          style={{ color: item.label === "Favorites" ? "#111" : "#aaa" }}
-        >
-          {item.icon}
-          {item.label}
-        </Link>
-      ))}
-    </nav>
-  );
-}
-
-function BoatCard({ boat }) {
-  return (
-    <Link href={`/boat/${boat.id}`} className="flex flex-col">
+    <div className="flex flex-col">
 
       {/* Boat name + location + class tag + star */}
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
-        <div>
+        <Link href={`/boat/${boat.id}`} className="flex-1">
           <p className="font-bold text-lg text-gray-900">{boat.name}</p>
           <p className="text-xs text-gray-500">{boat.location}</p>
-        </div>
+        </Link>
         <div className="flex items-center gap-2">
           <span
             className="text-xs px-2.5 py-1 rounded-lg font-bold"
@@ -80,17 +51,21 @@ function BoatCard({ boat }) {
           >
             {boat.boatClass}
           </span>
-          <IconStar size={18} color="#08FF00" fill="#08FF00" />
+          <button onClick={onUnfavorite} className="flex-shrink-0">
+            <IconStar size={18} color="#08FF00" fill="#08FF00" />
+          </button>
         </div>
       </div>
 
       {/* Boat Photo */}
-      <div className="relative w-full h-48">
-        <Image src={boat.photo} alt={boat.name} fill className="object-cover" />
-      </div>
+      <Link href={`/boat/${boat.id}`}>
+        <div className="relative w-full h-48">
+          <Image src={boat.photo} alt={boat.name} fill className="object-cover" />
+        </div>
+      </Link>
 
       {/* Regatta + Stats + Skipper */}
-      <div className="px-4 py-3">
+      <Link href={`/boat/${boat.id}`} className="px-4 py-3">
         <p className="text-xs text-gray-400 mb-0.5">Next regatta</p>
         <p className="text-sm font-medium text-gray-900 mb-3">{boat.nextRegatta}</p>
 
@@ -119,13 +94,19 @@ function BoatCard({ boat }) {
             </div>
           </div>
         </div>
-      </div>
+      </Link>
 
-    </Link>
+    </div>
   );
 }
 
 export default function CrewFavoritesPage() {
+  const [favorites, setFavorites] = useState(initialFavoritedBoats);
+
+  function removeFavorite(id) {
+    setFavorites((prev) => prev.filter((b) => b.id !== id));
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
 
@@ -143,7 +124,7 @@ export default function CrewFavoritesPage() {
       </div>
 
       <main className="flex-1 overflow-y-auto">
-        {favoritedBoats.length === 0 ? (
+        {favorites.length === 0 ? (
           <div className="flex flex-col items-center justify-center px-8 py-24">
             <IconStar size={40} color="#e0e0e0" />
             <p className="text-sm text-gray-400 text-center mt-4">No favorites yet.</p>
@@ -153,10 +134,10 @@ export default function CrewFavoritesPage() {
             </Link>
           </div>
         ) : (
-          favoritedBoats.map((boat, i) => (
+          favorites.map((boat, i) => (
             <div key={boat.id}>
-              <BoatCard boat={boat} />
-              {i < favoritedBoats.length - 1 && (
+              <BoatCard boat={boat} onUnfavorite={() => removeFavorite(boat.id)} />
+              {i < favorites.length - 1 && (
                 <div className="h-2" style={{ backgroundColor: "#F6F6F6" }} />
               )}
             </div>
@@ -164,7 +145,7 @@ export default function CrewFavoritesPage() {
         )}
       </main>
 
-      <NavFooter />
+      <CrewNavFooter active="Favorites" />
     </div>
   );
 }

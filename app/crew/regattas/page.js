@@ -1,16 +1,14 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  IconAnchor,
-  IconCalendarEvent,
   IconMessage,
-  IconStar,
   IconUser,
   IconSearch,
   IconCheck,
 } from "@tabler/icons-react";
+import CrewNavFooter from "@/app/components/CrewNavFooter";
 
 const myRegattas = [
   {
@@ -20,6 +18,7 @@ const myRegattas = [
     date: "07/25/2026",
     location: "San Francisco, CA",
     position: "Jib Trimmer",
+    boatId: 1,
     boatName: "Dilema",
     boatLocation: "San Francisco",
     boatPhoto: null,
@@ -33,6 +32,7 @@ const myRegattas = [
     date: "05/12/2026",
     location: "San Francisco, CA",
     position: "Bow",
+    boatId: 2,
     boatName: "Flyer",
     boatLocation: "San Francisco",
     boatPhoto: null,
@@ -46,6 +46,7 @@ const myRegattas = [
     date: "07/25/2026",
     location: "San Francisco, CA",
     position: "Spin Trimmer",
+    boatId: 2,
     boatName: "Bravura",
     boatLocation: "San Francisco",
     boatPhoto: null,
@@ -59,6 +60,7 @@ const myRegattas = [
     date: "08/10/2026",
     location: "Oakland, CA",
     position: "Jib Trimmer",
+    boatId: 1,
     boatName: "Dilema",
     boatLocation: "San Francisco",
     boatPhoto: null,
@@ -66,34 +68,6 @@ const myRegattas = [
     skipperPhoto: null,
   },
 ];
-
-function NavFooter({ active }) {
-  const items = [
-    { label: "Home", href: "/crew/feed", icon: <IconAnchor size={22} /> },
-    { label: "Regattas", href: "/crew/regattas", icon: <IconCalendarEvent size={22} /> },
-    { label: "Message", href: "/crew/messages", icon: <IconMessage size={22} /> },
-    { label: "Favorites", href: "/crew/favorites", icon: <IconStar size={22} /> },
-    { label: "Profile", href: "/crew/profile", icon: <IconUser size={22} /> },
-  ];
-  return (
-    <nav
-      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] flex items-center justify-around px-2 pt-2 pb-1 border-t"
-      style={{ backgroundColor: "#fff", borderColor: "#e8e8e8" }}
-    >
-      {items.map((item) => (
-        <Link
-          key={item.label}
-          href={item.href}
-          className="flex flex-col items-center gap-0.5 text-[10px]"
-          style={{ color: active === item.label ? "#111" : "#aaa" }}
-        >
-          {item.icon}
-          {item.label}
-        </Link>
-      ))}
-    </nav>
-  );
-}
 
 function Divider() {
   return <div className="h-px w-full" style={{ backgroundColor: "#e8e8e8" }} />;
@@ -273,12 +247,13 @@ function RegattaCard({ regatta, onCancel, onWithdraw, onRemove, onAccept, onDecl
             >
               Cancel
             </button>
-            <button
+            <Link
+              href={`/crew/messages/${regatta.boatId}`}
               className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-sm font-medium text-white"
               style={{ backgroundColor: "#024BB9" }}
             >
               <IconMessage size={13} /> Send Message
-            </button>
+            </Link>
           </>
         ) : (
           <>
@@ -289,12 +264,13 @@ function RegattaCard({ regatta, onCancel, onWithdraw, onRemove, onAccept, onDecl
             >
               Withdraw
             </button>
-            <button
+            <Link
+              href={`/crew/messages/${regatta.boatId}`}
               className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-sm font-medium text-white"
               style={{ backgroundColor: "#024BB9" }}
             >
               <IconMessage size={13} /> Send Message
-            </button>
+            </Link>
           </>
         )}
       </div>
@@ -306,6 +282,10 @@ export default function CrewRegattas() {
   const [regattas, setRegattas] = useState(myRegattas);
   const [cancelTarget, setCancelTarget] = useState(null);
   const [withdrawTarget, setWithdrawTarget] = useState(null);
+
+  useEffect(() => {
+    localStorage.removeItem("kroo_crew_regatta_notif");
+  }, []);
 
   function removeRegatta(id) {
     setRegattas((prev) => prev.filter((r) => r.id !== id));
@@ -377,7 +357,7 @@ export default function CrewRegattas() {
         )}
       </main>
 
-      <NavFooter active="Regattas" />
+      <CrewNavFooter active="Regattas" />
     </div>
   );
 }

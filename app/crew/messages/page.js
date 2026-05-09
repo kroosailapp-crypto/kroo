@@ -1,13 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
-import {
-  IconAnchor,
-  IconCalendarEvent,
-  IconMessage,
-  IconStar,
-  IconUser,
-  IconSearch,
-} from "@tabler/icons-react";
+import { IconSearch } from "@tabler/icons-react";
+import CrewNavFooter from "@/app/components/CrewNavFooter";
 
 const conversations = [
   {
@@ -38,34 +32,6 @@ const conversations = [
     photo: "/boat-image.jpeg",
   },
 ];
-
-function NavFooter() {
-  const items = [
-    { label: "Home", href: "/crew/feed", icon: <IconAnchor size={22} /> },
-    { label: "Regattas", href: "/crew/regattas", icon: <IconCalendarEvent size={22} /> },
-    { label: "Message", href: "/crew/messages", icon: <IconMessage size={22} /> },
-    { label: "Favorites", href: "/crew/favorites", icon: <IconStar size={22} /> },
-    { label: "Profile", href: "/crew/profile", icon: <IconUser size={22} /> },
-  ];
-  return (
-    <nav
-      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] flex items-center justify-around px-2 pt-2 pb-1 border-t"
-      style={{ backgroundColor: "#fff", borderColor: "#e8e8e8" }}
-    >
-      {items.map((item) => (
-        <Link
-          key={item.label}
-          href={item.href}
-          className="flex flex-col items-center gap-0.5 text-[10px]"
-          style={{ color: item.label === "Message" ? "#111" : "#aaa" }}
-        >
-          {item.icon}
-          {item.label}
-        </Link>
-      ))}
-    </nav>
-  );
-}
 
 function Divider() {
   return <div className="h-px w-full" style={{ backgroundColor: "#e8e8e8" }} />;
@@ -131,7 +97,7 @@ export default function CrewMessages() {
         ))}
       </main>
 
-      <NavFooter />
+      <CrewNavFooter active="Message" />
     </div>
   );
 }

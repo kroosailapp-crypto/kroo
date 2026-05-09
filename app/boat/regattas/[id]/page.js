@@ -2,8 +2,6 @@
 import { useState, use } from "react";
 import Link from "next/link";
 import {
-  IconAnchor,
-  IconCalendarEvent,
   IconMessage,
   IconStar,
   IconUser,
@@ -11,6 +9,7 @@ import {
   IconCheck,
   IconX,
 } from "@tabler/icons-react";
+import BoatNavFooter from "@/app/components/BoatNavFooter";
 
 const POSITIONS = [
   "Helm",
@@ -50,10 +49,10 @@ const regattas = {
         role: "Jib Trimmer",
         level: "Mid Level – 2–5 years",
         status: "filled",
-        selectedCrew: { name: "Andre Peixoto", location: "San Francisco, CA" },
+        selectedCrew: { id: 1, name: "Andre Peixoto", location: "San Francisco, CA" },
         otherApplicants: [
-          { name: "Sara Lopes", level: "Advanced" },
-          { name: "Mike Chen", level: "Entry Level" },
+          { id: 2, name: "Sara Lopes", level: "Advanced" },
+          { id: 3, name: "Mike Chen", level: "Entry Level" },
         ],
       },
       {
@@ -63,10 +62,10 @@ const regattas = {
         status: "open",
         selectedCrew: null,
         otherApplicants: [
-          { name: "Julia Martins", level: "Mid-Level" },
-          { name: "Tom Walsh", level: "Advanced" },
-          { name: "Carlos Mendes", level: "Mid-Level" },
-          { name: "Linda Petterson", level: "Advanced" },
+          { id: 4, name: "Julia Martins", level: "Mid-Level" },
+          { id: 5, name: "Tom Walsh", level: "Advanced" },
+          { id: 6, name: "Carlos Mendes", level: "Mid-Level" },
+          { id: 7, name: "Linda Petterson", level: "Advanced" },
         ],
       },
       {
@@ -96,41 +95,13 @@ const regattas = {
         status: "open",
         selectedCrew: null,
         otherApplicants: [
-          { name: "Sara Lopes", level: "Advanced" },
-          { name: "Andre Peixoto", level: "Mid-Level" },
+          { id: 2, name: "Sara Lopes", level: "Advanced" },
+          { id: 1, name: "Andre Peixoto", level: "Mid-Level" },
         ],
       },
     ],
   },
 };
-
-function NavFooter() {
-  const items = [
-    { label: "Home", href: "/boat/feed", icon: <IconAnchor size={22} /> },
-    { label: "Regattas", href: "/boat/regattas", icon: <IconCalendarEvent size={22} /> },
-    { label: "Message", href: "/boat/messages", icon: <IconMessage size={22} /> },
-    { label: "Favorites", href: "/boat/favorites", icon: <IconStar size={22} /> },
-    { label: "Profile", href: "/boat/profile", icon: <IconUser size={22} /> },
-  ];
-  return (
-    <nav
-      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] flex items-center justify-around px-2 pt-2 pb-1 border-t"
-      style={{ backgroundColor: "#fff", borderColor: "#e8e8e8" }}
-    >
-      {items.map((item) => (
-        <Link
-          key={item.label}
-          href={item.href}
-          className="flex flex-col items-center gap-0.5 text-[10px]"
-          style={{ color: item.label === "Regattas" ? "#111" : "#aaa" }}
-        >
-          {item.icon}
-          {item.label}
-        </Link>
-      ))}
-    </nav>
-  );
-}
 
 function Divider() {
   return <div className="h-px w-full" style={{ backgroundColor: "#e8e8e8" }} />;
@@ -286,12 +257,13 @@ export default function RegattaDetail({ params }) {
           ? {
               ...p,
               status: "filled",
-              selectedCrew: { name: crew.name, location: crew.level },
+              selectedCrew: { id: crew.id, name: crew.name, location: crew.level },
               otherApplicants: p.otherApplicants.filter((a) => a.name !== crew.name),
             }
           : p
       )
     );
+    localStorage.setItem("kroo_crew_regatta_notif", "1");
   }
 
   return (
@@ -399,12 +371,13 @@ export default function RegattaDetail({ params }) {
                     >
                       Confirmed
                     </span>
-                    <button
+                    <Link
+                      href={`/boat/messages/${pos.selectedCrew.id}`}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-white"
                       style={{ backgroundColor: "#024BB9" }}
                     >
                       <IconMessage size={13} color="white" /> Message
-                    </button>
+                    </Link>
                   </div>
                 </div>
 
@@ -434,12 +407,13 @@ export default function RegattaDetail({ params }) {
                       >
                         Select
                       </button>
-                      <button
+                      <Link
+                        href={`/boat/messages/${crew.id}`}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-white"
                         style={{ backgroundColor: "#111" }}
                       >
                         <IconMessage size={13} color="white" /> Message
-                      </button>
+                      </Link>
                     </>
                   }
                 />
@@ -474,7 +448,7 @@ export default function RegattaDetail({ params }) {
 
       </div>
 
-      <NavFooter />
+      <BoatNavFooter active="Regattas" />
     </div>
   );
 }
