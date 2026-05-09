@@ -6,7 +6,7 @@ import {
   IconStar,
   IconUser,
   IconArrowLeft,
-  IconCircleCheck,
+  IconCheck,
 } from "@tabler/icons-react";
 
 const regattas = {
@@ -168,7 +168,9 @@ export default function CrewRegattaDetail({ params }) {
                   </button>
                 )}
                 {pos.status === "filled" && (
-                  <IconCircleCheck size={20} color="#111" className="flex-shrink-0" />
+                  <div className="flex-shrink-0 flex items-center justify-center rounded-full" style={{ width: 22, height: 22, backgroundColor: "#111" }}>
+                    <IconCheck size={13} color="white" strokeWidth={2.5} />
+                  </div>
                 )}
               </div>
 
@@ -181,7 +183,7 @@ export default function CrewRegattaDetail({ params }) {
                   >
                     <IconUser size={15} color="#aaa" />
                   </div>
-                  <p className="text-sm text-gray-800">{pos.crew.name}</p>
+                  <p className="text-sm font-semibold text-gray-900">{pos.crew.name}</p>
                   <p className="text-xs text-gray-400">{pos.crew.level}</p>
                 </div>
               )}
