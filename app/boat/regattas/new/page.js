@@ -18,7 +18,7 @@ function NavFooter() {
     { label: "Home", href: "/boat/feed", icon: <IconAnchor size={22} /> },
     { label: "Regattas", href: "/boat/regattas", icon: <IconCalendarEvent size={22} /> },
     { label: "Message", href: "/boat/messages", icon: <IconMessage size={22} /> },
-    { label: "Following", href: "/boat/following", icon: <IconStar size={22} /> },
+    { label: "Favorites", href: "/boat/favorites", icon: <IconStar size={22} /> },
     { label: "Profile", href: "/boat/profile", icon: <IconUser size={22} /> },
   ];
   return (

@@ -10,7 +10,7 @@ import {
   IconPlus,
 } from "@tabler/icons-react";
 
-const boats = [
+const favoritedBoats = [
   {
     id: 1,
     name: "Dilema",
@@ -20,17 +20,6 @@ const boats = [
     positions: 3,
     followers: 40,
     skipper: "Linda Petterson",
-    photo: "/boat-image.jpeg",
-  },
-  {
-    id: 2,
-    name: "Bravura",
-    location: "San Francisco, CA",
-    boatClass: "J/24",
-    nextRegatta: "Bay Regatta, 08/10/26",
-    positions: 2,
-    followers: 27,
-    skipper: "Carlos Mendes",
     photo: "/boat-image.jpeg",
   },
   {
@@ -46,7 +35,7 @@ const boats = [
   },
 ];
 
-function NavFooter({ active }) {
+function NavFooter() {
   const items = [
     { label: "Home", href: "/crew/feed", icon: <IconAnchor size={22} /> },
     { label: "Regattas", href: "/crew/regattas", icon: <IconCalendarEvent size={22} /> },
@@ -64,7 +53,7 @@ function NavFooter({ active }) {
           key={item.label}
           href={item.href}
           className="flex flex-col items-center gap-0.5 text-[10px]"
-          style={{ color: active === item.label ? "#111" : "#aaa" }}
+          style={{ color: item.label === "Favorites" ? "#111" : "#aaa" }}
         >
           {item.icon}
           {item.label}
@@ -78,18 +67,21 @@ function BoatCard({ boat }) {
   return (
     <Link href={`/boat/${boat.id}`} className="flex flex-col border-b" style={{ borderColor: "#e8e8e8" }}>
 
-      {/* Boat name + location + class tag */}
+      {/* Boat name + location + class tag + star */}
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
         <div>
           <p className="font-bold text-lg text-gray-900">{boat.name}</p>
           <p className="text-xs text-gray-500">{boat.location}</p>
         </div>
-        <span
-          className="text-xs px-2.5 py-1 rounded-lg font-bold"
-          style={{ backgroundColor: "#E8EDF8", color: "#111" }}
-        >
-          {boat.boatClass}
-        </span>
+        <div className="flex items-center gap-2">
+          <span
+            className="text-xs px-2.5 py-1 rounded-lg font-bold"
+            style={{ backgroundColor: "#E8EDF8", color: "#111" }}
+          >
+            {boat.boatClass}
+          </span>
+          <IconStar size={18} color="#111" fill="#111" />
+        </div>
       </div>
 
       {/* Boat Photo */}
@@ -103,7 +95,6 @@ function BoatCard({ boat }) {
         <p className="text-sm font-medium text-gray-900 mb-3">{boat.nextRegatta}</p>
 
         <div className="flex items-center justify-between">
-          {/* Stats — left-aligned, same format as profiles */}
           <div className="flex gap-5">
             <div>
               <p className="text-base font-semibold text-gray-900">{boat.positions}</p>
@@ -115,7 +106,6 @@ function BoatCard({ boat }) {
             </div>
           </div>
 
-          {/* Skipper */}
           <div className="flex items-center gap-2">
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
@@ -135,11 +125,11 @@ function BoatCard({ boat }) {
   );
 }
 
-export default function CrewFeedPage() {
+export default function CrewFavoritesPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
 
-      {/* Header — matches profile pages */}
+      {/* Header */}
       <div className="flex items-center gap-2 px-4 pt-3 pb-2 flex-shrink-0">
         <Image src="/kroo-logo-blue.svg" alt="Kroo" width={52} height={20} />
         <div
@@ -152,13 +142,24 @@ export default function CrewFeedPage() {
         <IconPlus size={22} color="#111" />
       </div>
 
-      <main className="flex-1">
-        {boats.map((boat) => (
-          <BoatCard key={boat.id} boat={boat} />
-        ))}
+      <main className="flex-1 overflow-y-auto">
+        {favoritedBoats.length === 0 ? (
+          <div className="flex flex-col items-center justify-center px-8 py-24">
+            <IconStar size={40} color="#e0e0e0" />
+            <p className="text-sm text-gray-400 text-center mt-4">No favorites yet.</p>
+            <p className="text-xs text-gray-400 text-center mt-1">Boats you favorite will appear here.</p>
+            <Link href="/crew/feed" className="mt-4 text-xs font-medium" style={{ color: "#0161f0" }}>
+              Browse boats →
+            </Link>
+          </div>
+        ) : (
+          favoritedBoats.map((boat) => (
+            <BoatCard key={boat.id} boat={boat} />
+          ))
+        )}
       </main>
 
-      <NavFooter active="Home" />
+      <NavFooter />
     </div>
   );
 }

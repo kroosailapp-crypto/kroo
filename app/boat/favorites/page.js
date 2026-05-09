@@ -10,18 +10,7 @@ import {
   IconPlus,
 } from "@tabler/icons-react";
 
-const crewMembers = [
-  {
-    id: 1,
-    name: "Andre Peixoto",
-    location: "San Francisco, CA",
-    positions: ["Jib Trimmer", "Spin Trimmer"],
-    level: "Mid-Level",
-    kroo: 15,
-    favorites: 31,
-    following: 10,
-    photo: "/boat-image-placeholder.png",
-  },
+const favoritedCrew = [
   {
     id: 2,
     name: "Sara Lopes",
@@ -31,17 +20,6 @@ const crewMembers = [
     kroo: 28,
     favorites: 44,
     following: 19,
-    photo: "/boat-image-placeholder.png",
-  },
-  {
-    id: 3,
-    name: "Mike Chen",
-    location: "Sausalito, CA",
-    positions: ["Bowman"],
-    level: "Entry Level",
-    kroo: 6,
-    favorites: 12,
-    following: 5,
     photo: "/boat-image-placeholder.png",
   },
   {
@@ -57,7 +35,7 @@ const crewMembers = [
   },
 ];
 
-function NavFooter({ active }) {
+function NavFooter() {
   const items = [
     { label: "Home", href: "/boat/feed", icon: <IconAnchor size={22} /> },
     { label: "Regattas", href: "/boat/regattas", icon: <IconCalendarEvent size={22} /> },
@@ -75,7 +53,7 @@ function NavFooter({ active }) {
           key={item.label}
           href={item.href}
           className="flex flex-col items-center gap-0.5 text-[10px]"
-          style={{ color: active === item.label ? "#111" : "#aaa" }}
+          style={{ color: item.label === "Favorites" ? "#111" : "#aaa" }}
         >
           {item.icon}
           {item.label}
@@ -87,7 +65,11 @@ function NavFooter({ active }) {
 
 function CrewCard({ member }) {
   return (
-    <Link href={`/crew/${member.id}`} className="flex gap-3.5 px-4 py-4 border-b items-start" style={{ borderColor: "#e8e8e8" }}>
+    <Link
+      href={`/crew/${member.id}`}
+      className="flex gap-3.5 px-4 py-4 border-b items-start"
+      style={{ borderColor: "#e8e8e8" }}
+    >
       <Image
         src={member.photo}
         alt={member.name}
@@ -97,7 +79,10 @@ function CrewCard({ member }) {
         style={{ width: 64, height: 64 }}
       />
       <div className="flex-1">
-        <p className="font-semibold text-base text-gray-900">{member.name}</p>
+        <div className="flex items-start justify-between mb-0.5">
+          <p className="font-semibold text-base text-gray-900">{member.name}</p>
+          <IconStar size={18} color="#111" fill="#111" />
+        </div>
         <p className="text-xs text-gray-500 mb-1.5">{member.location}</p>
         <div className="flex flex-wrap gap-1.5 mb-1.5">
           {member.positions.map((pos) => (
@@ -130,11 +115,11 @@ function CrewCard({ member }) {
   );
 }
 
-export default function BoatFeedPage() {
+export default function BoatFavoritesPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
 
-      {/* Header — matches profile pages */}
+      {/* Header */}
       <div className="flex items-center gap-2 px-4 pt-3 pb-2 flex-shrink-0">
         <Image src="/kroo-logo-blue.svg" alt="Kroo" width={52} height={20} />
         <div
@@ -147,13 +132,24 @@ export default function BoatFeedPage() {
         <IconPlus size={22} color="#111" />
       </div>
 
-      <main className="flex-1">
-        {crewMembers.map((member) => (
-          <CrewCard key={member.id} member={member} />
-        ))}
+      <main className="flex-1 overflow-y-auto">
+        {favoritedCrew.length === 0 ? (
+          <div className="flex flex-col items-center justify-center px-8 py-24">
+            <IconStar size={40} color="#e0e0e0" />
+            <p className="text-sm text-gray-400 text-center mt-4">No favorites yet.</p>
+            <p className="text-xs text-gray-400 text-center mt-1">Crew you favorite will appear here.</p>
+            <Link href="/boat/feed" className="mt-4 text-xs font-medium" style={{ color: "#0161f0" }}>
+              Browse crew →
+            </Link>
+          </div>
+        ) : (
+          favoritedCrew.map((member) => (
+            <CrewCard key={member.id} member={member} />
+          ))
+        )}
       </main>
 
-      <NavFooter active="Home" />
+      <NavFooter />
     </div>
   );
 }
