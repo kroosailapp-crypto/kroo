@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -280,6 +280,11 @@ export default function BoatRegattas() {
   const [regattaList, setRegattaList] = useState(regattas);
   const [cancelTarget, setCancelTarget] = useState(null);
 
+  useEffect(() => {
+    const extra = JSON.parse(localStorage.getItem("kroo_extra_regattas") || "[]");
+    if (extra.length > 0) setRegattaList([...regattas, ...extra]);
+  }, []);
+
   function handleConfirmCancel() {
     setRegattaList((prev) => prev.filter((r) => r.id !== cancelTarget.id));
     setCancelTarget(null);
@@ -338,12 +343,13 @@ export default function BoatRegattas() {
 
         {/* Add regatta CTA */}
         <div className="px-4 py-5">
-          <button
+          <Link
+            href="/boat/regattas/new"
             className="text-xs font-medium px-4 py-2 rounded-full border"
             style={{ color: "#0161f0", borderColor: "#0161f0" }}
           >
             + Add Regatta
-          </button>
+          </Link>
         </div>
       </main>
 

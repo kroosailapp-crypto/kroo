@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -159,15 +160,14 @@ function AddPositionModal({ onAdd, onClose }) {
 }
 
 export default function CreateRegatta() {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [month, setMonth] = useState("");
   const [day, setDay] = useState("");
   const [year, setYear] = useState("");
   const [website, setWebsite] = useState("");
-  const [positions, setPositions] = useState([
-    { role: "Mainsail Trimmer", level: "Mid Level – 2–5 years" },
-  ]);
+  const [positions, setPositions] = useState([]);
   const [showModal, setShowModal] = useState(false);
 
   function removePosition(index) {
@@ -177,6 +177,32 @@ export default function CreateRegatta() {
   function handleAddPosition(pos) {
     setPositions((prev) => [...prev, pos]);
     setShowModal(false);
+  }
+
+  function handleSave() {
+    if (!name.trim()) return;
+    const newRegatta = {
+      id: Date.now(),
+      name: name.trim(),
+      date: [month, day, year].filter(Boolean).join("/") || "TBD",
+      location: location.trim() || "TBD",
+      website: website.trim(),
+      invited: 0,
+      confirmed: 0,
+      pending: 0,
+      declined: 0,
+      positions: positions.map((p, i) => ({
+        id: i + 1,
+        role: p.role,
+        level: p.level,
+        status: "open",
+        crew: null,
+        applicants: 0,
+      })),
+    };
+    const existing = JSON.parse(localStorage.getItem("kroo_extra_regattas") || "[]");
+    localStorage.setItem("kroo_extra_regattas", JSON.stringify([...existing, newRegatta]));
+    router.push("/boat/regattas");
   }
 
   return (
@@ -306,8 +332,10 @@ export default function CreateRegatta() {
         style={{ bottom: "56px" }}
       >
         <button
+          onClick={handleSave}
+          disabled={!name.trim()}
           className="w-full py-3.5 rounded-full text-sm font-semibold text-white"
-          style={{ backgroundColor: "#0161F0" }}
+          style={{ backgroundColor: name.trim() ? "#0161F0" : "#c0c0c0" }}
         >
           Save Regatta
         </button>
