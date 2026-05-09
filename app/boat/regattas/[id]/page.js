@@ -275,6 +275,10 @@ export default function RegattaDetail({ params }) {
     setShowModal(false);
   }
 
+  function handleDeletePosition(posId) {
+    setPositions((prev) => prev.filter((p) => p.id !== posId));
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
 
@@ -352,6 +356,9 @@ export default function RegattaDetail({ params }) {
                   <IconCheck size={13} color="white" strokeWidth={2.5} />
                 </div>
               )}
+              <button onClick={() => handleDeletePosition(pos.id)} className="flex-shrink-0 ml-1">
+                <IconX size={16} color="#bbb" />
+              </button>
             </div>
 
             {/* Filled: confirmed crew card */}
