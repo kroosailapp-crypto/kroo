@@ -243,7 +243,7 @@ export default function BoatPublicProfile({ params }) {
             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-medium text-white"
             style={{ backgroundColor: "#024BB9" }}
           >
-            <IconStar size={13} color={isFavorited ? "#08FF00" : "white"} fill={isFavorited ? "#08FF00" : "none"} />
+            <IconStar size={13} color="white" fill={isFavorited ? "white" : "none"} />
             {isFavorited ? "Unfavorite" : "Favorite"}
           </button>
         </div>
