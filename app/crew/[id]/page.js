@@ -177,19 +177,19 @@ export default function CrewPublicProfile({ params }) {
           <Link
             href="/boat/messages"
             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-medium text-white"
-            style={{ backgroundColor: "#2C65BB" }}
+            style={{ backgroundColor: "#0161F0" }}
           >
             <IconMessage size={13} /> Message
           </Link>
           <button
             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-medium text-white"
-            style={{ backgroundColor: "#2C65BB" }}
+            style={{ backgroundColor: "#0161F0" }}
           >
             <IconStar size={13} /> Favorite
           </button>
           <button
             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-medium text-white"
-            style={{ backgroundColor: "#2C65BB" }}
+            style={{ backgroundColor: "#0161F0" }}
           >
             <IconFlag size={13} /> Invite to Race
           </button>
