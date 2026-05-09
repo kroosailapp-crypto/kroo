@@ -9,6 +9,8 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import BoatNavFooter from "@/app/components/BoatNavFooter";
+import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/lib/supabase";
 
 function Tag({ label }) {
   return (
@@ -129,6 +131,7 @@ function AddPositionModal({ onAdd, onClose }) {
 
 export default function CreateRegatta() {
   const router = useRouter();
+  const { user } = useAuth();
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [month, setMonth] = useState("");
@@ -137,6 +140,8 @@ export default function CreateRegatta() {
   const [website, setWebsite] = useState("");
   const [positions, setPositions] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   function removePosition(index) {
     setPositions((prev) => prev.filter((_, i) => i !== index));
@@ -147,29 +152,38 @@ export default function CreateRegatta() {
     setShowModal(false);
   }
 
-  function handleSave() {
-    if (!name.trim()) return;
-    const newRegatta = {
-      id: Date.now(),
-      name: name.trim(),
-      date: [month, day, year].filter(Boolean).join("/") || "TBD",
-      location: location.trim() || "TBD",
-      website: website.trim(),
-      invited: 0,
-      confirmed: 0,
-      pending: 0,
-      declined: 0,
-      positions: positions.map((p, i) => ({
-        id: i + 1,
-        role: p.role,
-        level: p.level,
-        status: "open",
-        crew: null,
-        applicants: 0,
-      })),
-    };
-    const existing = JSON.parse(localStorage.getItem("kroo_extra_regattas") || "[]");
-    localStorage.setItem("kroo_extra_regattas", JSON.stringify([...existing, newRegatta]));
+  async function handleSave() {
+    if (!name.trim() || !user) return;
+    setSaving(true);
+    setError("");
+
+    const date = [month, day, year].filter(Boolean).join("/") || null;
+
+    // 1. Insert regatta
+    const { data: regatta, error: regattaError } = await supabase
+      .from("regattas")
+      .insert({ boat_id: user.id, name: name.trim(), date, location: location.trim() || null })
+      .select()
+      .single();
+
+    if (regattaError) {
+      setError("Failed to save regatta: " + regattaError.message);
+      setSaving(false);
+      return;
+    }
+
+    // 2. Insert positions
+    if (positions.length > 0) {
+      const { error: posError } = await supabase.from("regatta_positions").insert(
+        positions.map((p) => ({ regatta_id: regatta.id, role: p.role, level: p.level, status: "open" }))
+      );
+      if (posError) {
+        setError("Regatta saved but positions failed: " + posError.message);
+        setSaving(false);
+        return;
+      }
+    }
+
     router.push("/boat/regattas");
   }
 
@@ -299,13 +313,14 @@ export default function CreateRegatta() {
         className="fixed left-1/2 -translate-x-1/2 w-full max-w-[430px] px-4 pb-3"
         style={{ bottom: "56px" }}
       >
+        {error && <p className="text-xs text-center mb-2" style={{ color: "#e00" }}>{error}</p>}
         <button
           onClick={handleSave}
-          disabled={!name.trim()}
+          disabled={!name.trim() || saving}
           className="w-full py-3.5 rounded-full text-sm font-semibold text-white"
-          style={{ backgroundColor: name.trim() ? "#0161F0" : "#c0c0c0" }}
+          style={{ backgroundColor: name.trim() && !saving ? "#0161F0" : "#c0c0c0" }}
         >
-          Save Regatta
+          {saving ? "Saving…" : "Save Regatta"}
         </button>
       </div>
 
