@@ -1,3 +1,5 @@
+"use client";
+import { useState, use } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -123,7 +125,9 @@ function Tag({ label }) {
 }
 
 export default function CrewPublicProfile({ params }) {
-  const profile = crewProfiles[params.id] ?? crewProfiles[1];
+  const { id } = use(params);
+  const profile = crewProfiles[id] ?? crewProfiles[1];
+  const [isFavorited, setIsFavorited] = useState(false);
 
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
@@ -182,10 +186,12 @@ export default function CrewPublicProfile({ params }) {
             <IconMessage size={13} /> Message
           </Link>
           <button
+            onClick={() => setIsFavorited((f) => !f)}
             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-medium text-white"
             style={{ backgroundColor: "#024BB9" }}
           >
-            <IconStar size={13} /> Favorite
+            <IconStar size={13} color={isFavorited ? "#08FF00" : "white"} fill={isFavorited ? "#08FF00" : "none"} />
+            {isFavorited ? "Unfavorite" : "Favorite"}
           </button>
           <button
             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-medium text-white"

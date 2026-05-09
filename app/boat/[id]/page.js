@@ -170,6 +170,7 @@ export default function BoatPublicProfile({ params }) {
   const profile = boatProfiles[id] ?? boatProfiles[1];
   const [showModal, setShowModal] = useState(false);
   const [appliedPositions, setAppliedPositions] = useState(new Set());
+  const [isFavorited, setIsFavorited] = useState(false);
 
   function handleApply(key) {
     setAppliedPositions((prev) => new Set(prev).add(key));
@@ -238,10 +239,12 @@ export default function BoatPublicProfile({ params }) {
             <IconMessage size={13} /> Message
           </Link>
           <button
+            onClick={() => setIsFavorited((f) => !f)}
             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-medium text-white"
             style={{ backgroundColor: "#024BB9" }}
           >
-            <IconStar size={13} /> Favorite
+            <IconStar size={13} color={isFavorited ? "#08FF00" : "white"} fill={isFavorited ? "#08FF00" : "none"} />
+            {isFavorited ? "Unfavorite" : "Favorite"}
           </button>
         </div>
 
