@@ -159,16 +159,40 @@ function RegattaCard({ regatta }) {
 
             {/* Filled: show selected crew */}
             {pos.status === "filled" && pos.crew && (
-              <div className="flex items-center gap-2.5 mt-2 p-2.5 rounded-xl border" style={{ borderColor: "#e8e8e8" }}>
-                <div
-                  className="rounded-full flex items-center justify-center flex-shrink-0"
-                  style={{ width: 40, height: 40, backgroundColor: "#d8d8d8" }}
-                >
-                  <IconUser size={18} color="#aaa" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{pos.crew.name}</p>
-                  <p className="text-xs text-gray-400">{pos.crew.level}</p>
+              <div className="mt-2 mx-0 p-3 rounded-xl border" style={{ borderColor: "#e8e8e8" }}>
+                <div className="flex items-center gap-3">
+                  {/* Avatar with checkmark badge */}
+                  <div className="relative flex-shrink-0">
+                    <div
+                      className="rounded-full flex items-center justify-center"
+                      style={{ width: 46, height: 46, backgroundColor: "#d8d8d8" }}
+                    >
+                      <IconUser size={20} color="#aaa" />
+                    </div>
+                    <div
+                      className="absolute flex items-center justify-center rounded-full bg-white"
+                      style={{ width: 16, height: 16, bottom: -2, right: -3 }}
+                    >
+                      <IconCircleCheck size={16} color="#111" />
+                    </div>
+                  </div>
+                  {/* Name + level + Confirmed tag */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <p className="text-sm font-medium text-gray-900">{pos.crew.name}</p>
+                      <span
+                        className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                        style={{ backgroundColor: "#e6f9ee", color: "#1a9e4a" }}
+                      >
+                        Confirmed
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-400">{pos.crew.level}</p>
+                    <button className="mt-2">
+                      <IconMessage size={16} color="#888" />
+                    </button>
+                  </div>
+                  <IconStar size={18} color="#ccc" className="flex-shrink-0" />
                 </div>
               </div>
             )}
