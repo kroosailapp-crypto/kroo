@@ -189,9 +189,9 @@ export default function CrewPublicProfile({ params }) {
           </button>
           <button
             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-medium text-white"
-            style={{ backgroundColor: "#111" }}
+            style={{ backgroundColor: "#2C65BB" }}
           >
-            <IconFlag size={13} /> Race Invite
+            <IconFlag size={13} /> Invite to Race
           </button>
         </div>
 
