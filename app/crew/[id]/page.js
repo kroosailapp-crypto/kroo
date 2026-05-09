@@ -10,7 +10,156 @@ import {
   IconUser,
   IconArrowLeft,
   IconFlag,
+  IconX,
+  IconCheck,
 } from "@tabler/icons-react";
+
+const boatRegattas = [
+  {
+    id: 1,
+    name: "Rolex Big Boat Series",
+    date: "07/25/2026",
+    positions: ["Jib Trimmer", "Bowman", "Spin Trimmer"],
+  },
+  {
+    id: 2,
+    name: "Bay Regatta",
+    date: "08/10/2026",
+    positions: ["Tactician", "Mainsail Trimmer"],
+  },
+];
+
+function InviteDrawer({ sailorName, onInvite, onClose }) {
+  const [selectedRegatta, setSelectedRegatta] = useState(null);
+  const [selectedPosition, setSelectedPosition] = useState(null);
+
+  function handleSend() {
+    if (selectedRegatta && selectedPosition) {
+      onInvite({ regatta: selectedRegatta, position: selectedPosition });
+    }
+  }
+
+  const canSend = selectedRegatta && selectedPosition;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center"
+      style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-t-2xl w-full max-w-[430px] px-5 pt-5 pb-10 flex flex-col gap-5"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <p className="text-base font-semibold text-gray-900">Invite to Race</p>
+          <button onClick={onClose}><IconX size={18} color="#999" /></button>
+        </div>
+
+        {/* Regatta selection */}
+        <div>
+          <p className="text-xs text-gray-400 mb-2">Select regatta</p>
+          <div className="flex flex-col gap-2">
+            {boatRegattas.map((r) => {
+              const selected = selectedRegatta?.id === r.id;
+              return (
+                <button
+                  key={r.id}
+                  onClick={() => { setSelectedRegatta(r); setSelectedPosition(null); }}
+                  className="flex items-center justify-between px-4 py-3 rounded-2xl border text-left"
+                  style={{
+                    borderColor: selected ? "#111" : "#e0e0e0",
+                    backgroundColor: selected ? "#111" : "#fff",
+                  }}
+                >
+                  <div>
+                    <p className="text-sm font-semibold" style={{ color: selected ? "#fff" : "#111" }}>{r.name}</p>
+                    <p className="text-xs mt-0.5" style={{ color: selected ? "#ccc" : "#aaa" }}>{r.date}</p>
+                  </div>
+                  {selected && <IconCheck size={16} color="white" strokeWidth={2.5} />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Position selection — only after a regatta is picked */}
+        {selectedRegatta && (
+          <div>
+            <p className="text-xs text-gray-400 mb-2">Select position</p>
+            <div className="flex flex-wrap gap-2">
+              {selectedRegatta.positions.map((pos) => {
+                const selected = selectedPosition === pos;
+                return (
+                  <button
+                    key={pos}
+                    onClick={() => setSelectedPosition(pos)}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold border"
+                    style={{
+                      backgroundColor: selected ? "#111" : "#F4F4F4",
+                      color: selected ? "#fff" : "#111",
+                      borderColor: selected ? "#111" : "#F4F4F4",
+                    }}
+                  >
+                    {pos}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Send button */}
+        <button
+          onClick={handleSend}
+          disabled={!canSend}
+          className="w-full py-3.5 rounded-full text-sm font-semibold text-white"
+          style={{ backgroundColor: canSend ? "#0161F0" : "#c0c0c0" }}
+        >
+          Send Invite
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function InviteConfirmModal({ sailorName, regattaName, position, onClose }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center px-8"
+      style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl px-6 py-7 w-full max-w-[320px] flex flex-col items-center gap-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          className="flex items-center justify-center rounded-full"
+          style={{ width: 48, height: 48, backgroundColor: "#111" }}
+        >
+          <IconCheck size={22} color="white" strokeWidth={2.5} />
+        </div>
+        <p className="text-base font-semibold text-gray-900 text-center leading-snug">
+          Invite sent!
+        </p>
+        <p className="text-sm text-gray-500 text-center leading-relaxed">
+          <span className="font-semibold text-gray-800">{sailorName}</span> has been invited as{" "}
+          <span className="font-semibold text-gray-800">{position}</span> for{" "}
+          <span className="font-semibold text-gray-800">{regattaName}</span>.
+        </p>
+        <button
+          onClick={onClose}
+          className="w-full py-2.5 rounded-full text-sm font-semibold text-white"
+          style={{ backgroundColor: "#0161F0" }}
+        >
+          Got it
+        </button>
+      </div>
+    </div>
+  );
+}
 
 // In a real app this would be fetched from a database by ID.
 // For now we use sample data.
@@ -128,9 +277,35 @@ export default function CrewPublicProfile({ params }) {
   const { id } = use(params);
   const profile = crewProfiles[id] ?? crewProfiles[1];
   const [isFavorited, setIsFavorited] = useState(false);
+  const [showInviteDrawer, setShowInviteDrawer] = useState(false);
+  const [inviteConfirm, setInviteConfirm] = useState(null); // { regattaName, position }
+  const [isInvited, setIsInvited] = useState(false);
+
+  function handleInvite({ regatta, position }) {
+    setShowInviteDrawer(false);
+    setInviteConfirm({ regattaName: regatta.name, position });
+    setIsInvited(true);
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
+
+      {showInviteDrawer && (
+        <InviteDrawer
+          sailorName={profile.name}
+          onInvite={handleInvite}
+          onClose={() => setShowInviteDrawer(false)}
+        />
+      )}
+
+      {inviteConfirm && (
+        <InviteConfirmModal
+          sailorName={profile.name}
+          regattaName={inviteConfirm.regattaName}
+          position={inviteConfirm.position}
+          onClose={() => setInviteConfirm(null)}
+        />
+      )}
 
       {/* Header with back arrow */}
       <div className="flex items-center gap-3 px-4 pt-4 pb-3">
@@ -194,10 +369,14 @@ export default function CrewPublicProfile({ params }) {
             {isFavorited ? "Unfavorite" : "Favorite"}
           </button>
           <button
+            onClick={() => !isInvited && setShowInviteDrawer(true)}
             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-medium text-white"
-            style={{ backgroundColor: "#0161F0" }}
+            style={{ backgroundColor: isInvited ? "#111" : "#0161F0" }}
           >
-            <IconFlag size={13} /> Invite to Race
+            {isInvited
+              ? <><IconCheck size={13} color="white" strokeWidth={2.5} /> Invited</>
+              : <><IconFlag size={13} /> Invite to Race</>
+            }
           </button>
         </div>
 
