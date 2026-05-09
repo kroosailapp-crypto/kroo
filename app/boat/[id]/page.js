@@ -1,3 +1,5 @@
+"use client";
+import { useState, use } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -7,7 +9,6 @@ import {
   IconStar,
   IconUser,
   IconArrowLeft,
-  IconFlag,
 } from "@tabler/icons-react";
 
 const boatProfiles = {
@@ -135,11 +136,46 @@ function Tag({ label }) {
   );
 }
 
+function ApplyModal({ boatName, onClose }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center px-8"
+      style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl px-6 py-7 w-full max-w-[320px] flex flex-col items-center gap-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <p className="text-base font-semibold text-gray-900 text-center">
+          Application sent!
+        </p>
+        <p className="text-sm text-gray-500 text-center leading-relaxed">
+          A notification was sent to the skipper of <span className="font-semibold text-gray-800">"{boatName}"</span>. If you are selected, we will notify you.
+        </p>
+        <button
+          onClick={onClose}
+          className="mt-1 w-full py-2.5 rounded-full text-sm font-semibold text-white"
+          style={{ backgroundColor: "#0161f0" }}
+        >
+          Got it
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function BoatPublicProfile({ params }) {
-  const profile = boatProfiles[params.id] ?? boatProfiles[1];
+  const { id } = use(params);
+  const profile = boatProfiles[id] ?? boatProfiles[1];
+  const [showModal, setShowModal] = useState(false);
 
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
+
+      {showModal && (
+        <ApplyModal boatName={profile.name} onClose={() => setShowModal(false)} />
+      )}
 
       {/* Header with back arrow */}
       <div className="flex items-center gap-3 px-4 pt-4 pb-3">
@@ -201,12 +237,6 @@ export default function BoatPublicProfile({ params }) {
           >
             <IconStar size={13} /> Favorite
           </button>
-          <button
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-medium text-white"
-            style={{ backgroundColor: "#111" }}
-          >
-            <IconFlag size={13} /> Apply
-          </button>
         </div>
 
         <Divider />
@@ -243,14 +273,21 @@ export default function BoatPublicProfile({ params }) {
         <div className="px-4 py-3 pb-8">
           <p className="text-xs text-gray-400 mb-3">Upcoming Regattas</p>
           {profile.upcomingRegattas.map((regatta) => (
-            <div key={regatta.name} className="mb-4">
-              <p className="text-sm font-medium text-gray-900 mb-0.5">{regatta.name}</p>
+            <div key={regatta.name} className="mb-5">
+              <p className="text-sm font-semibold text-gray-900 mb-0.5">{regatta.name}</p>
               <p className="text-xs text-gray-400 mb-2">{regatta.date} · {regatta.location}</p>
-              <div className="flex flex-col gap-1.5">
+              <div className="flex flex-col gap-2">
                 {regatta.positions.map((pos) => (
                   <div key={pos.role} className="flex items-center gap-2">
                     <Tag label={pos.role} />
-                    <span className="text-[11px] text-gray-500">{pos.level}</span>
+                    <span className="text-[11px] text-gray-500 flex-1">{pos.level}</span>
+                    <button
+                      onClick={() => setShowModal(true)}
+                      className="text-xs font-semibold px-3 py-1 rounded-full text-white flex-shrink-0"
+                      style={{ backgroundColor: "#0161f0" }}
+                    >
+                      Apply
+                    </button>
                   </div>
                 ))}
               </div>
