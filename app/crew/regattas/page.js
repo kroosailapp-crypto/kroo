@@ -9,9 +9,23 @@ import {
   IconStar,
   IconUser,
   IconSearch,
+  IconCheck,
 } from "@tabler/icons-react";
 
 const myRegattas = [
+  {
+    id: 4,
+    status: "invited",
+    name: "Rolex Big Boat Series",
+    date: "07/25/2026",
+    location: "San Francisco, CA",
+    position: "Jib Trimmer",
+    boatName: "Dilema",
+    boatLocation: "San Francisco",
+    boatPhoto: null,
+    skipperName: "Linda Petterson",
+    skipperPhoto: null,
+  },
   {
     id: 1,
     status: "confirmed",
@@ -104,6 +118,13 @@ function StatusTag({ status }) {
       </span>
     );
   }
+  if (status === "invited") {
+    return (
+      <span className="text-xs font-bold px-2.5 py-1 rounded-lg" style={{ backgroundColor: "#0161F0", color: "#fff" }}>
+        Invited
+      </span>
+    );
+  }
   if (status === "cancelled_by_boat") {
     return (
       <span className="text-xs font-bold px-2.5 py-1 rounded-lg" style={{ backgroundColor: "#FF3B30", color: "#fff" }}>
@@ -155,11 +176,18 @@ function ConfirmModal({ regatta, verb, confirmLabel, onConfirm, onClose }) {
   );
 }
 
-function RegattaCard({ regatta, onCancel, onWithdraw, onRemove }) {
+function RegattaCard({ regatta, onCancel, onWithdraw, onRemove, onAccept, onDecline }) {
   const { status } = regatta;
+  const isInvited = status === "invited";
 
   return (
-    <div className="px-4 py-5">
+    <div
+      className="px-4 py-5"
+      style={isInvited ? {
+        backgroundColor: "#EEF4FF",
+        borderLeft: "4px solid #0161F0",
+      } : {}}
+    >
       {/* Date + location */}
       <p className="text-xs text-gray-400 mb-1">{regatta.date}, {regatta.location}</p>
 
@@ -219,6 +247,23 @@ function RegattaCard({ regatta, onCancel, onWithdraw, onRemove }) {
           >
             Remove
           </button>
+        ) : status === "invited" ? (
+          <>
+            <button
+              onClick={onDecline}
+              className="flex-1 py-2 rounded-full text-sm font-medium border"
+              style={{ color: "#111", borderColor: "#d0d0d0", backgroundColor: "#fff" }}
+            >
+              Decline
+            </button>
+            <button
+              onClick={onAccept}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-sm font-medium text-white"
+              style={{ backgroundColor: "#0161F0" }}
+            >
+              <IconCheck size={14} strokeWidth={2.5} /> Accept
+            </button>
+          </>
         ) : status === "confirmed" ? (
           <>
             <button
@@ -264,6 +309,10 @@ export default function CrewRegattas() {
 
   function removeRegatta(id) {
     setRegattas((prev) => prev.filter((r) => r.id !== id));
+  }
+
+  function updateRegatta(id, changes) {
+    setRegattas((prev) => prev.map((r) => r.id === id ? { ...r, ...changes } : r));
   }
 
   return (
@@ -317,6 +366,8 @@ export default function CrewRegattas() {
                 onCancel={() => setCancelTarget(regatta)}
                 onWithdraw={() => setWithdrawTarget(regatta)}
                 onRemove={() => removeRegatta(regatta.id)}
+                onAccept={() => updateRegatta(regatta.id, { status: "confirmed" })}
+                onDecline={() => removeRegatta(regatta.id)}
               />
               {i < regattas.length - 1 && (
                 <div className="h-2" style={{ backgroundColor: "#F6F6F6" }} />
