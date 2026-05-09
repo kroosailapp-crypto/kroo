@@ -87,7 +87,7 @@ function NavFooter({ active }) {
 
 function CrewCard({ member }) {
   return (
-    <Link href={`/crew/${member.id}`} className="flex gap-3.5 px-4 py-4 border-b items-start" style={{ borderColor: "#e8e8e8" }}>
+    <Link href={`/crew/${member.id}`} className="flex gap-3.5 px-4 py-4 items-start">
       <Image
         src={member.photo}
         alt={member.name}
@@ -148,8 +148,13 @@ export default function BoatFeedPage() {
       </div>
 
       <main className="flex-1">
-        {crewMembers.map((member) => (
-          <CrewCard key={member.id} member={member} />
+        {crewMembers.map((member, i) => (
+          <div key={member.id}>
+            <CrewCard member={member} />
+            {i < crewMembers.length - 1 && (
+              <div className="h-2" style={{ backgroundColor: "#F6F6F6" }} />
+            )}
+          </div>
         ))}
       </main>
 
