@@ -65,7 +65,7 @@ function NavFooter() {
 
 function BoatCard({ boat }) {
   return (
-    <Link href={`/boat/${boat.id}`} className="flex flex-col border-b" style={{ borderColor: "#e8e8e8" }}>
+    <Link href={`/boat/${boat.id}`} className="flex flex-col">
 
       {/* Boat name + location + class tag + star */}
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
@@ -153,8 +153,13 @@ export default function CrewFavoritesPage() {
             </Link>
           </div>
         ) : (
-          favoritedBoats.map((boat) => (
-            <BoatCard key={boat.id} boat={boat} />
+          favoritedBoats.map((boat, i) => (
+            <div key={boat.id}>
+              <BoatCard boat={boat} />
+              {i < favoritedBoats.length - 1 && (
+                <div className="h-2" style={{ backgroundColor: "#F6F6F6" }} />
+              )}
+            </div>
           ))
         )}
       </main>
