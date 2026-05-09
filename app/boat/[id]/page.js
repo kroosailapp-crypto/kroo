@@ -233,13 +233,13 @@ export default function BoatPublicProfile({ params }) {
           <Link
             href="/crew/messages"
             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-medium text-white"
-            style={{ backgroundColor: "#0161F0" }}
+            style={{ backgroundColor: "#024BB9" }}
           >
             <IconMessage size={13} /> Message
           </Link>
           <button
             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-medium text-white"
-            style={{ backgroundColor: "#0161F0" }}
+            style={{ backgroundColor: "#024BB9" }}
           >
             <IconStar size={13} /> Favorite
           </button>
