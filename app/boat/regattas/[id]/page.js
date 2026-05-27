@@ -193,6 +193,7 @@ export default function RegattaDetail({ params }) {
   const [editDay, setEditDay] = useState("");
   const [editYear, setEditYear] = useState("");
   const [editLocation, setEditLocation] = useState("");
+  const [editYachtClub, setEditYachtClub] = useState("");
   const [editSaving, setEditSaving] = useState(false);
 
   useEffect(() => {
@@ -314,6 +315,7 @@ export default function RegattaDetail({ params }) {
     setEditDay(d);
     setEditYear(y);
     setEditLocation(regatta.location || "");
+    setEditYachtClub(regatta.yacht_club || "");
     setEditing(true);
   }
 
@@ -323,7 +325,7 @@ export default function RegattaDetail({ params }) {
     const date = [editMonth, editDay, editYear].filter(Boolean).join("/") || null;
     const { data: updated } = await supabase
       .from("regattas")
-      .update({ name: editName.trim(), date, location: editLocation.trim() || null })
+      .update({ name: editName.trim(), date, location: editLocation.trim() || null, yacht_club: editYachtClub.trim() || null })
       .eq("id", id)
       .select()
       .single();
@@ -429,6 +431,13 @@ export default function RegattaDetail({ params }) {
                 className="w-full px-4 py-2.5 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400"
                 style={{ borderColor: "#e0e0e0" }}
               />
+              <input
+                value={editYachtClub}
+                onChange={(e) => setEditYachtClub(e.target.value)}
+                placeholder="Yacht Club"
+                className="w-full px-4 py-2.5 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400"
+                style={{ borderColor: "#e0e0e0" }}
+              />
               <div className="flex gap-2">
                 <input
                   value={editMonth}
@@ -478,9 +487,9 @@ export default function RegattaDetail({ params }) {
             </div>
           ) : (
             <div className="mb-4">
-              {(regatta.date || regatta.location) && (
+              {(regatta.date || regatta.location || regatta.yacht_club) && (
                 <p className="text-xs text-gray-400 mb-0.5">
-                  {[regatta.date, regatta.location].filter(Boolean).join(", ")}
+                  {[regatta.date, regatta.location, regatta.yacht_club].filter(Boolean).join(" · ")}
                 </p>
               )}
               <div className="flex items-center gap-2">

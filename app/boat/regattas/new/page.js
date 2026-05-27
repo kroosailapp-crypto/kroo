@@ -129,6 +129,7 @@ export default function CreateRegatta() {
   const { user } = useAuth();
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
+  const [yachtClub, setYachtClub] = useState("");
   const [month, setMonth] = useState("");
   const [day, setDay] = useState("");
   const [year, setYear] = useState("");
@@ -157,7 +158,7 @@ export default function CreateRegatta() {
     // 1. Insert regatta
     const { data: regatta, error: regattaError } = await supabase
       .from("regattas")
-      .insert({ boat_id: user.id, name: name.trim(), date, location: location.trim() || null })
+      .insert({ boat_id: user.id, name: name.trim(), date, location: location.trim() || null, yacht_club: yachtClub.trim() || null })
       .select()
       .single();
 
@@ -215,6 +216,15 @@ export default function CreateRegatta() {
           value={location}
           onChange={(e) => setLocation(e.target.value)}
           placeholder="Location"
+          className="w-full px-4 py-3.5 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400"
+          style={{ borderColor: "#e0e0e0" }}
+        />
+
+        {/* Yacht Club */}
+        <input
+          value={yachtClub}
+          onChange={(e) => setYachtClub(e.target.value)}
+          placeholder="Yacht Club"
           className="w-full px-4 py-3.5 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400"
           style={{ borderColor: "#e0e0e0" }}
         />
