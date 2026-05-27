@@ -423,17 +423,22 @@ export default function CrewFeedPage() {
 
   const filteredMonthGroups = q
     ? monthGroups
-        .map((group) => ({
-          ...group,
-          regattas: group.regattas.filter(
-            (reg) =>
-              reg.name?.toLowerCase().includes(q) ||
-              reg.location?.toLowerCase().includes(q) ||
-              (reg.regatta_positions || []).some((p) =>
-                p.role?.toLowerCase().includes(q)
-              )
-          ),
-        }))
+        .map((group) => {
+          const monthMatches = group.label.toLowerCase().includes(q);
+          return {
+            ...group,
+            regattas: monthMatches
+              ? group.regattas // show all regattas in matching month
+              : group.regattas.filter(
+                  (reg) =>
+                    reg.name?.toLowerCase().includes(q) ||
+                    reg.location?.toLowerCase().includes(q) ||
+                    (reg.regatta_positions || []).some((p) =>
+                      p.role?.toLowerCase().includes(q)
+                    )
+                ),
+          };
+        })
         .filter((group) => group.regattas.length > 0)
     : monthGroups;
 
