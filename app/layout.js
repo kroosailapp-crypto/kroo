@@ -1,5 +1,6 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
+import Script from "next/script";
 import { AuthProvider } from "@/lib/auth-context";
 import InstallBanner from "@/app/components/InstallBanner";
 
@@ -40,26 +41,24 @@ export default function RootLayout({ children }) {
             {children}
           </div>
         </AuthProvider>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              // Capture beforeinstallprompt before React mounts
-              window.addEventListener('beforeinstallprompt', function(e) {
-                e.preventDefault();
-                window.__deferredInstallPrompt = e;
-                window.dispatchEvent(new Event('pwaInstallReady'));
-              });
 
-              if ('serviceWorker' in navigator) {
-                window.addEventListener('load', function() {
-                  navigator.serviceWorker.register('/sw.js')
-                    .then(function(reg) { console.log('SW registered', reg.scope); })
-                    .catch(function(err) { console.log('SW error', err); });
-                });
-              }
-            `,
-          }}
-        />
+        {/* Capture beforeinstallprompt as early as possible, before React hydrates */}
+        <Script id="pwa-prompt-capture" strategy="beforeInteractive">{`
+          window.addEventListener('beforeinstallprompt', function(e) {
+            e.preventDefault();
+            window.__deferredInstallPrompt = e;
+            window.dispatchEvent(new Event('pwaInstallReady'));
+          });
+        `}</Script>
+
+        {/* Register service worker after page is interactive */}
+        <Script id="sw-register" strategy="afterInteractive">{`
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+              .then(function(reg) { console.log('SW registered', reg.scope); })
+              .catch(function(err) { console.error('SW error', err); });
+          }
+        `}</Script>
       </body>
     </html>
   );
