@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { IconArrowLeft, IconUser, IconCamera, IconAlertTriangle } from "@tabler/icons-react";
 import CrewNavFooter from "@/app/components/CrewNavFooter";
+import LocationInput from "@/app/components/LocationInput";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
 
@@ -252,7 +253,7 @@ export default function EditCrewProfile() {
         {/* Location */}
         <div className="px-4 py-4">
           <p className="text-xs text-gray-400 mb-1.5">Location</p>
-          <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="City, State" className="w-full px-4 py-3 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400" style={{ borderColor: "#e0e0e0" }} />
+          <LocationInput value={location} onChange={setLocation} placeholder="City, State" className="w-full px-4 py-3 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400" style={{ borderColor: "#e0e0e0" }} />
         </div>
 
         <Divider />

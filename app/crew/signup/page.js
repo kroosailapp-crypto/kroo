@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
+import LocationInput from "@/app/components/LocationInput";
 
 const POSITIONS = [
   "Helm", "Tactician", "Navigator", "Mainsail Trimmer",
@@ -250,7 +251,7 @@ export default function CrewSignupPage() {
           {isAddingProfile && (
             <Field placeholder="Full Name" value={name} onChange={setName} />
           )}
-          <Field placeholder="City, State (e.g. San Francisco, CA)" value={location} onChange={setLocation} />
+          <LocationInput placeholder="City, State (e.g. San Francisco, CA)" value={location} onChange={setLocation} className="w-full px-4 py-3 rounded-xl text-sm text-gray-800 outline-none border" style={{ borderColor: "#e5e5e5", backgroundColor: "#fff" }} />
           <div className="flex flex-wrap gap-2 mt-2">
             {["San Francisco, CA", "Oakland, CA", "Sausalito, CA"].map((loc) => (
               <button
