@@ -14,6 +14,7 @@ import {
 } from "@tabler/icons-react";
 import BoatNavFooter from "@/app/components/BoatNavFooter";
 import LocationInput from "@/app/components/LocationInput";
+import YachtClubInput from "@/app/components/YachtClubInput";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
 
@@ -432,9 +433,9 @@ export default function RegattaDetail({ params }) {
                 className="w-full px-4 py-2.5 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400"
                 style={{ borderColor: "#e0e0e0" }}
               />
-              <input
+              <YachtClubInput
                 value={editYachtClub}
-                onChange={(e) => setEditYachtClub(e.target.value)}
+                onChange={setEditYachtClub}
                 placeholder="Yacht Club"
                 className="w-full px-4 py-2.5 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400"
                 style={{ borderColor: "#e0e0e0" }}
