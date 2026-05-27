@@ -20,6 +20,12 @@
   --color-kroo-green: var(--kroo-green);
 }
 
+html,
+body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

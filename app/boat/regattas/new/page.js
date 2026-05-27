@@ -1,13 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
-import {
-  IconSearch,
-  IconPlus,
-  IconX,
-} from "@tabler/icons-react";
+import { IconArrowLeft, IconX } from "@tabler/icons-react";
 import BoatNavFooter from "@/app/components/BoatNavFooter";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
@@ -198,18 +193,9 @@ export default function CreateRegatta() {
       )}
 
       {/* Header */}
-      <div className="flex items-center gap-2 px-4 pt-3 pb-2 flex-shrink-0">
-        <Image src="/kroo-logo-blue.svg" alt="Kroo" width={52} height={20} />
-        <div
-          className="flex-1 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-gray-400"
-          style={{ backgroundColor: "#f0f0f0" }}
-        >
-          <IconSearch size={14} color="#aaa" />
-          <span>Search</span>
-        </div>
-        <Link href="/boat/regattas/new">
-          <IconPlus size={22} color="#111" />
-        </Link>
+      <div className="flex items-center gap-3 px-4 pt-4 pb-3 border-b flex-shrink-0" style={{ borderColor: "#e8e8e8" }}>
+        <Link href="/boat/regattas"><IconArrowLeft size={22} color="#111" /></Link>
+        <p className="flex-1 text-sm font-semibold text-gray-900">New Regatta</p>
       </div>
 
       {/* Form */}

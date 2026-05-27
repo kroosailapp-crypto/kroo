@@ -52,6 +52,12 @@ export default function BoatLoginPage() {
           style={{ borderColor: "#e5e5e5" }}
         />
 
+        <div className="flex justify-end -mt-2">
+          <Link href="/forgot-password" className="text-xs" style={{ color: "#0161f0" }}>
+            Forgot password?
+          </Link>
+        </div>
+
         {error && (
           <p className="text-xs" style={{ color: "#e00" }}>{error}</p>
         )}

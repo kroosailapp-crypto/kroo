@@ -1,9 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import ProfileSwitcher from "@/app/components/ProfileSwitcher";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { IconUser, IconSearch, IconPlus } from "@tabler/icons-react";
+import { IconUser } from "@tabler/icons-react";
 import BoatNavFooter from "@/app/components/BoatNavFooter";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
@@ -21,7 +22,7 @@ function Tag({ label }) {
 }
 
 export default function BoatProfilePage() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const router = useRouter();
   const [profile, setProfile] = useState(null);
   const [regattas, setRegattas] = useState([]);
@@ -39,7 +40,28 @@ export default function BoatProfilePage() {
       supabase.from("regattas").select("*, regatta_positions(*)").eq("boat_id", user.id).order("created_at"),
     ]);
     if (prof) setProfile(prof);
-    if (regs) setRegattas(regs);
+    if (regs) {
+      const now = new Date();
+      const parseDate = (str) => {
+        if (!str) return null;
+        const [m, d, y] = str.split("/");
+        if (!m || !d || !y) return null;
+        return new Date(`${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`);
+      };
+      const sorted = [...regs].sort((a, b) => {
+        const da = parseDate(a.date);
+        const db = parseDate(b.date);
+        if (!da && !db) return 0;
+        if (!da) return 1;
+        if (!db) return -1;
+        const aUp = da >= now;
+        const bUp = db >= now;
+        if (aUp && !bUp) return -1;
+        if (!aUp && bUp) return 1;
+        return aUp ? da - db : db - da;
+      });
+      setRegattas(sorted);
+    }
     setLoading(false);
   }
 
@@ -51,12 +73,7 @@ export default function BoatProfilePage() {
     <div className="flex flex-col min-h-screen bg-white pb-20">
       {/* App Bar */}
       <div className="flex items-center gap-2 px-4 pt-3 pb-2 flex-shrink-0">
-        <Image src="/kroo-logo-blue.svg" alt="Kroo" width={52} height={20} />
-        <div className="flex-1 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-gray-400" style={{ backgroundColor: "#f0f0f0" }}>
-          <IconSearch size={14} color="#aaa" />
-          <span>Search</span>
-        </div>
-        <IconPlus size={22} color="#111" />
+        <ProfileSwitcher />
       </div>
 
       <div className="overflow-y-auto flex-1">
@@ -137,7 +154,7 @@ export default function BoatProfilePage() {
                   </div>
                 ))}
               </div>
-              <Link href="/boat/regattas" className="inline-flex text-xs font-medium" style={{ color: "#0161f0" }}>
+              <Link href={`/boat/regattas/${reg.id}`} className="inline-flex text-xs font-medium" style={{ color: "#0161f0" }}>
                 Manage regatta
               </Link>
             </div>
@@ -153,6 +170,17 @@ export default function BoatProfilePage() {
           <Link href="/boat/feed" className="w-full flex items-center justify-center py-3 rounded-full font-medium text-sm" style={{ backgroundColor: "#0161f0", color: "#fff" }}>
             Browse Crew →
           </Link>
+        </div>
+
+        <div className="px-4 pb-10">
+          <div className="h-px w-full mb-6" style={{ backgroundColor: "#e8e8e8" }} />
+          <button
+            onClick={async () => { await signOut(); router.push("/"); }}
+            className="w-full py-3 rounded-full text-sm font-semibold border"
+            style={{ color: "#e00", borderColor: "#fca5a5" }}
+          >
+            Log Out
+          </button>
         </div>
       </div>
 

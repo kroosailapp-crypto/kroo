@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth-context";
 
 const POSITIONS_NEEDED = [
   "Helm", "Tactician", "Navigator", "Mainsail Trimmer",
@@ -44,7 +45,7 @@ function NextButton({ onClick, label = "NEXT", disabled = false }) {
     <button
       onClick={onClick}
       disabled={disabled}
-      className="flex items-center justify-center px-6 py-2 rounded-full font-medium text-sm mt-6"
+      className="w-full flex items-center justify-center px-6 py-3 rounded-full font-medium text-sm mt-6"
       style={{
         backgroundColor: disabled ? "#ccc" : "#0161f0",
         color: "#f6f6f6",
@@ -74,10 +75,16 @@ function Tag({ label, selected, onToggle }) {
 
 export default function BoatSignupPage() {
   const router = useRouter();
-  const [step, setStep] = useState(1);
-  const TOTAL_STEPS = 5;
+  const { user, crewProfile, refreshProfiles } = useAuth();
 
-  // Account
+  // isAddingProfile = user is already logged in and adding a second (boat) profile
+  const [isAddingProfile, setIsAddingProfile] = useState(false);
+
+  // Steps: not logged in = 5 (account, boat info, home port, positions, links)
+  //        logged in     = 4 (boat info, home port, positions, links) — step starts at 2 internally
+  const [step, setStep] = useState(1);
+
+  // Account fields (only used when NOT already logged in)
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -91,11 +98,31 @@ export default function BoatSignupPage() {
   const [instagram, setInstagram] = useState("");
   const [positions, setPositions] = useState([]);
   const [experienceRequired, setExperienceRequired] = useState("");
+  const [skipperPhotoUrl, setSkipperPhotoUrl] = useState("");
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const passwordsMatch = password && confirmPassword && password === confirmPassword;
   const passwordMismatch = confirmPassword.length > 0 && password !== confirmPassword;
+
+  // Once auth state resolves, configure flow
+  useEffect(() => {
+    if (user === undefined) return; // still resolving
+    if (user) {
+      setIsAddingProfile(true);
+      setStep(2); // skip account step
+      // Pre-fill from existing crew profile if available
+      if (crewProfile) {
+        setSkipperName(crewProfile.name || "");
+        setSkipperPhotoUrl(crewProfile.avatar_url || "");
+      }
+    }
+  }, [user, crewProfile]);
+
+  // Progress bar values
+  const TOTAL_STEPS = isAddingProfile ? 4 : 5;
+  const progressStep = isAddingProfile ? step - 1 : step;
 
   function togglePosition(pos) {
     setPositions((prev) =>
@@ -107,21 +134,39 @@ export default function BoatSignupPage() {
     setError("");
     setLoading(true);
     try {
-      // 1. Create auth user
-      const { error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { user_type: "boat" } },
-      });
-      if (signUpError) throw signUpError;
+      let userId;
 
-      // 2. Sign in immediately to establish a session
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-      if (signInError) throw signInError;
+      if (isAddingProfile) {
+        // Already logged in — use existing session
+        userId = user.id;
+      } else {
+        // Create new auth user
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { user_type: "boat" } },
+        });
+        if (signUpError) throw signUpError;
 
-      // 3. Create boat profile
+        if (signUpData.session) {
+          // Email confirmation is disabled — session created immediately
+          userId = signUpData.user.id;
+        } else {
+          // Email confirmation is enabled — sign in to establish session
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+          if (signInError) {
+            if (signInError.message.toLowerCase().includes("not confirmed")) {
+              throw new Error("Check your email and click the confirmation link, then come back to log in.");
+            }
+            throw signInError;
+          }
+          userId = signInData.user.id;
+        }
+      }
+
+      // Insert boat profile
       const { error: profileError } = await supabase.from("boat_profiles").insert({
-        id: data.user.id,
+        id: userId,
         skipper_name: skipperName,
         boat_name: boatName,
         boat_class: boatClass,
@@ -132,9 +177,11 @@ export default function BoatSignupPage() {
         experience_required: experienceRequired,
         about: "",
         photo_url: "",
+        skipper_photo_url: skipperPhotoUrl || "",
       });
       if (profileError) throw profileError;
 
+      if (refreshProfiles) await refreshProfiles();
       router.push("/boat/profile");
     } catch (err) {
       setError(err.message);
@@ -143,13 +190,23 @@ export default function BoatSignupPage() {
   }
 
   function handleNext() {
-    if (step < TOTAL_STEPS) setStep(step + 1);
+    if (step < 5) setStep(step + 1);
     else handleFinish();
   }
 
   function handleBack() {
-    if (step > 1) setStep(step - 1);
-    else router.push("/");
+    const minStep = isAddingProfile ? 2 : 1;
+    if (step > minStep) setStep(step - 1);
+    else router.back();
+  }
+
+  // Wait until we know auth state before rendering (avoids flash of account step)
+  if (user === undefined) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-sm text-gray-400">Loading…</p>
+      </div>
+    );
   }
 
   return (
@@ -158,9 +215,9 @@ export default function BoatSignupPage() {
         <Image src="/kroo-logo-blue.svg" alt="Kroo" width={60} height={24} />
       </div>
 
-      <ProgressBar step={step} total={TOTAL_STEPS} />
+      <ProgressBar step={progressStep} total={TOTAL_STEPS} />
 
-      {/* Step 1 — Account */}
+      {/* Step 1 — Account (only when NOT already logged in) */}
       {step === 1 && (
         <div className="flex flex-col gap-4">
           <p className="text-gray-800 font-semibold text-lg mb-1">Create your account</p>
@@ -179,7 +236,9 @@ export default function BoatSignupPage() {
       {/* Step 2 — Boat Info */}
       {step === 2 && (
         <div className="flex flex-col gap-4">
-          <p className="text-gray-800 font-semibold text-lg mb-1">Tell us about your boat</p>
+          <p className="text-gray-800 font-semibold text-lg mb-1">
+            {isAddingProfile ? "Create your boat profile" : "Tell us about your boat"}
+          </p>
           <Field placeholder="Your name (Skipper)" value={skipperName} onChange={setSkipperName} />
           <Field placeholder="Boat Name" value={boatName} onChange={setBoatName} />
           <Field placeholder="Boat Class (e.g. Melges 24)" value={boatClass} onChange={setBoatClass} />

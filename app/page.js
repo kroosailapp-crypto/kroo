@@ -16,10 +16,19 @@ function LoginModal({ onClose }) {
     setError("");
     setLoading(true);
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) { setError(error.message); setLoading(false); return; }
+
+    // Check which profiles exist and redirect accordingly
+    const userId = data.user.id;
+    const [{ data: boatProfile }, { data: crewProfile }] = await Promise.all([
+      supabase.from("boat_profiles").select("id").eq("id", userId).single(),
+      supabase.from("crew_profiles").select("id").eq("id", userId).single(),
+    ]);
     setLoading(false);
-    if (error) { setError(error.message); return; }
-    const userType = data.user?.user_metadata?.user_type;
-    router.push(userType === "boat" ? "/boat/profile" : "/crew/profile");
+
+    if (boatProfile) router.push("/boat/feed");
+    else if (crewProfile) router.push("/crew/feed");
+    else router.push("/boat/signup"); // no profile yet — guide them to create one
   }
 
   return (
@@ -51,6 +60,12 @@ function LoginModal({ onClose }) {
           className="w-full px-4 py-3 rounded-xl text-sm text-gray-800 outline-none border"
           style={{ borderColor: "#e5e5e5" }}
         />
+
+        <div className="flex justify-end -mt-2">
+          <Link href="/forgot-password" onClick={onClose} className="text-xs" style={{ color: "#0161f0" }}>
+            Forgot password?
+          </Link>
+        </div>
 
         {error && <p className="text-xs" style={{ color: "#e00" }}>{error}</p>}
 

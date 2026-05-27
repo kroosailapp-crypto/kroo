@@ -1,8 +1,8 @@
 "use client";
-import { useState, useEffect } from "react";
-import Image from "next/image";
+import { useState, useEffect, useRef } from "react";
+import ProfileSwitcher from "@/app/components/ProfileSwitcher";
 import Link from "next/link";
-import { IconSearch, IconPlus, IconUser, IconMessage, IconCalendar } from "@tabler/icons-react";
+import { IconSearch, IconX, IconPlus, IconCalendar } from "@tabler/icons-react";
 import BoatNavFooter from "@/app/components/BoatNavFooter";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
@@ -39,6 +39,13 @@ function RegattaCard({ regatta, onCancel }) {
   const positions = regatta.regatta_positions || [];
   const filled = positions.filter((p) => p.status === "filled").length;
   const open = positions.filter((p) => p.status === "open").length;
+  const invitations = regatta.invitations || [];
+
+  function positionHasNewApplicant(posId) {
+    return invitations.some(
+      (inv) => inv.position_id === posId && inv.status === "applied" && !inv.seen_by_boat
+    );
+  }
 
   return (
     <div className="py-4">
@@ -55,20 +62,28 @@ function RegattaCard({ regatta, onCancel }) {
 
       <Divider />
 
-      {positions.map((pos) => (
-        <div key={pos.id}>
-          <div className="px-4 py-3">
-            <div className="flex items-center gap-2">
-              <Tag label={pos.role} />
-              <span className="text-xs text-gray-500 flex-1">{pos.level}</span>
-              <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: pos.status === "filled" ? "#111" : "#e8e8e8", color: pos.status === "filled" ? "#fff" : "#666" }}>
-                {pos.status === "filled" ? "Filled" : "Open"}
-              </span>
+      {positions.map((pos) => {
+        const isNew = positionHasNewApplicant(pos.id);
+        return (
+          <div key={pos.id}>
+            <div className="px-4 py-3">
+              <div className="flex items-center gap-2">
+                <Tag label={pos.role} />
+                <span className="text-xs text-gray-500 flex-1">{pos.level}</span>
+                {isNew && (
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: "#0161F0", color: "#fff" }}>
+                    New Applicant
+                  </span>
+                )}
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: pos.status === "filled" ? "#111" : "#e8e8e8", color: pos.status === "filled" ? "#fff" : "#666" }}>
+                  {pos.status === "filled" ? "Filled" : "Open"}
+                </span>
+              </div>
             </div>
+            <Divider />
           </div>
-          <Divider />
-        </div>
-      ))}
+        );
+      })}
 
       {positions.length === 0 && (
         <>
@@ -103,6 +118,8 @@ export default function BoatRegattas() {
   const [regattaList, setRegattaList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cancelTarget, setCancelTarget] = useState(null);
+  const [query, setQuery] = useState("");
+  const inputRef = useRef(null);
 
   useEffect(() => {
     if (!user) return;
@@ -110,13 +127,36 @@ export default function BoatRegattas() {
     localStorage.removeItem("kroo_boat_regatta_notif");
   }, [user]);
 
+  function parseDate(str) {
+    if (!str) return null;
+    const [m, d, y] = str.split("/");
+    if (!m || !d || !y) return null;
+    return new Date(`${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`);
+  }
+
+  function sortByDate(list) {
+    const now = new Date();
+    return [...list].sort((a, b) => {
+      const da = parseDate(a.date);
+      const db = parseDate(b.date);
+      if (!da && !db) return 0;
+      if (!da) return 1;
+      if (!db) return -1;
+      const aUpcoming = da >= now;
+      const bUpcoming = db >= now;
+      if (aUpcoming && !bUpcoming) return -1;
+      if (!aUpcoming && bUpcoming) return 1;
+      if (aUpcoming && bUpcoming) return da - db; // soonest first
+      return db - da; // most recent past first
+    });
+  }
+
   async function loadRegattas() {
     const { data } = await supabase
       .from("regattas")
-      .select("*, regatta_positions(*)")
-      .eq("boat_id", user.id)
-      .order("created_at", { ascending: false });
-    setRegattaList(data || []);
+      .select("*, regatta_positions(*), invitations(status, seen_by_boat, position_id)")
+      .eq("boat_id", user.id);
+    setRegattaList(sortByDate(data || []));
     setLoading(false);
   }
 
@@ -129,10 +169,25 @@ export default function BoatRegattas() {
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
       <div className="flex items-center gap-2 px-4 pt-3 pb-2 flex-shrink-0">
-        <Image src="/kroo-logo-blue.svg" alt="Kroo" width={52} height={20} />
-        <div className="flex-1 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-gray-400" style={{ backgroundColor: "#f0f0f0" }}>
-          <IconSearch size={14} color="#aaa" />
-          <span>Search</span>
+        <ProfileSwitcher />
+        <div
+          className="flex-1 flex items-center gap-1.5 px-3 py-1.5 rounded-full"
+          style={{ backgroundColor: "#f0f0f0" }}
+          onClick={() => inputRef.current?.focus()}
+        >
+          <IconSearch size={14} color="#aaa" className="flex-shrink-0" />
+          <input
+            ref={inputRef}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Name or location…"
+            className="flex-1 bg-transparent text-xs text-gray-700 outline-none placeholder-gray-400 min-w-0"
+          />
+          {query && (
+            <button onClick={() => setQuery("")}>
+              <IconX size={13} color="#aaa" />
+            </button>
+          )}
         </div>
         <Link href="/boat/regattas/new"><IconPlus size={22} color="#111" /></Link>
       </div>
@@ -142,27 +197,36 @@ export default function BoatRegattas() {
       )}
 
       <main className="flex-1 overflow-y-auto">
-        {loading ? (
-          <div className="flex items-center justify-center py-24">
-            <p className="text-sm text-gray-400">Loading…</p>
-          </div>
-        ) : regattaList.length === 0 ? (
-          <EmptyState />
-        ) : (
-          <>
-            {regattaList.map((regatta, i) => (
-              <div key={regatta.id}>
-                <RegattaCard regatta={regatta} onCancel={() => setCancelTarget(regatta)} />
-                {i < regattaList.length - 1 && <div className="h-2" style={{ backgroundColor: "#F6F6F6" }} />}
-              </div>
-            ))}
-            <div className="px-4 py-5">
-              <Link href="/boat/regattas/new" className="text-xs font-medium px-4 py-2 rounded-full border" style={{ color: "#0161f0", borderColor: "#0161f0" }}>
-                + Add Regatta
-              </Link>
+        {(() => {
+          const q = query.toLowerCase().trim();
+          const filtered = q
+            ? regattaList.filter((r) =>
+                r.name?.toLowerCase().includes(q) ||
+                r.location?.toLowerCase().includes(q)
+              )
+            : regattaList;
+          if (loading) return (
+            <div className="flex items-center justify-center py-24">
+              <p className="text-sm text-gray-400">Loading…</p>
             </div>
-          </>
-        )}
+          );
+          if (filtered.length === 0) return <EmptyState />;
+          return (
+            <>
+              {filtered.map((regatta, i) => (
+                <div key={regatta.id}>
+                  <RegattaCard regatta={regatta} onCancel={() => setCancelTarget(regatta)} />
+                  {i < filtered.length - 1 && <div className="h-2" style={{ backgroundColor: "#F6F6F6" }} />}
+                </div>
+              ))}
+              <div className="px-4 py-5">
+                <Link href="/boat/regattas/new" className="text-xs font-medium px-4 py-2 rounded-full border" style={{ color: "#0161f0", borderColor: "#0161f0" }}>
+                  + Add Regatta
+                </Link>
+              </div>
+            </>
+          );
+        })()}
       </main>
 
       <BoatNavFooter active="Regattas" />

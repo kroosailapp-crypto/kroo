@@ -2,10 +2,52 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { IconArrowLeft, IconCamera, IconAnchor, IconUser } from "@tabler/icons-react";
+import { IconArrowLeft, IconCamera, IconAnchor, IconUser, IconAlertTriangle } from "@tabler/icons-react";
 import BoatNavFooter from "@/app/components/BoatNavFooter";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
+
+function DeleteProfileModal({ onConfirm, onClose, deleting, error }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center"
+      style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-t-2xl w-full max-w-[430px] px-5 pt-6 pb-10 flex flex-col gap-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex flex-col items-center gap-3 pb-1">
+          <div className="flex items-center justify-center rounded-full" style={{ width: 48, height: 48, backgroundColor: "#FEF2F2" }}>
+            <IconAlertTriangle size={22} color="#DC2626" />
+          </div>
+          <p className="text-base font-semibold text-gray-900 text-center">Delete Boat Profile?</p>
+          <p className="text-sm text-gray-500 text-center leading-relaxed">
+            This will permanently delete your boat profile and all associated regattas and positions. This action cannot be undone.
+          </p>
+        </div>
+        {error && <p className="text-xs text-center" style={{ color: "#DC2626" }}>{error}</p>}
+        <button
+          onClick={onConfirm}
+          disabled={deleting}
+          className="w-full py-3.5 rounded-full text-sm font-semibold text-white"
+          style={{ backgroundColor: deleting ? "#ccc" : "#DC2626" }}
+        >
+          {deleting ? "Deleting…" : "Yes, Delete Profile"}
+        </button>
+        <button
+          onClick={onClose}
+          disabled={deleting}
+          className="w-full py-3 rounded-full text-sm font-semibold border"
+          style={{ color: "#111", borderColor: "#e0e0e0" }}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function Divider() {
   return <div className="h-px w-full" style={{ backgroundColor: "#e8e8e8" }} />;
@@ -22,9 +64,12 @@ function Field({ label, placeholder, value, onChange, inputMode }) {
 
 export default function EditBoatProfile() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, crewProfile, signOut, refreshProfiles } = useAuth();
   const fileRef = useRef(null);
   const skipperFileRef = useRef(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   const [photo, setPhoto] = useState(null);
   const [photoFile, setPhotoFile] = useState(null);
@@ -76,6 +121,66 @@ export default function EditBoatProfile() {
     if (file) {
       setSkipperPhotoFile(file);
       setSkipperPhoto(URL.createObjectURL(file));
+    }
+  }
+
+  async function handleDeleteProfile() {
+    if (!user) return;
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      // Get all regatta IDs for this boat
+      const { data: regattas, error: regFetchErr } = await supabase
+        .from("regattas")
+        .select("id")
+        .eq("boat_id", user.id);
+      if (regFetchErr) throw new Error("Could not fetch regattas: " + regFetchErr.message);
+
+      if (regattas && regattas.length > 0) {
+        const ids = regattas.map((r) => r.id);
+
+        // Delete invitations linked to this boat's regattas
+        const { error: invErr } = await supabase
+          .from("invitations")
+          .delete()
+          .in("regatta_id", ids);
+        if (invErr) throw new Error("Could not remove invitations: " + invErr.message);
+
+        // Delete regatta positions
+        const { error: posErr } = await supabase
+          .from("regatta_positions")
+          .delete()
+          .in("regatta_id", ids);
+        if (posErr) throw new Error("Could not remove positions: " + posErr.message);
+
+        // Delete regattas
+        const { error: regErr } = await supabase
+          .from("regattas")
+          .delete()
+          .eq("boat_id", user.id);
+        if (regErr) throw new Error("Could not remove regattas: " + regErr.message);
+      }
+
+      // Delete the boat profile
+      const { error: profErr, count } = await supabase
+        .from("boat_profiles")
+        .delete({ count: "exact" })
+        .eq("id", user.id);
+      if (profErr) throw new Error("Could not delete profile: " + profErr.message);
+      if (count === 0) throw new Error("Delete was blocked — check Supabase RLS DELETE policies for boat_profiles.");
+
+      // If user has a crew profile, stay logged in and redirect there
+      if (crewProfile) {
+        await refreshProfiles();
+        router.push("/crew/profile");
+      } else {
+        // No other profile — sign out and go home
+        await signOut();
+        router.push("/");
+      }
+    } catch (err) {
+      setDeleteError(err.message);
+      setDeleting(false);
     }
   }
 
@@ -132,6 +237,14 @@ export default function EditBoatProfile() {
 
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
+      {showDeleteModal && (
+        <DeleteProfileModal
+          onConfirm={handleDeleteProfile}
+          onClose={() => { setShowDeleteModal(false); setDeleteError(""); }}
+          deleting={deleting}
+          error={deleteError}
+        />
+      )}
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-4 pb-3 border-b flex-shrink-0" style={{ borderColor: "#e8e8e8" }}>
         <Link href="/boat/profile"><IconArrowLeft size={22} color="#111" /></Link>
@@ -216,6 +329,17 @@ export default function EditBoatProfile() {
         <div className="px-4 pt-5">
           <button onClick={handleSave} disabled={saving} className="w-full py-3.5 rounded-full text-sm font-semibold text-white" style={{ backgroundColor: "#0161F0" }}>
             {saving ? "Saving…" : "Save Changes"}
+          </button>
+        </div>
+
+        <div className="px-4 pt-4 pb-2">
+          <div className="h-px w-full mb-6" style={{ backgroundColor: "#e8e8e8" }} />
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            className="w-full py-3.5 rounded-full text-sm font-semibold border"
+            style={{ color: "#DC2626", borderColor: "#FCA5A5" }}
+          >
+            Delete Boat Profile
           </button>
         </div>
       </div>

@@ -2,10 +2,52 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { IconArrowLeft, IconUser, IconCamera } from "@tabler/icons-react";
+import { IconArrowLeft, IconUser, IconCamera, IconAlertTriangle } from "@tabler/icons-react";
 import CrewNavFooter from "@/app/components/CrewNavFooter";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
+
+function DeleteProfileModal({ onConfirm, onClose, deleting, error }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center"
+      style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-t-2xl w-full max-w-[430px] px-5 pt-6 pb-10 flex flex-col gap-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex flex-col items-center gap-3 pb-1">
+          <div className="flex items-center justify-center rounded-full" style={{ width: 48, height: 48, backgroundColor: "#FEF2F2" }}>
+            <IconAlertTriangle size={22} color="#DC2626" />
+          </div>
+          <p className="text-base font-semibold text-gray-900 text-center">Delete Sailor Profile?</p>
+          <p className="text-sm text-gray-500 text-center leading-relaxed">
+            This will permanently delete your sailor profile, availability, and regatta history. This action cannot be undone.
+          </p>
+        </div>
+        {error && <p className="text-xs text-center" style={{ color: "#DC2626" }}>{error}</p>}
+        <button
+          onClick={onConfirm}
+          disabled={deleting}
+          className="w-full py-3.5 rounded-full text-sm font-semibold text-white"
+          style={{ backgroundColor: deleting ? "#ccc" : "#DC2626" }}
+        >
+          {deleting ? "Deleting…" : "Yes, Delete Profile"}
+        </button>
+        <button
+          onClick={onClose}
+          disabled={deleting}
+          className="w-full py-3 rounded-full text-sm font-semibold border"
+          style={{ color: "#111", borderColor: "#e0e0e0" }}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
 
 const POSITIONS = [
   "Helm", "Tactician", "Navigator", "Mainsail Trimmer",
@@ -21,8 +63,11 @@ function Divider() {
 
 export default function EditCrewProfile() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, boatProfile, signOut, refreshProfiles } = useAuth();
   const fileRef = useRef(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   const [photo, setPhoto] = useState(null);
   const [photoFile, setPhotoFile] = useState(null);
@@ -30,6 +75,8 @@ export default function EditCrewProfile() {
   const [location, setLocation] = useState("");
   const [positions, setPositions] = useState([]);
   const [level, setLevel] = useState("Mid-Level");
+  const [sex, setSex] = useState("");
+  const [weight, setWeight] = useState("");
   const [about, setAbout] = useState("");
   const [website, setWebsite] = useState("");
   const [instagram, setInstagram] = useState("");
@@ -50,6 +97,8 @@ export default function EditCrewProfile() {
       setLocation(data.location || "");
       setPositions(data.positions || []);
       setLevel(data.experience_level || "Mid-Level");
+      setSex(data.sex || "");
+      setWeight(data.weight_lbs ? String(data.weight_lbs) : "");
       setAbout(data.about || "");
       setWebsite(data.website || "");
       setInstagram(data.instagram || "");
@@ -59,7 +108,14 @@ export default function EditCrewProfile() {
   }
 
   function togglePosition(pos) {
-    setPositions((prev) => prev.includes(pos) ? prev.filter((p) => p !== pos) : [...prev, pos]);
+    if (pos === "All Positions") {
+      setPositions((prev) => prev.includes("All Positions") ? [] : ["All Positions"]);
+    } else {
+      setPositions((prev) => {
+        const without = prev.filter((p) => p !== "All Positions");
+        return without.includes(pos) ? without.filter((p) => p !== pos) : [...without, pos];
+      });
+    }
   }
 
   function handlePhotoChange(e) {
@@ -67,6 +123,41 @@ export default function EditCrewProfile() {
     if (file) {
       setPhotoFile(file);
       setPhoto(URL.createObjectURL(file));
+    }
+  }
+
+  async function handleDeleteProfile() {
+    if (!user) return;
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      // Remove all invitations sent by this crew member
+      const { error: invErr } = await supabase
+        .from("invitations")
+        .delete()
+        .eq("crew_id", user.id);
+      if (invErr) throw new Error("Could not remove invitations: " + invErr.message);
+
+      // Delete the crew profile
+      const { error: profErr, count } = await supabase
+        .from("crew_profiles")
+        .delete({ count: "exact" })
+        .eq("id", user.id);
+      if (profErr) throw new Error("Could not delete profile: " + profErr.message);
+      if (count === 0) throw new Error("Delete was blocked — check Supabase RLS DELETE policies for crew_profiles.");
+
+      // If user has a boat profile, stay logged in and redirect there
+      if (boatProfile) {
+        await refreshProfiles();
+        router.push("/boat/profile");
+      } else {
+        // No other profile — sign out and go home
+        await signOut();
+        router.push("/");
+      }
+    } catch (err) {
+      setDeleteError(err.message);
+      setDeleting(false);
     }
   }
 
@@ -91,10 +182,20 @@ export default function EditCrewProfile() {
       avatar_url = data.publicUrl;
     }
 
-    const update = { name, location, positions, experience_level: level, about, website, instagram };
+    const update = {
+      name, location, positions, experience_level: level,
+      sex: sex || null,
+      weight_lbs: weight ? parseInt(weight, 10) : null,
+      about, website, instagram,
+    };
     if (avatar_url) update.avatar_url = avatar_url;
 
-    await supabase.from("crew_profiles").update(update).eq("id", user.id);
+    const { error: updateError } = await supabase.from("crew_profiles").update(update).eq("id", user.id);
+    if (updateError) {
+      setUploadError("Save failed: " + updateError.message);
+      setSaving(false);
+      return;
+    }
     setSaving(false);
     router.push("/crew/profile");
   }
@@ -105,6 +206,14 @@ export default function EditCrewProfile() {
 
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
+      {showDeleteModal && (
+        <DeleteProfileModal
+          onConfirm={handleDeleteProfile}
+          onClose={() => { setShowDeleteModal(false); setDeleteError(""); }}
+          deleting={deleting}
+          error={deleteError}
+        />
+      )}
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-4 pb-3 border-b flex-shrink-0" style={{ borderColor: "#e8e8e8" }}>
         <Link href="/crew/profile"><IconArrowLeft size={22} color="#111" /></Link>
@@ -152,7 +261,7 @@ export default function EditCrewProfile() {
         <div className="px-4 py-4">
           <p className="text-xs text-gray-400 mb-3">Positions</p>
           <div className="flex flex-wrap gap-2">
-            {POSITIONS.map((pos) => {
+            {["All Positions", ...POSITIONS].map((pos) => {
               const selected = positions.includes(pos);
               return (
                 <button key={pos} onClick={() => togglePosition(pos)} className="px-3 py-1.5 rounded-lg text-xs font-semibold border" style={{ backgroundColor: selected ? "#111" : "#F4F4F4", color: selected ? "#fff" : "#111", borderColor: selected ? "#111" : "#F4F4F4" }}>
@@ -174,6 +283,47 @@ export default function EditCrewProfile() {
                 {l}
               </button>
             ))}
+          </div>
+        </div>
+
+        <Divider />
+
+        {/* Sex */}
+        <div className="px-4 py-4">
+          <p className="text-xs text-gray-400 mb-3">Sex</p>
+          <div className="flex gap-2">
+            {["Male", "Female"].map((s) => (
+              <button
+                key={s}
+                onClick={() => setSex(sex === s ? "" : s)}
+                className="flex-1 py-2 rounded-xl text-xs font-semibold border"
+                style={{
+                  backgroundColor: sex === s ? "#111" : "#F4F4F4",
+                  color: sex === s ? "#fff" : "#111",
+                  borderColor: sex === s ? "#111" : "#F4F4F4",
+                }}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <Divider />
+
+        {/* Weight */}
+        <div className="px-4 py-4">
+          <p className="text-xs text-gray-400 mb-1.5">Weight</p>
+          <div className="flex items-center gap-2">
+            <input
+              value={weight}
+              onChange={(e) => setWeight(e.target.value.replace(/\D/g, ""))}
+              inputMode="numeric"
+              placeholder="e.g. 175"
+              className="flex-1 px-4 py-3 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400"
+              style={{ borderColor: "#e0e0e0" }}
+            />
+            <span className="text-sm text-gray-400 font-medium flex-shrink-0">lbs</span>
           </div>
         </div>
 
@@ -205,6 +355,17 @@ export default function EditCrewProfile() {
         <div className="px-4 pt-5">
           <button onClick={handleSave} disabled={saving} className="w-full py-3.5 rounded-full text-sm font-semibold text-white" style={{ backgroundColor: "#0161F0" }}>
             {saving ? "Saving…" : "Save Changes"}
+          </button>
+        </div>
+
+        <div className="px-4 pt-4 pb-2">
+          <div className="h-px w-full mb-6" style={{ backgroundColor: "#e8e8e8" }} />
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            className="w-full py-3.5 rounded-full text-sm font-semibold border"
+            style={{ color: "#DC2626", borderColor: "#FCA5A5" }}
+          >
+            Delete Sailor Profile
           </button>
         </div>
       </div>

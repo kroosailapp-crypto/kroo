@@ -1,6 +1,5 @@
 "use client";
-import { useState, use } from "react";
-import Image from "next/image";
+import { useState, use, useEffect } from "react";
 import Link from "next/link";
 import {
   IconMessage,
@@ -12,33 +11,32 @@ import {
   IconCheck,
 } from "@tabler/icons-react";
 import BoatNavFooter from "@/app/components/BoatNavFooter";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth-context";
 
-const boatRegattas = [
-  {
-    id: 1,
-    name: "Rolex Big Boat Series",
-    date: "07/25/2026",
-    positions: ["Jib Trimmer", "Bow", "Spin Trimmer"],
-  },
-  {
-    id: 2,
-    name: "Bay Regatta",
-    date: "08/10/2026",
-    positions: ["Tactician", "Mainsail Trimmer"],
-  },
-];
+function Divider() {
+  return <div className="h-px w-full" style={{ backgroundColor: "#e8e8e8" }} />;
+}
 
-function InviteDrawer({ sailorName, onInvite, onClose }) {
+function Tag({ label }) {
+  return (
+    <span
+      className="px-2.5 py-1 rounded-lg text-xs font-bold"
+      style={{ backgroundColor: "#E8EDF8", color: "#111" }}
+    >
+      {label}
+    </span>
+  );
+}
+
+function InviteDrawer({ sailorName, regattas, onInvite, onClose }) {
   const [selectedRegatta, setSelectedRegatta] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
+  const canSend = selectedRegatta && selectedPosition;
 
   function handleSend() {
-    if (selectedRegatta && selectedPosition) {
-      onInvite({ regatta: selectedRegatta, position: selectedPosition });
-    }
+    if (canSend) onInvite({ regatta: selectedRegatta, position: selectedPosition });
   }
-
-  const canSend = selectedRegatta && selectedPosition;
 
   return (
     <div
@@ -50,66 +48,87 @@ function InviteDrawer({ sailorName, onInvite, onClose }) {
         className="bg-white rounded-t-2xl w-full max-w-[430px] px-5 pt-5 pb-10 flex flex-col gap-5"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="flex items-center justify-between">
           <p className="text-base font-semibold text-gray-900">Invite to Race</p>
-          <button onClick={onClose}><IconX size={18} color="#999" /></button>
+          <button onClick={onClose}>
+            <IconX size={18} color="#999" />
+          </button>
         </div>
 
-        {/* Regatta selection */}
-        <div>
-          <p className="text-xs text-gray-400 mb-2">Select regatta</p>
-          <div className="flex flex-col gap-2">
-            {boatRegattas.map((r) => {
-              const selected = selectedRegatta?.id === r.id;
-              return (
-                <button
-                  key={r.id}
-                  onClick={() => { setSelectedRegatta(r); setSelectedPosition(null); }}
-                  className="flex items-center justify-between px-4 py-3 rounded-2xl border text-left"
-                  style={{
-                    borderColor: selected ? "#111" : "#e0e0e0",
-                    backgroundColor: selected ? "#111" : "#fff",
-                  }}
-                >
-                  <div>
-                    <p className="text-sm font-semibold" style={{ color: selected ? "#fff" : "#111" }}>{r.name}</p>
-                    <p className="text-xs mt-0.5" style={{ color: selected ? "#ccc" : "#aaa" }}>{r.date}</p>
-                  </div>
-                  {selected && <IconCheck size={16} color="white" strokeWidth={2.5} />}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Position selection — only after a regatta is picked */}
-        {selectedRegatta && (
-          <div>
-            <p className="text-xs text-gray-400 mb-2">Select position</p>
-            <div className="flex flex-wrap gap-2">
-              {selectedRegatta.positions.map((pos) => {
-                const selected = selectedPosition === pos;
-                return (
-                  <button
-                    key={pos}
-                    onClick={() => setSelectedPosition(pos)}
-                    className="px-3 py-1.5 rounded-lg text-xs font-semibold border"
-                    style={{
-                      backgroundColor: selected ? "#111" : "#F4F4F4",
-                      color: selected ? "#fff" : "#111",
-                      borderColor: selected ? "#111" : "#F4F4F4",
-                    }}
-                  >
-                    {pos}
-                  </button>
-                );
-              })}
+        {regattas.length === 0 ? (
+          <p className="text-sm text-gray-400 text-center py-4">
+            You have no regattas yet.{" "}
+            <Link href="/boat/regattas/new" onClick={onClose} className="font-medium" style={{ color: "#0161f0" }}>
+              Add one →
+            </Link>
+          </p>
+        ) : (
+          <>
+            <div>
+              <p className="text-xs text-gray-400 mb-2">Select regatta</p>
+              <div className="flex flex-col gap-2">
+                {regattas.map((r) => {
+                  const selected = selectedRegatta?.id === r.id;
+                  return (
+                    <button
+                      key={r.id}
+                      onClick={() => { setSelectedRegatta(r); setSelectedPosition(null); }}
+                      className="flex items-center justify-between px-4 py-3 rounded-2xl border text-left"
+                      style={{
+                        borderColor: selected ? "#111" : "#e0e0e0",
+                        backgroundColor: selected ? "#111" : "#fff",
+                      }}
+                    >
+                      <div>
+                        <p className="text-sm font-semibold" style={{ color: selected ? "#fff" : "#111" }}>
+                          {r.name}
+                        </p>
+                        {r.date && (
+                          <p className="text-xs mt-0.5" style={{ color: selected ? "#ccc" : "#aaa" }}>
+                            {r.date}
+                          </p>
+                        )}
+                      </div>
+                      {selected && <IconCheck size={16} color="white" strokeWidth={2.5} />}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+
+            {selectedRegatta && (
+              <div>
+                <p className="text-xs text-gray-400 mb-2">Select position</p>
+                {(selectedRegatta.regatta_positions || []).filter(p => p.status === "open").length === 0 ? (
+                  <p className="text-xs text-gray-400">No open positions for this regatta.</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {(selectedRegatta.regatta_positions || [])
+                      .filter(p => p.status === "open")
+                      .map((pos) => {
+                        const selected = selectedPosition?.id === pos.id;
+                        return (
+                          <button
+                            key={pos.id}
+                            onClick={() => setSelectedPosition(pos)}
+                            className="px-3 py-1.5 rounded-lg text-xs font-semibold border"
+                            style={{
+                              backgroundColor: selected ? "#111" : "#F4F4F4",
+                              color: selected ? "#fff" : "#111",
+                              borderColor: selected ? "#111" : "#F4F4F4",
+                            }}
+                          >
+                            {pos.role}
+                          </button>
+                        );
+                      })}
+                  </div>
+                )}
+              </div>
+            )}
+          </>
         )}
 
-        {/* Send button */}
         <button
           onClick={handleSend}
           disabled={!canSend}
@@ -144,7 +163,8 @@ function InviteConfirmModal({ sailorName, regattaName, position, onClose }) {
           Invite sent!
         </p>
         <p className="text-sm text-gray-500 text-center leading-relaxed">
-          <span className="font-semibold text-gray-800">{sailorName}</span> has been invited as{" "}
+          <span className="font-semibold text-gray-800">{sailorName}</span> has
+          been invited as{" "}
           <span className="font-semibold text-gray-800">{position}</span> for{" "}
           <span className="font-semibold text-gray-800">{regattaName}</span>.
         </p>
@@ -160,111 +180,125 @@ function InviteConfirmModal({ sailorName, regattaName, position, onClose }) {
   );
 }
 
-// In a real app this would be fetched from a database by ID.
-// For now we use sample data.
-const crewProfiles = {
-  1: {
-    name: "Andre Peixoto",
-    location: "San Francisco, CA",
-    positions: ["Jib Trimmer", "Spin Trimmer", "Main Trimmer"],
-    level: "Mid-Level",
-    kroo: 15,
-    favorites: 31,
-    following: 10,
-    photo: "/boat-image-placeholder.png",
-    availability: ["March 12–15, 2026", "April 3–6, 2026", "May 20–22, 2026"],
-    regattas: [
-      "2026 Snipe Masters – San Diego",
-      "2026 SoCal Ocean Series – Santa Barbara",
-      "2026 Nationals – San Francisco",
-    ],
-    classes: ["Melges 24", "Snipe", "J/24", "470"],
-    bio: "Passionate racer with 10+ years of competitive sailing. Comfortable on boats from dinghies to offshore. Always looking for the next regatta.",
-    website: "www.boatlink.com",
-  },
-  2: {
-    name: "Sara Lopes",
-    location: "Oakland, CA",
-    positions: ["Tactician", "Helm"],
-    level: "Advanced",
-    kroo: 28,
-    favorites: 44,
-    following: 19,
-    photo: "/boat-image-placeholder.png",
-    availability: ["April 10–14, 2026", "June 1–5, 2026"],
-    regattas: ["2026 Bay Regatta – San Francisco", "2026 Pacific Cup"],
-    classes: ["J/105", "Farr 40", "Etchells"],
-    bio: "Experienced tactician and helm. 15 years of offshore and inshore racing up and down the West Coast.",
-    website: "",
-  },
-  3: {
-    name: "Mike Chen",
-    location: "Sausalito, CA",
-    positions: ["Bow"],
-    level: "Entry Level",
-    kroo: 6,
-    favorites: 12,
-    following: 5,
-    photo: "/boat-image-placeholder.png",
-    availability: ["May 5–8, 2026"],
-    regattas: ["2026 Tuesday Night Series – Oakland"],
-    classes: ["J/24", "Lightning"],
-    bio: "New to racing but eager to learn. Available most weekends in the Bay Area.",
-    website: "",
-  },
-  4: {
-    name: "Julia Martins",
-    location: "Berkeley, CA",
-    positions: ["Main Trimmer", "Jib Trimmer"],
-    level: "Mid-Level",
-    kroo: 20,
-    favorites: 37,
-    following: 14,
-    photo: "/boat-image-placeholder.png",
-    availability: ["March 20–23, 2026", "May 12–15, 2026"],
-    regattas: ["2026 Nationals – San Francisco", "2026 Rolex Big Boat Series"],
-    classes: ["Melges 24", "J/70", "Snipe"],
-    bio: "Trimmer with a strong background in one-design racing. Love the Melges 24 circuit.",
-    website: "juliasails.com",
-  },
-};
-
-function Divider() {
-  return <div className="h-px w-full" style={{ backgroundColor: "#e8e8e8" }} />;
-}
-
-function Tag({ label }) {
-  return (
-    <span
-      className="px-2.5 py-1 rounded-lg text-xs font-bold"
-      style={{ backgroundColor: "#E8EDF8", color: "#111" }}
-    >
-      {label}
-    </span>
-  );
-}
-
 export default function CrewPublicProfile({ params }) {
   const { id } = use(params);
-  const profile = crewProfiles[id] ?? crewProfiles[1];
+  const { user } = useAuth();
+  const [profile, setProfile] = useState(null);
+  const [myRegattas, setMyRegattas] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [isFavorited, setIsFavorited] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
   const [showInviteDrawer, setShowInviteDrawer] = useState(false);
-  const [inviteConfirm, setInviteConfirm] = useState(null); // { regattaName, position }
+  const [inviteConfirm, setInviteConfirm] = useState(null);
   const [isInvited, setIsInvited] = useState(false);
 
-  function handleInvite({ regatta, position }) {
+  // Load crew profile
+  useEffect(() => {
+    async function load() {
+      const { data } = await supabase
+        .from("crew_profiles")
+        .select("*")
+        .eq("id", id)
+        .single();
+      if (data) setProfile(data);
+      setLoading(false);
+    }
+    load();
+  }, [id]);
+
+  // Check if already favorited
+  useEffect(() => {
+    if (!user) return;
+    async function checkFavorite() {
+      const { data } = await supabase
+        .from("boat_favorites")
+        .select("id")
+        .eq("boat_owner_id", user.id)
+        .eq("crew_id", id)
+        .maybeSingle();
+      setIsFavorited(!!data);
+    }
+    checkFavorite();
+  }, [user, id]);
+
+  // Load boat owner's regattas for invite drawer
+  useEffect(() => {
+    if (!user) return;
+    async function loadRegattas() {
+      const { data } = await supabase
+        .from("regattas")
+        .select("*, regatta_positions(*)")
+        .eq("boat_id", user.id)
+        .order("created_at");
+      setMyRegattas(data || []);
+    }
+    loadRegattas();
+  }, [user]);
+
+  async function handleFavorite() {
+    if (!user || favoriteLoading) return;
+    setFavoriteLoading(true);
+    if (isFavorited) {
+      await supabase
+        .from("boat_favorites")
+        .delete()
+        .eq("boat_owner_id", user.id)
+        .eq("crew_id", id);
+      setIsFavorited(false);
+    } else {
+      await supabase
+        .from("boat_favorites")
+        .insert({ boat_owner_id: user.id, crew_id: id });
+      setIsFavorited(true);
+    }
+    setFavoriteLoading(false);
+  }
+
+  async function handleInvite({ regatta, position }) {
+    // position is now the full position object { id, role, level, status }
+    await supabase.from("invitations").insert({
+      regatta_id: regatta.id,
+      position_id: position.id,
+      crew_id: id,
+      role: position.role,
+      status: "pending",
+    });
     setShowInviteDrawer(false);
-    setInviteConfirm({ regattaName: regatta.name, position });
+    setInviteConfirm({ regattaName: regatta.name, position: position.role });
     setIsInvited(true);
     localStorage.setItem("kroo_crew_regatta_notif", "1");
   }
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-sm text-gray-400">Loading…</p>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="flex flex-col min-h-screen bg-white pb-20">
+        <div className="flex items-center gap-3 px-4 pt-4 pb-3">
+          <Link href="/boat/feed">
+            <IconArrowLeft size={22} color="#111" />
+          </Link>
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-sm text-gray-400">Sailor not found.</p>
+        </div>
+        <BoatNavFooter active="Home" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
-
       {showInviteDrawer && (
         <InviteDrawer
           sailorName={profile.name}
+          regattas={myRegattas}
           onInvite={handleInvite}
           onClose={() => setShowInviteDrawer(false)}
         />
@@ -279,7 +313,7 @@ export default function CrewPublicProfile({ params }) {
         />
       )}
 
-      {/* Header with back arrow */}
+      {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-4 pb-3">
         <Link href="/boat/feed">
           <IconArrowLeft size={22} color="#111" />
@@ -288,38 +322,47 @@ export default function CrewPublicProfile({ params }) {
       </div>
 
       <div className="overflow-y-auto flex-1">
-
         {/* Avatar + Info */}
         <div className="flex gap-3.5 px-4 py-3 items-start">
           <div
-            className="rounded-full flex items-center justify-center flex-shrink-0"
+            className="rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden"
             style={{ width: 105, height: 105, backgroundColor: "#d8d8d8" }}
           >
-            <IconUser size={32} color="#aaa" />
+            {profile.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt={profile.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <IconUser size={32} color="#aaa" />
+            )}
           </div>
           <div className="flex-1">
+            <p className="text-xs text-gray-400">{profile.location}</p>
             <p className="text-base font-semibold mb-0.5 text-gray-900">{profile.name}</p>
-            <p className="text-xs text-gray-500 mb-2">{profile.location}</p>
-            <div className="flex flex-wrap gap-1.5 mb-1.5">
-              {profile.positions.map((pos) => (
-                <Tag key={pos} label={pos} />
-              ))}
-            </div>
-            <p className="text-xs text-gray-400 mb-2.5">{profile.level}</p>
-            <div className="flex gap-5">
-              <div>
-                <p className="text-base font-semibold text-gray-900">{profile.kroo}</p>
-                <p className="text-[11px] text-gray-500">Kroo</p>
+            {profile.experience_level && (
+              <p className="text-xs text-gray-400 mb-1.5">{profile.experience_level}</p>
+            )}
+            {(profile.positions || []).length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-1.5">
+                {(profile.positions || []).map((pos) => (
+                  <span
+                    key={pos}
+                    className="px-2.5 py-1 rounded-lg text-xs font-bold"
+                    style={{ backgroundColor: "#111", color: "#fff" }}
+                  >
+                    {pos}
+                  </span>
+                ))}
               </div>
-              <div>
-                <p className="text-base font-semibold text-gray-900">{profile.favorites}</p>
-                <p className="text-[11px] text-gray-500">Favorites</p>
+            )}
+            {(profile.sex || profile.weight_lbs) && (
+              <div className="flex flex-wrap gap-1.5">
+                {profile.sex && <Tag label={profile.sex} />}
+                {profile.weight_lbs && <Tag label={`${profile.weight_lbs} lbs`} />}
               </div>
-              <div>
-                <p className="text-base font-semibold text-gray-900">{profile.following}</p>
-                <p className="text-[11px] text-gray-500">Following</p>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -333,7 +376,8 @@ export default function CrewPublicProfile({ params }) {
             <IconMessage size={13} /> Message
           </Link>
           <button
-            onClick={() => setIsFavorited((f) => !f)}
+            onClick={handleFavorite}
+            disabled={favoriteLoading}
             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-medium text-white"
             style={{ backgroundColor: "#024BB9" }}
           >
@@ -345,59 +389,80 @@ export default function CrewPublicProfile({ params }) {
             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-medium text-white"
             style={{ backgroundColor: isInvited ? "#111" : "#0161F0" }}
           >
-            {isInvited
-              ? <><IconCheck size={13} color="white" strokeWidth={2.5} /> Invited</>
-              : <><IconFlag size={13} /> Invite to Race</>
-            }
+            {isInvited ? (
+              <>
+                <IconCheck size={13} color="white" strokeWidth={2.5} /> Invited
+              </>
+            ) : (
+              <>
+                <IconFlag size={13} /> Invite to Race
+              </>
+            )}
           </button>
         </div>
 
         <Divider />
 
         {/* Availability */}
-        <div className="px-4 py-3">
-          <p className="text-xs text-gray-400 mb-2">Availability</p>
-          {profile.availability.map((date) => (
-            <p key={date} className="text-sm text-gray-800 mb-1.5">{date}</p>
-          ))}
-        </div>
-
-        <Divider />
+        {(profile.availability || []).length > 0 && (
+          <>
+            <div className="px-4 py-3">
+              <p className="text-xs text-gray-400 mb-2">Availability</p>
+              {profile.availability.map((date, i) => (
+                <p key={i} className="text-sm text-gray-800 mb-1.5">
+                  {date}
+                </p>
+              ))}
+            </div>
+            <Divider />
+          </>
+        )}
 
         {/* Interested Regattas */}
-        <div className="px-4 py-3">
-          <p className="text-xs text-gray-400 mb-2">Interested Regattas</p>
-          {profile.regattas.map((r) => (
-            <p key={r} className="text-sm text-gray-800 mb-1.5">{r}</p>
-          ))}
-        </div>
-
-        <Divider />
+        {(profile.interested_regattas || []).length > 0 && (
+          <>
+            <div className="px-4 py-3">
+              <p className="text-xs text-gray-400 mb-2">Interested Regattas</p>
+              {profile.interested_regattas.map((r, i) => (
+                <p key={i} className="text-sm text-gray-800 mb-1.5">
+                  {r}
+                </p>
+              ))}
+            </div>
+            <Divider />
+          </>
+        )}
 
         {/* Boat Classes */}
-        <div className="px-4 py-3">
-          <p className="text-xs text-gray-400 mb-2">Boat Classes Sailed</p>
-          <div className="flex flex-wrap gap-1.5">
-            {profile.classes.map((cls) => (
-              <Tag key={cls} label={cls} />
-            ))}
-          </div>
-        </div>
-
-        <Divider />
+        {(profile.boat_classes || []).length > 0 && (
+          <>
+            <div className="px-4 py-3">
+              <p className="text-xs text-gray-400 mb-2">Boat Classes Sailed</p>
+              <div className="flex flex-wrap gap-1.5">
+                {profile.boat_classes.map((cls) => (
+                  <Tag key={cls} label={cls} />
+                ))}
+              </div>
+            </div>
+            <Divider />
+          </>
+        )}
 
         {/* About */}
         <div className="px-4 py-3 pb-8">
           <p className="text-xs text-gray-400 mb-2">About</p>
-          <p className="text-sm text-gray-600 leading-relaxed mb-2">{profile.bio}</p>
-          {profile.website ? (
-            <p className="text-sm" style={{ color: "#007AFF" }}>{profile.website}</p>
-          ) : null}
+          <p className="text-sm text-gray-600 leading-relaxed mb-2">
+            {profile.about || "No bio yet."}
+          </p>
+          {profile.website && (
+            <p className="text-sm" style={{ color: "#007AFF" }}>
+              {profile.website}
+            </p>
+          )}
         </div>
-
       </div>
 
-      <BoatNavFooter />
+      <BoatNavFooter active="Home" />
     </div>
   );
 }

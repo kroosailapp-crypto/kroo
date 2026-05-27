@@ -1,96 +1,17 @@
 "use client";
-import { useState, use } from "react";
-import Image from "next/image";
+import { useState, use, useEffect } from "react";
 import Link from "next/link";
 import {
   IconMessage,
   IconStar,
   IconUser,
   IconArrowLeft,
+  IconAnchor,
+  IconCheck,
 } from "@tabler/icons-react";
 import CrewNavFooter from "@/app/components/CrewNavFooter";
-
-const boatProfiles = {
-  1: {
-    name: "Dilema",
-    location: "Salvador, BA",
-    boatClass: "Melges 24",
-    skipper: "Linda Petterson",
-    crew: 8,
-    regattas: 12,
-    followers: 40,
-    bio: "A competitive Melges 24 based in Salvador. We race nationally and internationally. Looking for experienced trimmers and foredeck crew.",
-    website: "www.dilema.com.br",
-    instagram: "instagram.com/dilemasail",
-    photo: "/boat-image.jpeg",
-    upcomingRegattas: [
-      {
-        name: "Rolex Big Boat Series",
-        date: "07/25/26",
-        location: "San Francisco, CA",
-        positions: [
-          { role: "Jib Trimmer", level: "Mid Level – 2–5 years" },
-          { role: "Bow", level: "All levels" },
-        ],
-      },
-      {
-        name: "Bay Regatta",
-        date: "08/10/26",
-        location: "Oakland, CA",
-        positions: [
-          { role: "Spin Trimmer", level: "Mid Level – 2–5 years" },
-        ],
-      },
-    ],
-  },
-  2: {
-    name: "Bravura",
-    location: "San Francisco, CA",
-    boatClass: "J/24",
-    skipper: "Carlos Mendes",
-    crew: 5,
-    regattas: 7,
-    followers: 27,
-    bio: "J/24 racing out of St. Francis Yacht Club. Tuesday night series and regional regattas. Great team culture.",
-    website: "",
-    instagram: "instagram.com/bravurasail",
-    photo: "/boat-image.jpeg",
-    upcomingRegattas: [
-      {
-        name: "Bay Regatta",
-        date: "08/10/26",
-        location: "Oakland, CA",
-        positions: [
-          { role: "Tactician", level: "Advanced" },
-          { role: "Jib Trimmer", level: "All levels" },
-        ],
-      },
-    ],
-  },
-  3: {
-    name: "Wild Card",
-    location: "Newport, RI",
-    boatClass: "Etchells",
-    skipper: "Tom Walsh",
-    crew: 3,
-    regattas: 15,
-    followers: 55,
-    bio: "One of the top Etchells on the East Coast. Competitive team looking for a strong tactician for the upcoming season.",
-    website: "wildcardetchells.com",
-    instagram: "",
-    photo: "/boat-image.jpeg",
-    upcomingRegattas: [
-      {
-        name: "Newport Regatta",
-        date: "09/05/26",
-        location: "Newport, RI",
-        positions: [
-          { role: "Tactician", level: "Advanced" },
-        ],
-      },
-    ],
-  },
-};
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth-context";
 
 function Divider() {
   return <div className="h-px w-full" style={{ backgroundColor: "#e8e8e8" }} />;
@@ -118,11 +39,19 @@ function ApplyModal({ boatName, onClose }) {
         className="bg-white rounded-2xl px-6 py-7 w-full max-w-[320px] flex flex-col items-center gap-4"
         onClick={(e) => e.stopPropagation()}
       >
+        <div
+          className="flex items-center justify-center rounded-full"
+          style={{ width: 48, height: 48, backgroundColor: "#111" }}
+        >
+          <IconCheck size={22} color="white" strokeWidth={2.5} />
+        </div>
         <p className="text-base font-semibold text-gray-900 text-center">
           Application sent!
         </p>
         <p className="text-sm text-gray-500 text-center leading-relaxed">
-          A notification was sent to the skipper of <span className="font-semibold text-gray-800">"{boatName}"</span>. If you are selected, we will notify you.
+          A notification was sent to the skipper of{" "}
+          <span className="font-semibold text-gray-800">"{boatName}"</span>. If
+          you are selected, we will notify you.
         </p>
         <button
           onClick={onClose}
@@ -138,64 +67,190 @@ function ApplyModal({ boatName, onClose }) {
 
 export default function BoatPublicProfile({ params }) {
   const { id } = use(params);
-  const profile = boatProfiles[id] ?? boatProfiles[1];
+  const { user } = useAuth();
+  const [profile, setProfile] = useState(null);
+  const [regattas, setRegattas] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [appliedPositions, setAppliedPositions] = useState(new Set());
   const [isFavorited, setIsFavorited] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
 
-  function handleApply(key) {
-    setAppliedPositions((prev) => new Set(prev).add(key));
+  useEffect(() => {
+    async function load() {
+      const [{ data: boat }, { data: regs }] = await Promise.all([
+        supabase.from("boat_profiles").select("*").eq("id", id).single(),
+        supabase
+          .from("regattas")
+          .select("*, regatta_positions(*)")
+          .eq("boat_id", id)
+          .order("created_at"),
+      ]);
+      if (boat) setProfile(boat);
+      if (regs) {
+        const now = new Date();
+        const parseDate = (str) => {
+          if (!str) return null;
+          const [m, d, y] = str.split("/");
+          if (!m || !d || !y) return null;
+          return new Date(`${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`);
+        };
+        const sorted = [...regs].sort((a, b) => {
+          const da = parseDate(a.date);
+          const db = parseDate(b.date);
+          if (!da && !db) return 0;
+          if (!da) return 1;  // no date → bottom
+          if (!db) return -1;
+          const aUp = da >= now;
+          const bUp = db >= now;
+          if (aUp && !bUp) return -1;  // upcoming before past
+          if (!aUp && bUp) return 1;
+          return aUp ? da - db : db - da; // upcoming: soonest first; past: most recent first
+        });
+        setRegattas(sorted);
+      }
+      setLoading(false);
+    }
+    load();
+  }, [id]);
+
+  // Check favorite
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("crew_favorites")
+      .select("id")
+      .eq("crew_id", user.id)
+      .eq("boat_id", id)
+      .maybeSingle()
+      .then(({ data }) => setIsFavorited(!!data));
+  }, [user, id]);
+
+  // Load already-applied positions
+  useEffect(() => {
+    if (!user) return;
+    async function checkApplied() {
+      const { data } = await supabase
+        .from("invitations")
+        .select("position_id")
+        .eq("crew_id", user.id)
+        .in("status", ["applied", "accepted"]);
+      if (data) {
+        setAppliedPositions(new Set(data.map((r) => r.position_id)));
+      }
+    }
+    checkApplied();
+  }, [user]);
+
+  async function handleFavorite() {
+    if (!user || favoriteLoading) return;
+    setFavoriteLoading(true);
+    if (isFavorited) {
+      await supabase
+        .from("crew_favorites")
+        .delete()
+        .eq("crew_id", user.id)
+        .eq("boat_id", id);
+      setIsFavorited(false);
+    } else {
+      await supabase
+        .from("crew_favorites")
+        .insert({ crew_id: user.id, boat_id: id });
+      setIsFavorited(true);
+    }
+    setFavoriteLoading(false);
+  }
+
+  async function handleApply(regatta, pos) {
+    if (!user) return;
+
+    // Optimistic update
+    setAppliedPositions((prev) => new Set(prev).add(pos.id));
     setShowModal(true);
-    localStorage.setItem("kroo_boat_regatta_notif", "1");
+
+    // Insert into invitations as "applied" (sailor-initiated)
+    await supabase.from("invitations").upsert(
+      {
+        regatta_id: regatta.id,
+        position_id: pos.id,
+        crew_id: user.id,
+        role: pos.role,
+        status: "applied",
+      },
+      { onConflict: "position_id,crew_id", ignoreDuplicates: false }
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-sm text-gray-400">Loading…</p>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="flex flex-col min-h-screen bg-white pb-20">
+        <div className="flex items-center gap-3 px-4 pt-4 pb-3">
+          <Link href="/crew/feed">
+            <IconArrowLeft size={22} color="#111" />
+          </Link>
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-sm text-gray-400">Boat not found.</p>
+        </div>
+        <CrewNavFooter active="Home" />
+      </div>
+    );
   }
 
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
-
       {showModal && (
-        <ApplyModal boatName={profile.name} onClose={() => setShowModal(false)} />
+        <ApplyModal
+          boatName={profile.boat_name}
+          onClose={() => setShowModal(false)}
+        />
       )}
 
-      {/* Header with back arrow */}
+      {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-4 pb-3">
         <Link href="/crew/feed">
           <IconArrowLeft size={22} color="#111" />
         </Link>
-        <p className="text-sm font-medium text-gray-800">{profile.name}</p>
+        <p className="text-sm font-medium text-gray-800">{profile.boat_name}</p>
       </div>
 
       <div className="overflow-y-auto flex-1">
-
         {/* Boat photo + info */}
         <div className="flex gap-3.5 px-4 py-3 items-start">
           <div
-            className="rounded-xl flex-shrink-0 overflow-hidden"
+            className="rounded-xl flex-shrink-0 overflow-hidden flex items-center justify-center"
             style={{ width: 105, height: 105, backgroundColor: "#e0e0e0" }}
           >
-            <Image
-              src={profile.photo}
-              alt={profile.name}
-              width={105}
-              height={105}
-              className="object-cover w-full h-full"
-            />
+            {profile.photo_url ? (
+              <img
+                src={profile.photo_url}
+                alt={profile.boat_name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <IconAnchor size={32} color="#ccc" />
+            )}
           </div>
           <div className="flex-1">
-            <p className="text-xl font-bold text-gray-900 mb-0.5">{profile.name}</p>
-            <p className="text-xs text-gray-500 mb-1.5">{profile.location}</p>
-            <Tag label={profile.boatClass} />
+            <p className="text-xl font-bold text-gray-900 mb-0.5">
+              {profile.boat_name}
+            </p>
+            <p className="text-xs text-gray-500 mb-1.5">{profile.home_port}</p>
+            {profile.boat_class && <Tag label={profile.boat_class} />}
             <div className="flex gap-5 mt-2">
               <div>
-                <p className="text-base font-semibold text-gray-900">{profile.crew}</p>
-                <p className="text-[11px] text-gray-500">Crew</p>
-              </div>
-              <div>
-                <p className="text-base font-semibold text-gray-900">{profile.regattas}</p>
+                <p className="text-base font-semibold text-gray-900">
+                  {regattas.length}
+                </p>
                 <p className="text-[11px] text-gray-500">Regattas</p>
-              </div>
-              <div>
-                <p className="text-base font-semibold text-gray-900">{profile.followers}</p>
-                <p className="text-[11px] text-gray-500">Followers</p>
               </div>
             </div>
           </div>
@@ -211,27 +266,38 @@ export default function BoatPublicProfile({ params }) {
             <IconMessage size={13} /> Message
           </Link>
           <button
-            onClick={() => setIsFavorited((f) => !f)}
+            onClick={handleFavorite}
+            disabled={favoriteLoading}
             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-medium text-white"
             style={{ backgroundColor: "#024BB9" }}
           >
-            <IconStar size={13} color="white" fill={isFavorited ? "white" : "none"} />
+            <IconStar
+              size={13}
+              color="white"
+              fill={isFavorited ? "white" : "none"}
+            />
             {isFavorited ? "Unfavorite" : "Favorite"}
           </button>
         </div>
 
         <Divider />
 
-        {/* Bio + links */}
+        {/* About */}
         <div className="px-4 py-3">
           <p className="text-xs text-gray-400 mb-2">About</p>
-          <p className="text-sm text-gray-600 leading-relaxed mb-2">{profile.bio}</p>
-          {profile.website ? (
-            <p className="text-sm mb-1" style={{ color: "#007AFF" }}>{profile.website}</p>
-          ) : null}
-          {profile.instagram ? (
-            <p className="text-sm" style={{ color: "#007AFF" }}>{profile.instagram}</p>
-          ) : null}
+          <p className="text-sm text-gray-600 leading-relaxed mb-2">
+            {profile.about || "No description yet."}
+          </p>
+          {profile.website && (
+            <p className="text-sm mb-1" style={{ color: "#007AFF" }}>
+              {profile.website}
+            </p>
+          )}
+          {profile.instagram && (
+            <p className="text-sm" style={{ color: "#007AFF" }}>
+              {profile.instagram}
+            </p>
+          )}
         </div>
 
         <Divider />
@@ -239,12 +305,22 @@ export default function BoatPublicProfile({ params }) {
         {/* Skipper */}
         <div className="flex items-center gap-2.5 px-4 py-3">
           <div
-            className="rounded-full flex items-center justify-center flex-shrink-0"
+            className="rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden"
             style={{ width: 36, height: 36, backgroundColor: "#d8d8d8" }}
           >
-            <IconUser size={18} color="#aaa" />
+            {profile.skipper_photo_url ? (
+              <img
+                src={profile.skipper_photo_url}
+                alt={profile.skipper_name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <IconUser size={18} color="#aaa" />
+            )}
           </div>
-          <p className="text-sm font-medium text-gray-800">{profile.skipper}</p>
+          <p className="text-sm font-medium text-gray-800">
+            {profile.skipper_name}
+          </p>
           <span className="text-xs text-gray-400 ml-1">· Skipper</span>
         </div>
 
@@ -253,42 +329,67 @@ export default function BoatPublicProfile({ params }) {
         {/* Upcoming Regattas */}
         <div className="px-4 py-3 pb-8">
           <p className="text-xs text-gray-400 mb-3">Upcoming Regattas</p>
-          {profile.upcomingRegattas.map((regatta) => (
-            <div key={regatta.name} className="mb-5">
-              <p className="text-sm font-semibold text-gray-900 mb-0.5">{regatta.name}</p>
-              <p className="text-xs text-gray-400 mb-2">{regatta.date} · {regatta.location}</p>
-              <div className="flex flex-col gap-2">
-                {regatta.positions.map((pos) => {
-                  const key = `${regatta.name}-${pos.role}`;
-                  const applied = appliedPositions.has(key);
-                  return (
-                    <div key={pos.role} className="flex items-center gap-2">
-                      <Tag label={pos.role} />
-                      <span className="text-[11px] text-gray-500 flex-1">{pos.level}</span>
-                      {applied ? (
-                        <span
-                          className="text-xs font-semibold px-3 py-1 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: "#fff7e6", color: "#b96b00" }}
-                        >
-                          Applied
-                        </span>
-                      ) : (
-                        <button
-                          onClick={() => handleApply(key)}
-                          className="text-xs font-semibold px-3 py-1 rounded-full text-white flex-shrink-0"
-                          style={{ backgroundColor: "#0161f0" }}
-                        >
-                          Apply
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
+          {regattas.length === 0 && (
+            <p className="text-sm text-gray-400">No upcoming regattas.</p>
+          )}
+          {regattas.map((regatta) => {
+            const openPositions = (regatta.regatta_positions || []).filter(
+              (p) => p.status === "open"
+            );
+            return (
+              <div key={regatta.id} className="mb-5">
+                <p className="text-sm font-semibold text-gray-900 mb-0.5">
+                  {regatta.name}
+                </p>
+                {(regatta.date || regatta.location) && (
+                  <p className="text-xs text-gray-400 mb-2">
+                    {[regatta.date, regatta.location]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
+                )}
+                {openPositions.length === 0 &&
+                  (regatta.regatta_positions || []).length > 0 && (
+                    <p className="text-xs text-gray-400">All positions filled</p>
+                  )}
+                <div className="flex flex-col gap-2">
+                  {openPositions.map((pos) => {
+                    const applied = appliedPositions.has(pos.id);
+                    return (
+                      <div key={pos.id} className="flex items-center gap-2">
+                        <Tag label={pos.role} />
+                        {pos.level && (
+                          <span className="text-[11px] text-gray-500 flex-1">
+                            {pos.level}
+                          </span>
+                        )}
+                        {applied ? (
+                          <span
+                            className="text-xs font-semibold px-3 py-1 rounded-full flex-shrink-0"
+                            style={{
+                              backgroundColor: "#EFF6FF",
+                              color: "#0161F0",
+                            }}
+                          >
+                            Applied
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => handleApply(regatta, pos)}
+                            className="text-xs font-semibold px-3 py-1 rounded-full text-white flex-shrink-0"
+                            style={{ backgroundColor: "#0161f0" }}
+                          >
+                            Apply
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
-
       </div>
 
       <CrewNavFooter />

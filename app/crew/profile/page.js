@@ -1,12 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import ProfileSwitcher from "@/app/components/ProfileSwitcher";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   IconUser,
-  IconSearch,
-  IconPlus,
   IconX,
 } from "@tabler/icons-react";
 import CrewNavFooter from "@/app/components/CrewNavFooter";
@@ -89,16 +88,22 @@ function AddRegattaModal({ onAdd, onClose }) {
 
 const BOAT_CLASSES = ["Melges 24","J/24","J/70","J/105","Snipe","470","Laser","Etchells","Farr 40","Swan 42","Finn","49er","Nacra 17","Lightning","Flying Dutchman","Optimist","RS200","Sunfish"];
 
+const MAX_CLASSES = 5;
+
 function AddClassModal({ existing, onAdd, onClose }) {
   const [selected, setSelected] = useState(null);
   const [custom, setCustom] = useState("");
   const toAdd = custom.trim() || selected;
   const available = BOAT_CLASSES.filter((c) => !existing.includes(c));
+  const remaining = MAX_CLASSES - existing.length;
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center" style={{ backgroundColor: "rgba(0,0,0,0.4)" }} onClick={onClose}>
       <div className="bg-white rounded-t-2xl w-full max-w-[430px] px-5 pt-5 pb-10 flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
-          <p className="text-base font-semibold text-gray-900">Add Boat Class</p>
+          <div>
+            <p className="text-base font-semibold text-gray-900">Add Boat Class</p>
+            <p className="text-xs text-gray-400 mt-0.5">{remaining} of {MAX_CLASSES} remaining</p>
+          </div>
           <button onClick={onClose}><IconX size={18} color="#999" /></button>
         </div>
         <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto">
@@ -121,7 +126,7 @@ function AddClassModal({ existing, onAdd, onClose }) {
 }
 
 export default function CrewProfilePage() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const router = useRouter();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -182,6 +187,7 @@ export default function CrewProfilePage() {
   }
 
   async function addClass(c) {
+    if (classes.length >= MAX_CLASSES) return;
     const next = [...classes, c];
     setClasses(next);
     setShowClassModal(false);
@@ -206,12 +212,7 @@ export default function CrewProfilePage() {
 
       {/* App Bar */}
       <div className="flex items-center gap-2 px-4 pt-3 pb-2 flex-shrink-0">
-        <Image src="/kroo-logo-blue.svg" alt="Kroo" width={52} height={20} />
-        <div className="flex-1 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-gray-400" style={{ backgroundColor: "#f0f0f0" }}>
-          <IconSearch size={14} color="#aaa" />
-          <span>Search</span>
-        </div>
-        <IconPlus size={22} color="#111" />
+        <ProfileSwitcher />
       </div>
 
       <div className="overflow-y-auto flex-1">
@@ -228,7 +229,13 @@ export default function CrewProfilePage() {
             <div className="flex flex-wrap gap-1.5 mb-1.5">
               {(profile?.positions || []).map((p) => <Tag key={p} label={p} />)}
             </div>
-            <p className="text-xs text-gray-400 mb-2.5">{profile?.experience_level || ""}</p>
+            <p className="text-xs text-gray-400 mb-1.5">{profile?.experience_level || ""}</p>
+            {(profile?.sex || profile?.weight_lbs) && (
+              <div className="flex flex-wrap gap-1.5 mb-2.5">
+                {profile?.sex && <Tag label={profile.sex} />}
+                {profile?.weight_lbs && <Tag label={`${profile.weight_lbs} lbs`} />}
+              </div>
+            )}
             <div className="flex gap-5">
               <div><p className="text-base font-semibold text-gray-900">0</p><p className="text-[11px] text-gray-500">Kroo</p></div>
               <div><p className="text-base font-semibold text-gray-900">0</p><p className="text-[11px] text-gray-500">Favorites</p></div>
@@ -281,7 +288,10 @@ export default function CrewProfilePage() {
               <Tag key={i} label={cls} onRemove={() => removeClass(i)} />
             ))}
           </div>
-          <button onClick={() => setShowClassModal(true)} className="mt-1 text-xs font-medium" style={{ color: "#0161f0" }}>+ Add Class</button>
+          {classes.length < MAX_CLASSES
+            ? <button onClick={() => setShowClassModal(true)} className="mt-1 text-xs font-medium" style={{ color: "#0161f0" }}>+ Add Class</button>
+            : <p className="mt-1 text-xs text-gray-400">Maximum of {MAX_CLASSES} classes reached</p>
+          }
         </div>
 
         <Divider />
@@ -299,6 +309,17 @@ export default function CrewProfilePage() {
           <Link href="/crew/feed" className="w-full flex items-center justify-center py-3 rounded-full font-medium text-sm" style={{ backgroundColor: "#0161f0", color: "#fff" }}>
             Browse Boats →
           </Link>
+        </div>
+
+        <div className="px-4 pb-10">
+          <div className="h-px w-full mb-6" style={{ backgroundColor: "#e8e8e8" }} />
+          <button
+            onClick={async () => { await signOut(); router.push("/"); }}
+            className="w-full py-3 rounded-full text-sm font-semibold border"
+            style={{ color: "#e00", borderColor: "#fca5a5" }}
+          >
+            Log Out
+          </button>
         </div>
       </div>
 
