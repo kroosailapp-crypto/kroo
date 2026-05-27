@@ -43,6 +43,13 @@ export default function RootLayout({ children }) {
         <script
           dangerouslySetInnerHTML={{
             __html: `
+              // Capture beforeinstallprompt before React mounts
+              window.addEventListener('beforeinstallprompt', function(e) {
+                e.preventDefault();
+                window.__deferredInstallPrompt = e;
+                window.dispatchEvent(new Event('pwaInstallReady'));
+              });
+
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
                   navigator.serviceWorker.register('/sw.js')

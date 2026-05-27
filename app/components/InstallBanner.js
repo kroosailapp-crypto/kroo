@@ -14,13 +14,23 @@ export default function InstallBanner() {
     // Don't show if dismissed this session
     if (sessionStorage.getItem("kroo_install_dismissed")) return;
 
-    // Android / Chrome — capture beforeinstallprompt
-    const handler = (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setShowAndroid(true);
-    };
-    window.addEventListener("beforeinstallprompt", handler);
+    // Android / Chrome — the event may have already fired before React mounted,
+    // in which case layout.js stored it on window.__deferredInstallPrompt.
+    function handleReady() {
+      const prompt = window.__deferredInstallPrompt;
+      if (prompt) {
+        setDeferredPrompt(prompt);
+        setShowAndroid(true);
+      }
+    }
+
+    if (window.__deferredInstallPrompt) {
+      // Already captured — use it immediately
+      handleReady();
+    } else {
+      // Not yet — listen for it
+      window.addEventListener("pwaInstallReady", handleReady);
+    }
 
     // iOS Safari detection
     const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
@@ -29,7 +39,7 @@ export default function InstallBanner() {
       setShowIOS(true);
     }
 
-    return () => window.removeEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("pwaInstallReady", handleReady);
   }, []);
 
   function dismiss() {

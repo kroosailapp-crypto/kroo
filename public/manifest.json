@@ -2,11 +2,13 @@
   "name": "Kroo",
   "short_name": "Kroo",
   "description": "Connect racing sailboats with crew, and sailors with boats.",
+  "id": "/",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0161f0",
   "orientation": "portrait-primary",
+  "prefer_related_applications": false,
   "categories": ["sports", "lifestyle"],
   "icons": [
     { "src": "/icons/icon-72.png",  "sizes": "72x72",   "type": "image/png" },
