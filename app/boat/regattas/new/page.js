@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { IconArrowLeft, IconX } from "@tabler/icons-react";
 import BoatNavFooter from "@/app/components/BoatNavFooter";
+import LocationInput from "@/app/components/LocationInput";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
 
@@ -212,9 +213,9 @@ export default function CreateRegatta() {
         />
 
         {/* Location */}
-        <input
+        <LocationInput
           value={location}
-          onChange={(e) => setLocation(e.target.value)}
+          onChange={setLocation}
           placeholder="Location"
           className="w-full px-4 py-3.5 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400"
           style={{ borderColor: "#e0e0e0" }}

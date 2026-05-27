@@ -13,6 +13,7 @@ import {
   IconPencil,
 } from "@tabler/icons-react";
 import BoatNavFooter from "@/app/components/BoatNavFooter";
+import LocationInput from "@/app/components/LocationInput";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
 
@@ -424,9 +425,9 @@ export default function RegattaDetail({ params }) {
                 className="w-full px-4 py-2.5 rounded-2xl text-sm font-semibold text-gray-900 border outline-none"
                 style={{ borderColor: "#e0e0e0" }}
               />
-              <input
+              <LocationInput
                 value={editLocation}
-                onChange={(e) => setEditLocation(e.target.value)}
+                onChange={setEditLocation}
                 placeholder="Location"
                 className="w-full px-4 py-2.5 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400"
                 style={{ borderColor: "#e0e0e0" }}
