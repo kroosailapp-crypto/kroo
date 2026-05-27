@@ -240,7 +240,7 @@ function BoatPositionBlock({ regatta, boat, openPositions, appliedPositions, onA
       </div>
 
       {/* Open positions */}
-      <div className="flex flex-col divide-y" style={{ borderColor: "#e8e8e8" }}>
+      <div className="flex flex-col divide-y divide-[#e8e8e8]">
         {openPositions.map((pos) => (
           <PositionRow
             key={pos.id}
