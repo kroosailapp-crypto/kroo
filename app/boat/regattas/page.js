@@ -51,7 +51,7 @@ function RegattaCard({ regatta, onCancel }) {
     <div className="py-4">
       <div className="px-4 mb-3">
         <p className="text-xs mb-0.5">
-          {regatta.date && <span className="text-gray-900">{regatta.date}</span>}
+          {regatta.date && <span style={{ color: "#000000" }}>{regatta.date}</span>}
           {regatta.date && regatta.location && <span className="text-gray-400"> · </span>}
           {regatta.location && <span className="text-gray-600">{regatta.location}</span>}
           {(regatta.date || regatta.location) && regatta.yacht_club && <span className="text-gray-400"> · </span>}
