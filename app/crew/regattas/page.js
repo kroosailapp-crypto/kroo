@@ -132,14 +132,14 @@ function InvitationCard({ invitation, onApply, onDecline, onWithdraw }) {
         </Link>
         <Link href={`/boat/${regatta?.boat_id}`} className="flex-1 min-w-0">
           <p className="text-[14px] text-gray-400 truncate">
-            {[boat?.boat_name, regatta?.date].filter(Boolean).join(" / ")}
+            {[boat?.boat_name, regatta?.date].filter(Boolean).join(" • ")}
           </p>
           <p className="text-[15px] font-semibold truncate" style={{ color: "#000000" }}>
             {regatta?.name}
           </p>
           {(regatta?.location || regatta?.yacht_club) && (
             <p className="text-[13px] text-gray-400 truncate">
-              {[regatta.location, regatta.yacht_club].filter(Boolean).join(" / ")}
+              {[regatta.location, regatta.yacht_club].filter(Boolean).join(" • ")}
             </p>
           )}
         </Link>
