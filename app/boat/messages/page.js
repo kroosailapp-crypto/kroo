@@ -65,6 +65,7 @@ function DeleteModal({ name, onConfirm, onClose }) {
 function ConversationRow({ conversation, userId, onDelete }) {
   const { otherId, otherProfile, lastMessage } = conversation;
   const isMe = lastMessage.sender_id === userId;
+  const isUnread = !isMe && !lastMessage.read_at;
   const preview = isMe ? `You: ${lastMessage.content}` : lastMessage.content;
 
   return (
@@ -89,7 +90,12 @@ function ConversationRow({ conversation, userId, onDelete }) {
               {formatTime(lastMessage.created_at)}
             </p>
           </div>
-          <p className="text-xs text-gray-500 truncate">{preview}</p>
+          <p
+            className="text-xs truncate"
+            style={{ color: isUnread ? "#111" : undefined, fontWeight: isUnread ? 700 : undefined }}
+          >
+            {preview}
+          </p>
           {otherProfile?.positions?.[0] && (
             <p className="text-[13px] text-gray-400 mt-0.5">{otherProfile.positions[0]}</p>
           )}
