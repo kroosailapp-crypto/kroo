@@ -23,17 +23,32 @@ function CrewCard({ member }) {
         <p className="text-xs text-gray-400">{member.location}</p>
         <p className="font-semibold text-base text-gray-900 mb-0.5">{member.name}</p>
         <p className="text-xs text-gray-400 mb-1.5">{member.experience_level}</p>
-        <div className="flex flex-wrap gap-1.5 mb-1.5">
-          {(member.positions || []).slice(0, 3).map((pos) => (
-            <span
-              key={pos}
-              className="text-xs px-2.5 py-1 rounded-lg font-bold"
-              style={{ backgroundColor: "#111", color: "#fff" }}
-            >
-              {pos}
-            </span>
-          ))}
-        </div>
+        {(() => {
+          const positions = member.positions || [];
+          const visible = positions.slice(0, 4);
+          const overflow = positions.length - visible.length;
+          return (
+            <div className="flex flex-wrap gap-1.5 mb-1.5">
+              {visible.map((pos) => (
+                <span
+                  key={pos}
+                  className="text-xs px-2.5 py-1 rounded-lg font-bold"
+                  style={{ backgroundColor: "#111", color: "#fff" }}
+                >
+                  {pos}
+                </span>
+              ))}
+              {overflow > 0 && (
+                <span
+                  className="text-xs px-2.5 py-1 rounded-lg font-bold"
+                  style={{ backgroundColor: "#e8e8e8", color: "#555" }}
+                >
+                  +{overflow}
+                </span>
+              )}
+            </div>
+          );
+        })()}
         {(member.sex || member.weight_lbs) && (
           <div className="flex flex-wrap gap-1.5">
             {member.sex && (
