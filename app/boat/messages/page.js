@@ -85,7 +85,7 @@ function ConversationRow({ conversation, userId, onDelete }) {
           <div className="flex items-center justify-between mb-0.5">
             <p
               className="text-sm font-semibold truncate"
-              style={{ color: isUnread ? "#000000" : undefined }}
+              style={{ color: isUnread ? "#000000" : "#9ca3af" }}
             >
               {otherProfile?.name || "Sailor"}
             </p>
@@ -95,7 +95,7 @@ function ConversationRow({ conversation, userId, onDelete }) {
           </div>
           <p
             className="text-xs truncate"
-            style={{ color: isUnread ? "#111" : undefined, fontWeight: isUnread ? 700 : undefined }}
+            style={{ color: isUnread ? "#111" : "#9ca3af", fontWeight: isUnread ? 700 : undefined }}
           >
             {preview}
           </p>
