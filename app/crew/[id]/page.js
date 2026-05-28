@@ -49,7 +49,7 @@ function InviteDrawer({ sailorName, regattas, onInvite, onClose }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
-          <p className="text-base font-semibold text-gray-900">Invite to Race</p>
+          <p className="text-base font-semibold text-gray-900">Invite to Sail</p>
           <button onClick={onClose}>
             <IconX size={18} color="#999" />
           </button>
@@ -395,7 +395,7 @@ export default function CrewPublicProfile({ params }) {
               </>
             ) : (
               <>
-                <IconFlag size={13} /> Invite to Race
+                <IconFlag size={13} /> Invite to Sail
               </>
             )}
           </button>
