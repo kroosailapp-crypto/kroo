@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import ProfileSwitcher from "@/app/components/ProfileSwitcher";
 import Link from "next/link";
-import { IconSearch, IconX, IconMessage, IconAnchor } from "@tabler/icons-react";
+import { IconSearch, IconX, IconMessage, IconAnchor, IconTrash } from "@tabler/icons-react";
 import CrewNavFooter from "@/app/components/CrewNavFooter";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
@@ -23,14 +23,53 @@ function Divider() {
   return <div className="h-px w-full" style={{ backgroundColor: "#e8e8e8" }} />;
 }
 
-function ConversationRow({ conversation, userId }) {
+function DeleteModal({ name, onConfirm, onClose }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center px-8"
+      style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl px-6 py-7 w-full max-w-[320px] flex flex-col gap-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <p className="text-base font-semibold text-gray-900 text-center leading-snug">
+          Delete conversation with{" "}
+          <span className="text-gray-800">"{name}"</span>?
+        </p>
+        <p className="text-xs text-gray-400 text-center -mt-2">
+          All messages will be permanently deleted for both sides.
+        </p>
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 py-2.5 rounded-full text-sm font-semibold border"
+            style={{ color: "#111", borderColor: "#d0d0d0" }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 py-2.5 rounded-full text-sm font-semibold text-white"
+            style={{ backgroundColor: "#e00" }}
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ConversationRow({ conversation, userId, onDelete }) {
   const { otherId, otherProfile, lastMessage } = conversation;
   const isMe = lastMessage.sender_id === userId;
   const preview = isMe ? `You: ${lastMessage.content}` : lastMessage.content;
 
   return (
-    <Link href={`/crew/messages/${otherId}`}>
-      <div className="flex items-center gap-3 px-4 py-3.5">
+    <div className="flex items-center gap-3 px-4 py-3.5">
+      <Link href={`/crew/messages/${otherId}`} className="flex items-center gap-3 flex-1 min-w-0">
         <div
           className="rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0"
           style={{ width: 52, height: 52, backgroundColor: "#e0e0e0" }}
@@ -55,8 +94,14 @@ function ConversationRow({ conversation, userId }) {
             <p className="text-[13px] text-gray-400 mt-0.5">{otherProfile.skipper_name} · Skipper</p>
           )}
         </div>
-      </div>
-    </Link>
+      </Link>
+      <button
+        onClick={() => onDelete(conversation)}
+        className="flex-shrink-0 p-2"
+      >
+        <IconTrash size={16} color="#ccc" />
+      </button>
+    </div>
   );
 }
 
@@ -77,6 +122,7 @@ export default function CrewMessages() {
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -85,7 +131,6 @@ export default function CrewMessages() {
   }, [user]);
 
   async function loadConversations() {
-    // Get all messages involving current user, latest first
     const { data: msgs } = await supabase
       .from("messages")
       .select("*")
@@ -97,7 +142,6 @@ export default function CrewMessages() {
       return;
     }
 
-    // Group by conversation partner (keep only the latest message per partner)
     const seen = new Set();
     const threads = [];
     for (const msg of msgs) {
@@ -108,7 +152,6 @@ export default function CrewMessages() {
       }
     }
 
-    // Load boat profiles for all conversation partners
     const otherIds = threads.map((t) => t.otherId);
     const { data: profiles } = await supabase
       .from("boat_profiles")
@@ -124,8 +167,31 @@ export default function CrewMessages() {
     setLoading(false);
   }
 
+  async function handleDelete() {
+    if (!deleteTarget) return;
+    const otherId = deleteTarget.otherId;
+
+    await supabase
+      .from("messages")
+      .delete()
+      .or(
+        `and(sender_id.eq.${user.id},receiver_id.eq.${otherId}),and(sender_id.eq.${otherId},receiver_id.eq.${user.id})`
+      );
+
+    setConversations((prev) => prev.filter((c) => c.otherId !== otherId));
+    setDeleteTarget(null);
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
+      {deleteTarget && (
+        <DeleteModal
+          name={deleteTarget.otherProfile?.boat_name || "Boat"}
+          onConfirm={handleDelete}
+          onClose={() => setDeleteTarget(null)}
+        />
+      )}
+
       <div className="flex items-center gap-2 px-4 pt-3 pb-2 flex-shrink-0">
         <ProfileSwitcher />
         <div
@@ -165,7 +231,11 @@ export default function CrewMessages() {
           if (filtered.length === 0) return <EmptyState />;
           return filtered.map((conv, i) => (
             <div key={conv.otherId}>
-              <ConversationRow conversation={conv} userId={user.id} />
+              <ConversationRow
+                conversation={conv}
+                userId={user.id}
+                onDelete={setDeleteTarget}
+              />
               {i < filtered.length - 1 && <Divider />}
             </div>
           ));
