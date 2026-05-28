@@ -50,7 +50,13 @@ function RegattaCard({ regatta, onCancel }) {
   return (
     <div className="py-4">
       <div className="px-4 mb-3">
-        <p className="text-xs text-gray-900 mb-0.5">{[regatta.date, regatta.location, regatta.yacht_club].filter(Boolean).join(" · ")}</p>
+        <p className="text-xs mb-0.5">
+          {regatta.date && <span className="text-gray-900">{regatta.date}</span>}
+          {regatta.date && regatta.location && <span className="text-gray-400"> · </span>}
+          {regatta.location && <span className="text-gray-600">{regatta.location}</span>}
+          {(regatta.date || regatta.location) && regatta.yacht_club && <span className="text-gray-400"> · </span>}
+          {regatta.yacht_club && <span className="text-gray-600">{regatta.yacht_club}</span>}
+        </p>
         <Link href={`/boat/regattas/${regatta.id}`} className="text-xl font-bold text-gray-900">{regatta.name}</Link>
       </div>
 
