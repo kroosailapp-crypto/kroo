@@ -154,24 +154,21 @@ export default function BoatChat({ params }) {
         <Link href="/boat/messages">
           <IconArrowLeft size={22} color="#111" />
         </Link>
-        <div
-          className="rounded-full overflow-hidden flex items-center justify-center flex-shrink-0"
-          style={{ width: 36, height: 36, backgroundColor: "#d8d8d8" }}
-        >
+        <Link href={`/crew/${id}`} className="rounded-full overflow-hidden flex items-center justify-center flex-shrink-0" style={{ width: 36, height: 36, backgroundColor: "#d8d8d8" }}>
           {otherProfile?.avatar_url ? (
             <img src={otherProfile.avatar_url} alt="" className="w-full h-full object-cover" />
           ) : (
             <IconUser size={16} color="#aaa" />
           )}
-        </div>
-        <div className="flex-1 min-w-0">
+        </Link>
+        <Link href={`/crew/${id}`} className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-gray-900 truncate">
             {otherProfile?.name || "Sailor"}
           </p>
           {otherProfile?.positions?.[0] && (
             <p className="text-xs text-gray-400">{otherProfile.positions[0]}</p>
           )}
-        </div>
+        </Link>
       </div>
 
       {/* Messages */}

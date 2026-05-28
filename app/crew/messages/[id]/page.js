@@ -154,24 +154,21 @@ export default function CrewChat({ params }) {
         <Link href="/crew/messages">
           <IconArrowLeft size={22} color="#111" />
         </Link>
-        <div
-          className="rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0"
-          style={{ width: 36, height: 36, backgroundColor: "#e0e0e0" }}
-        >
+        <Link href={`/boat/${id}`} className="rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0" style={{ width: 36, height: 36, backgroundColor: "#e0e0e0" }}>
           {otherProfile?.photo_url ? (
             <img src={otherProfile.photo_url} alt="" className="w-full h-full object-cover" />
           ) : (
             <IconAnchor size={16} color="#ccc" />
           )}
-        </div>
-        <div className="flex-1 min-w-0">
+        </Link>
+        <Link href={`/boat/${id}`} className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-gray-900 truncate">
             {otherProfile?.boat_name || "Boat"}
           </p>
           {otherProfile?.skipper_name && (
             <p className="text-xs text-gray-400">{otherProfile.skipper_name} · Skipper</p>
           )}
-        </div>
+        </Link>
       </div>
 
       {/* Messages */}
