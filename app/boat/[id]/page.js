@@ -70,6 +70,7 @@ export default function BoatPublicProfile({ params }) {
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
   const [regattas, setRegattas] = useState([]);
+  const [filledByPosition, setFilledByPosition] = useState({});
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [appliedPositions, setAppliedPositions] = useState(new Set());
@@ -99,15 +100,32 @@ export default function BoatPublicProfile({ params }) {
           const da = parseDate(a.date);
           const db = parseDate(b.date);
           if (!da && !db) return 0;
-          if (!da) return 1;  // no date → bottom
+          if (!da) return 1;
           if (!db) return -1;
           const aUp = da >= now;
           const bUp = db >= now;
-          if (aUp && !bUp) return -1;  // upcoming before past
+          if (aUp && !bUp) return -1;
           if (!aUp && bUp) return 1;
-          return aUp ? da - db : db - da; // upcoming: soonest first; past: most recent first
+          return aUp ? da - db : db - da;
         });
         setRegattas(sorted);
+
+        // Fetch accepted invitations to show confirmed sailors on filled positions
+        const regattaIds = regs.map((r) => r.id);
+        if (regattaIds.length > 0) {
+          const { data: invites } = await supabase
+            .from("invitations")
+            .select("position_id, crew_profiles(name, avatar_url)")
+            .in("regatta_id", regattaIds)
+            .eq("status", "accepted");
+          if (invites) {
+            const map = {};
+            for (const inv of invites) {
+              map[inv.position_id] = inv.crew_profiles;
+            }
+            setFilledByPosition(map);
+          }
+        }
       }
       setLoading(false);
     }
@@ -333,9 +351,7 @@ export default function BoatPublicProfile({ params }) {
             <p className="text-sm text-gray-400">No upcoming regattas.</p>
           )}
           {regattas.map((regatta) => {
-            const openPositions = (regatta.regatta_positions || []).filter(
-              (p) => p.status === "open"
-            );
+            const allPositions = regatta.regatta_positions || [];
             return (
               <div key={regatta.id} className="mb-5">
                 <p className="text-sm font-semibold text-gray-900 mb-0.5">
@@ -343,33 +359,47 @@ export default function BoatPublicProfile({ params }) {
                 </p>
                 {(regatta.date || regatta.location) && (
                   <p className="text-xs text-gray-400 mb-2">
-                    {[regatta.date, regatta.location]
-                      .filter(Boolean)
-                      .join(" · ")}
+                    {[regatta.date, regatta.location].filter(Boolean).join(" · ")}
                   </p>
                 )}
-                {openPositions.length === 0 &&
-                  (regatta.regatta_positions || []).length > 0 && (
-                    <p className="text-xs text-gray-400">All positions filled</p>
-                  )}
                 <div className="flex flex-col gap-2">
-                  {openPositions.map((pos) => {
+                  {allPositions.map((pos) => {
+                    const isFilled = pos.status === "filled";
+                    const sailor = filledByPosition[pos.id];
                     const applied = appliedPositions.has(pos.id);
                     return (
                       <div key={pos.id} className="flex items-center gap-2">
                         <Tag label={pos.role} />
-                        {pos.level && (
-                          <span className="text-[13px] text-gray-500 flex-1">
-                            {pos.level}
-                          </span>
+                        {isFilled ? (
+                          /* Filled: show sailor photo + name */
+                          <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                            <div
+                              className="rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center"
+                              style={{ width: 20, height: 20, backgroundColor: "#d8d8d8" }}
+                            >
+                              {sailor?.avatar_url
+                                ? <img src={sailor.avatar_url} alt="" className="w-full h-full object-cover" />
+                                : <IconUser size={11} color="#aaa" />}
+                            </div>
+                            <span className="text-xs text-gray-500 truncate">{sailor?.name || "—"}</span>
+                          </div>
+                        ) : (
+                          /* Open: show level */
+                          pos.level && (
+                            <span className="text-[13px] text-gray-500 flex-1">{pos.level}</span>
+                          )
                         )}
-                        {applied ? (
+                        {isFilled ? (
+                          <span
+                            className="text-xs font-semibold px-3 py-1 rounded-full text-white flex-shrink-0"
+                            style={{ backgroundColor: "#111" }}
+                          >
+                            Filled
+                          </span>
+                        ) : applied ? (
                           <span
                             className="text-xs font-semibold px-3 py-1 rounded-full flex-shrink-0"
-                            style={{
-                              backgroundColor: "#EFF6FF",
-                              color: "#0161F0",
-                            }}
+                            style={{ backgroundColor: "#EFF6FF", color: "#0161F0" }}
                           >
                             Applied
                           </span>
