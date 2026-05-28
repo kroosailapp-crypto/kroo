@@ -83,7 +83,10 @@ function ConversationRow({ conversation, userId, onDelete }) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-0.5">
-            <p className="text-sm font-semibold text-gray-900 truncate">
+            <p
+              className="text-sm font-semibold truncate"
+              style={{ color: isUnread ? "#000000" : undefined }}
+            >
               {otherProfile?.name || "Sailor"}
             </p>
             <p className="text-[13px] text-gray-400 flex-shrink-0 ml-2">
