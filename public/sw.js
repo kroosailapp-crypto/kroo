@@ -1,60 +1,52 @@
-const CACHE_NAME = "kroo-v1";
-const STATIC_ASSETS = [
-  "/",
-  "/manifest.json",
-  "/kroo-logo.png",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png",
-];
+const CACHE_NAME = "kroo-v2";
 
-// Install: pre-cache static assets
+// Install: activate immediately, don't pre-cache anything that could fail
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
-  );
   self.skipWaiting();
 });
 
-// Activate: clean up old caches
+// Activate: clean up old caches and take control immediately
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    )
+    ).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-// Fetch: network-first for API/auth, cache-first for static assets
+// Fetch: network-first for everything, cache static assets as a side effect
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Skip non-GET and cross-origin requests
+  // Only handle same-origin GET requests
   if (request.method !== "GET" || url.origin !== self.location.origin) return;
 
-  // Skip Supabase API calls — always go to network
+  // Never intercept Supabase or API calls
   if (url.hostname.includes("supabase")) return;
 
-  // For navigation requests: network-first, fall back to cached "/"
+  // Navigation: network-first, no fallback (let it fail naturally)
   if (request.mode === "navigate") {
-    event.respondWith(
-      fetch(request).catch(() => caches.match("/"))
-    );
+    event.respondWith(fetch(request));
     return;
   }
 
-  // For static assets: cache-first
-  event.respondWith(
-    caches.match(request).then(
-      (cached) => cached || fetch(request).then((response) => {
-        // Cache successful responses for static files
-        if (response.ok && (url.pathname.startsWith("/icons/") || url.pathname.startsWith("/_next/static/"))) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-        }
-        return response;
+  // Static assets (icons, fonts, Next.js chunks): cache after first fetch
+  if (
+    url.pathname.startsWith("/icons/") ||
+    url.pathname.startsWith("/_next/static/")
+  ) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) return cached;
+        return fetch(request).then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        });
       })
-    )
-  );
+    );
+  }
 });
