@@ -25,7 +25,7 @@ function CrewCard({ member }) {
         <p className="text-xs text-gray-400 mb-1.5">{member.experience_level}</p>
         {(() => {
           const positions = member.positions || [];
-          const visible = positions.slice(0, 4);
+          const visible = positions.slice(0, 3);
           const overflow = positions.length - visible.length;
           return (
             <div className="flex flex-wrap gap-1.5 mb-1.5">
