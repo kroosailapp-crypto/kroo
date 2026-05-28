@@ -3,6 +3,7 @@ import "./globals.css";
 import Script from "next/script";
 import { AuthProvider } from "@/lib/auth-context";
 import InstallBanner from "@/app/components/InstallBanner";
+import PWASetup from "@/app/components/PWASetup";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -35,30 +36,17 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${inter.className} h-full`}>
       <body className="min-h-full bg-white">
+        {/* Capture beforeinstallprompt via static public file — executes before React */}
+        <Script src="/pwa-init.js" strategy="beforeInteractive" />
+
         <AuthProvider>
+          {/* Registers the service worker via useEffect — guaranteed to run */}
+          <PWASetup />
           <InstallBanner />
           <div id="app-root">
             {children}
           </div>
         </AuthProvider>
-
-        {/* Capture beforeinstallprompt as early as possible, before React hydrates */}
-        <Script id="pwa-prompt-capture" strategy="beforeInteractive">{`
-          window.addEventListener('beforeinstallprompt', function(e) {
-            e.preventDefault();
-            window.__deferredInstallPrompt = e;
-            window.dispatchEvent(new Event('pwaInstallReady'));
-          });
-        `}</Script>
-
-        {/* Register service worker after page is interactive */}
-        <Script id="sw-register" strategy="afterInteractive">{`
-          if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js')
-              .then(function(reg) { console.log('SW registered', reg.scope); })
-              .catch(function(err) { console.error('SW error', err); });
-          }
-        `}</Script>
       </body>
     </html>
   );
