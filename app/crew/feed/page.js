@@ -9,6 +9,7 @@ import {
   IconUser,
   IconLayoutGrid,
   IconList,
+  IconCalendar,
   IconCheck,
 } from "@tabler/icons-react";
 import CrewNavFooter from "@/app/components/CrewNavFooter";
@@ -477,7 +478,7 @@ export default function CrewFeedPage() {
           style={{ width: 34, height: 34, backgroundColor: view === "positions" ? "#111" : "#f0f0f0" }}
         >
           {view === "boats" ? (
-            <IconList size={18} color="#555" />
+            <IconCalendar size={18} color="#555" />
           ) : (
             <IconLayoutGrid size={18} color="#fff" />
           )}
