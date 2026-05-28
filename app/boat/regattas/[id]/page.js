@@ -506,24 +506,24 @@ export default function RegattaDetail({ params }) {
           <div className="flex gap-5">
             <div>
               <p className="text-base font-semibold text-gray-900">{positions.length}</p>
-              <p className="text-[11px] text-gray-500">Positions</p>
+              <p className="text-[13px] text-gray-500">Positions</p>
             </div>
             <div>
               <p className="text-base font-semibold text-gray-900">{filled}</p>
-              <p className="text-[11px] text-gray-500">Filled</p>
+              <p className="text-[13px] text-gray-500">Filled</p>
             </div>
             <div>
               <p className="text-base font-semibold text-gray-900">{open}</p>
-              <p className="text-[11px] text-gray-500">Open</p>
+              <p className="text-[13px] text-gray-500">Open</p>
             </div>
             <div>
               <p className="text-base font-semibold text-gray-900">{invited}</p>
-              <p className="text-[11px] text-gray-500">Invited</p>
+              <p className="text-[13px] text-gray-500">Invited</p>
             </div>
             {applied > 0 && (
               <div>
                 <p className="text-base font-semibold" style={{ color: "#0161F0" }}>{applied}</p>
-                <p className="text-[11px] text-gray-500">Applied</p>
+                <p className="text-[13px] text-gray-500">Applied</p>
               </div>
             )}
           </div>
@@ -702,8 +702,8 @@ export default function RegattaDetail({ params }) {
                       invite={inv}
                       action={
                         <div className="flex items-center gap-1.5 flex-shrink-0">
-                          <span className="text-[11px] text-gray-400 font-medium">Confirmed</span>
-                          <span className="text-[11px] text-gray-400">→</span>
+                          <span className="text-[13px] text-gray-400 font-medium">Confirmed</span>
+                          <span className="text-[13px] text-gray-400">→</span>
                           <span
                             className="text-xs font-semibold px-2.5 py-1 rounded-full"
                             style={{ backgroundColor: "#FFF0F0", color: "#e00" }}
@@ -726,8 +726,8 @@ export default function RegattaDetail({ params }) {
                       invite={inv}
                       action={
                         <div className="flex items-center gap-1.5 flex-shrink-0">
-                          <span className="text-[11px] text-gray-400 font-medium">Invited</span>
-                          <span className="text-[11px] text-gray-400">→</span>
+                          <span className="text-[13px] text-gray-400 font-medium">Invited</span>
+                          <span className="text-[13px] text-gray-400">→</span>
                           <span
                             className="text-xs font-semibold px-2.5 py-1 rounded-full"
                             style={{ backgroundColor: "#F4F4F4", color: "#888" }}

@@ -89,9 +89,9 @@ export default function BoatProfilePage() {
             <p className="text-sm text-gray-500 mb-1.5">{profile?.home_port || "—"}</p>
             {profile?.boat_class && <Tag label={profile.boat_class} />}
             <div className="flex gap-5 mt-2">
-              <div><p className="text-base font-semibold text-gray-900">0</p><p className="text-[11px] text-gray-500">Crew</p></div>
-              <div><p className="text-base font-semibold text-gray-900">{regattas.length}</p><p className="text-[11px] text-gray-500">Regattas</p></div>
-              <div><p className="text-base font-semibold text-gray-900">0</p><p className="text-[11px] text-gray-500">Followers</p></div>
+              <div><p className="text-base font-semibold text-gray-900">0</p><p className="text-[13px] text-gray-500">Crew</p></div>
+              <div><p className="text-base font-semibold text-gray-900">{regattas.length}</p><p className="text-[13px] text-gray-500">Regattas</p></div>
+              <div><p className="text-base font-semibold text-gray-900">0</p><p className="text-[13px] text-gray-500">Followers</p></div>
             </div>
           </div>
         </div>
@@ -150,7 +150,7 @@ export default function BoatProfilePage() {
                 {(reg.regatta_positions || []).map((pos) => (
                   <div key={pos.id} className="flex items-center gap-2">
                     <Tag label={pos.role} />
-                    {pos.level && <span className="text-[11px] text-gray-500">{pos.level}</span>}
+                    {pos.level && <span className="text-[13px] text-gray-500">{pos.level}</span>}
                   </div>
                 ))}
               </div>

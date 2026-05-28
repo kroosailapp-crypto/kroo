@@ -110,7 +110,7 @@ export default function CrewNavFooter({ active }) {
           <Link
             key={item.label}
             href={item.href}
-            className="flex flex-col items-center gap-0.5 text-[10px]"
+            className="flex flex-col items-center gap-0.5 text-[12px]"
             style={{ color: active === item.label ? "#111" : "#aaa" }}
           >
             <div className="relative">

@@ -146,7 +146,7 @@ function BoatCard({ boat }) {
             <p className="text-base font-semibold text-gray-900">
               {(boat.open_positions ?? 0)}
             </p>
-            <p className="text-[11px] text-gray-500">Open Positions</p>
+            <p className="text-[13px] text-gray-500">Open Positions</p>
           </div>
         </div>
         {boat.skipper_name && (
@@ -169,7 +169,7 @@ function BoatCard({ boat }) {
               <p className="text-xs font-medium text-gray-900">
                 {boat.skipper_name}
               </p>
-              <p className="text-[11px] text-gray-400">Skipper</p>
+              <p className="text-[13px] text-gray-400">Skipper</p>
             </div>
           </div>
         )}
@@ -230,7 +230,7 @@ function BoatPositionBlock({ regatta, boat, openPositions, appliedPositions, onA
           </Link>
           {boat.boat_class && (
             <span
-              className="inline-block mt-0.5 px-2 py-0.5 rounded text-[11px] font-semibold"
+              className="inline-block mt-0.5 px-2 py-0.5 rounded text-[13px] font-semibold"
               style={{ backgroundColor: "#F0F0F0", color: "#555" }}
             >
               {boat.boat_class}

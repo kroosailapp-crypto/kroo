@@ -46,13 +46,13 @@ function ConversationRow({ conversation, userId }) {
             <p className="text-sm font-semibold text-gray-900 truncate">
               {otherProfile?.name || "Sailor"}
             </p>
-            <p className="text-[11px] text-gray-400 flex-shrink-0 ml-2">
+            <p className="text-[13px] text-gray-400 flex-shrink-0 ml-2">
               {formatTime(lastMessage.created_at)}
             </p>
           </div>
           <p className="text-xs text-gray-500 truncate">{preview}</p>
           {otherProfile?.positions?.[0] && (
-            <p className="text-[11px] text-gray-400 mt-0.5">{otherProfile.positions[0]}</p>
+            <p className="text-[13px] text-gray-400 mt-0.5">{otherProfile.positions[0]}</p>
           )}
         </div>
       </div>

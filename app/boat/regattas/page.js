@@ -55,9 +55,9 @@ function RegattaCard({ regatta, onCancel }) {
       </div>
 
       <div className="flex gap-5 px-4 mb-4">
-        <div><p className="text-base font-semibold text-gray-900">{positions.length}</p><p className="text-[11px] text-gray-500">Positions</p></div>
-        <div><p className="text-base font-semibold text-gray-900">{filled}</p><p className="text-[11px] text-gray-500">Filled</p></div>
-        <div><p className="text-base font-semibold text-gray-900">{open}</p><p className="text-[11px] text-gray-500">Open</p></div>
+        <div><p className="text-base font-semibold text-gray-900">{positions.length}</p><p className="text-[13px] text-gray-500">Positions</p></div>
+        <div><p className="text-base font-semibold text-gray-900">{filled}</p><p className="text-[13px] text-gray-500">Filled</p></div>
+        <div><p className="text-base font-semibold text-gray-900">{open}</p><p className="text-[13px] text-gray-500">Open</p></div>
       </div>
 
       <Divider />
@@ -71,7 +71,7 @@ function RegattaCard({ regatta, onCancel }) {
                 <Tag label={pos.role} />
                 <span className="text-xs text-gray-500 flex-1">{pos.level}</span>
                 {isNew && (
-                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: "#0161F0", color: "#fff" }}>
+                  <span className="text-[13px] font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: "#0161F0", color: "#fff" }}>
                     New Applicant
                   </span>
                 )}

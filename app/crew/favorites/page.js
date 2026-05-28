@@ -76,7 +76,7 @@ function BoatCard({ boat, onUnfavorite }) {
             </div>
             <div>
               <p className="text-xs font-medium text-gray-900">{boat.skipper_name}</p>
-              <p className="text-[11px] text-gray-400">Skipper</p>
+              <p className="text-[13px] text-gray-400">Skipper</p>
             </div>
           </div>
         )}

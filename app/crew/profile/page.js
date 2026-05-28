@@ -237,9 +237,9 @@ export default function CrewProfilePage() {
               </div>
             )}
             <div className="flex gap-5">
-              <div><p className="text-base font-semibold text-gray-900">0</p><p className="text-[11px] text-gray-500">Kroo</p></div>
-              <div><p className="text-base font-semibold text-gray-900">0</p><p className="text-[11px] text-gray-500">Favorites</p></div>
-              <div><p className="text-base font-semibold text-gray-900">0</p><p className="text-[11px] text-gray-500">Following</p></div>
+              <div><p className="text-base font-semibold text-gray-900">0</p><p className="text-[13px] text-gray-500">Kroo</p></div>
+              <div><p className="text-base font-semibold text-gray-900">0</p><p className="text-[13px] text-gray-500">Favorites</p></div>
+              <div><p className="text-base font-semibold text-gray-900">0</p><p className="text-[13px] text-gray-500">Following</p></div>
             </div>
           </div>
         </div>

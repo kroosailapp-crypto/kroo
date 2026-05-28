@@ -203,7 +203,7 @@ export default function CrewChat({ params }) {
                   >
                     {msg.content}
                   </div>
-                  <p className={`text-[10px] text-gray-400 mt-1 ${isMe ? "text-right" : "text-left"}`}>
+                  <p className={`text-[12px] text-gray-400 mt-1 ${isMe ? "text-right" : "text-left"}`}>
                     {formatTime(msg.created_at)}
                   </p>
                 </div>

@@ -250,7 +250,7 @@ export default function BoatPublicProfile({ params }) {
                 <p className="text-base font-semibold text-gray-900">
                   {regattas.length}
                 </p>
-                <p className="text-[11px] text-gray-500">Regattas</p>
+                <p className="text-[13px] text-gray-500">Regattas</p>
               </div>
             </div>
           </div>
@@ -359,7 +359,7 @@ export default function BoatPublicProfile({ params }) {
                       <div key={pos.id} className="flex items-center gap-2">
                         <Tag label={pos.role} />
                         {pos.level && (
-                          <span className="text-[11px] text-gray-500 flex-1">
+                          <span className="text-[13px] text-gray-500 flex-1">
                             {pos.level}
                           </span>
                         )}

@@ -18,6 +18,16 @@
   --color-kroo-dark: var(--kroo-dark);
   --color-kroo-blue: var(--kroo-blue);
   --color-kroo-green: var(--kroo-green);
+
+  /* Font size scale — xs +20%, all others +10% */
+  --text-xs: 0.875rem;     /* 14px  (was 12px, +20%) */
+  --text-sm: 0.9625rem;    /* 15px  (was 14px, +10%) */
+  --text-base: 1.125rem;   /* 18px  (was 16px, +10%) */
+  --text-lg: 1.25rem;      /* 20px  (was 18px, +10%) */
+  --text-xl: 1.375rem;     /* 22px  (was 20px, +10%) */
+  --text-2xl: 1.65rem;     /* 26px  (was 24px, +10%) */
+  --text-3xl: 2.0625rem;   /* 33px  (was 30px, +10%) */
+  --text-4xl: 2.475rem;    /* 40px  (was 36px, +10%) */
 }
 
 html,

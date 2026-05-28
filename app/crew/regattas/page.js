@@ -136,7 +136,7 @@ function InvitationCard({ invitation, onApply, onDecline, onWithdraw }) {
           </p>
           <p className="text-xs text-gray-500 truncate">{regatta?.name}</p>
           {(regatta?.date || regatta?.location) && (
-            <p className="text-[11px] text-gray-400 mt-0.5">
+            <p className="text-[13px] text-gray-400 mt-0.5">
               {[regatta.date, regatta.location].filter(Boolean).join(" · ")}
             </p>
           )}
