@@ -54,7 +54,7 @@ function RegattaCard({ regatta, onCancel }) {
         <Link href={`/boat/regattas/${regatta.id}`} className="text-xl font-bold text-gray-900 block mb-0.5">{regatta.name}</Link>
         {(regatta.location || regatta.yacht_club) && (
           <p className="text-xs text-gray-600">
-            {[regatta.location, regatta.yacht_club].filter(Boolean).join(" / ")}
+            {[regatta.location, regatta.yacht_club].filter(Boolean).join(" • ")}
           </p>
         )}
       </div>
