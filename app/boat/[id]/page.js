@@ -351,7 +351,7 @@ export default function BoatPublicProfile({ params }) {
             <p className="text-sm text-gray-400">No upcoming regattas.</p>
           )}
           {regattas.map((regatta) => {
-            const allPositions = regatta.regatta_positions || [];
+            const allPositions = (regatta.regatta_positions || []).slice().sort((a, b) => a.role.localeCompare(b.role));
             return (
               <div key={regatta.id} className="mb-5">
                 <p className="text-sm font-semibold text-gray-900 mb-0.5">

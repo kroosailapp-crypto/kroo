@@ -36,7 +36,7 @@ function CancelRegattaModal({ regatta, onConfirm, onClose }) {
 }
 
 function RegattaCard({ regatta, onCancel }) {
-  const positions = regatta.regatta_positions || [];
+  const positions = (regatta.regatta_positions || []).slice().sort((a, b) => a.role.localeCompare(b.role));
   const filled = positions.filter((p) => p.status === "filled").length;
   const open = positions.filter((p) => p.status === "open").length;
   const invitations = regatta.invitations || [];

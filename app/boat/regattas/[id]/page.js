@@ -223,7 +223,7 @@ export default function RegattaDetail({ params }) {
     ]);
     if (reg) {
       setRegatta(reg);
-      setPositions(reg.regatta_positions || []);
+      setPositions((reg.regatta_positions || []).slice().sort((a, b) => a.role.localeCompare(b.role)));
     }
     setInvitations(invs || []);
     setLoading(false);
@@ -286,7 +286,7 @@ export default function RegattaDetail({ params }) {
       .insert({ regatta_id: id, role, level: level || null, status: "open" })
       .select()
       .single();
-    if (data) setPositions((prev) => [...prev, data]);
+    if (data) setPositions((prev) => [...prev, data].sort((a, b) => a.role.localeCompare(b.role)));
     setShowModal(false);
   }
 
