@@ -1,10 +1,10 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import ProfileSwitcher from "@/app/components/ProfileSwitcher";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { IconUser } from "@tabler/icons-react";
+import { IconUser, IconDotsVertical } from "@tabler/icons-react";
 import BoatNavFooter from "@/app/components/BoatNavFooter";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
@@ -18,6 +18,38 @@ function Tag({ label }) {
     <span className="px-2.5 py-1 rounded-lg text-xs font-bold" style={{ backgroundColor: "#E8EDF8", color: "#111" }}>
       {label}
     </span>
+  );
+}
+
+function ProfileMenu() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    function handleClick(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative ml-auto">
+      <button onClick={() => setOpen((v) => !v)} className="flex items-center justify-center p-1.5">
+        <IconDotsVertical size={20} color="#111" />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-8 bg-white rounded-2xl shadow-lg border py-1 z-50 min-w-[160px]" style={{ borderColor: "#e8e8e8" }}>
+          <a href="mailto:support@kroo.app" onClick={() => setOpen(false)} className="block px-4 py-3 text-sm text-gray-800 hover:bg-gray-50">
+            Contact us
+          </a>
+          <div className="h-px mx-4" style={{ backgroundColor: "#e8e8e8" }} />
+          <a href="https://kroo.app/help" target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)} className="block px-4 py-3 text-sm text-gray-800 hover:bg-gray-50">
+            Help
+          </a>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -74,6 +106,7 @@ export default function BoatProfilePage() {
       {/* App Bar */}
       <div className="flex items-center gap-2 px-4 pt-3 pb-2 flex-shrink-0">
         <ProfileSwitcher />
+        <ProfileMenu />
       </div>
 
       <div className="overflow-y-auto flex-1">

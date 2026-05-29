@@ -1,9 +1,9 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ProfileSwitcher from "@/app/components/ProfileSwitcher";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { IconUser, IconX } from "@tabler/icons-react";
+import { IconUser, IconX, IconDotsVertical } from "@tabler/icons-react";
 import CrewNavFooter from "@/app/components/CrewNavFooter";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
@@ -28,7 +28,39 @@ function Tag({ label, onRemove }) {
   );
 }
 
-const BOAT_CLASSES = ["Melges 24","J/24","J/70","J/105","Snipe","470","Laser","Etchells","Farr 40","Swan 42","Finn","49er","Nacra 17","Lightning","Flying Dutchman","Optimist","RS200","Sunfish"];
+function ProfileMenu() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    function handleClick(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative ml-auto">
+      <button onClick={() => setOpen((v) => !v)} className="flex items-center justify-center p-1.5">
+        <IconDotsVertical size={20} color="#111" />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-8 bg-white rounded-2xl shadow-lg border py-1 z-50 min-w-[160px]" style={{ borderColor: "#e8e8e8" }}>
+          <a href="mailto:support@kroo.app" onClick={() => setOpen(false)} className="block px-4 py-3 text-sm text-gray-800 hover:bg-gray-50">
+            Contact us
+          </a>
+          <div className="h-px mx-4" style={{ backgroundColor: "#e8e8e8" }} />
+          <a href="https://kroo.app/help" target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)} className="block px-4 py-3 text-sm text-gray-800 hover:bg-gray-50">
+            Help
+          </a>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const BOAT_CLASSES =["Melges 24","J/24","J/70","J/105","Snipe","470","Laser","Etchells","Farr 40","Swan 42","Finn","49er","Nacra 17","Lightning","Flying Dutchman","Optimist","RS200","Sunfish"];
 const MAX_CLASSES = 5;
 
 function AddClassModal({ existing, onAdd, onClose }) {
@@ -118,6 +150,7 @@ export default function CrewProfilePage() {
       {/* App Bar */}
       <div className="flex items-center gap-2 px-4 pt-3 pb-2 flex-shrink-0">
         <ProfileSwitcher />
+        <ProfileMenu />
       </div>
 
       <div className="overflow-y-auto flex-1">
