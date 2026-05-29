@@ -30,19 +30,14 @@ function monthName(date) {
 }
 
 function groupRegattasByMonth(regattas) {
-  const now = new Date();
-
-  // Sort: upcoming soonest first, past after, no-date last
+  // Sort: most recent date first, no-date last
   const sorted = [...regattas].sort((a, b) => {
     const da = parseDate(a.date);
     const db = parseDate(b.date);
     if (!da && !db) return 0;
     if (!da) return 1;
     if (!db) return -1;
-    const aUp = da >= now, bUp = db >= now;
-    if (aUp && !bUp) return -1;
-    if (!aUp && bUp) return 1;
-    return aUp ? da - db : db - da;
+    return db - da; // most recent date first
   });
 
   const groups = [];
