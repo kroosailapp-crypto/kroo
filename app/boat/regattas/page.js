@@ -140,13 +140,19 @@ export default function BoatRegattas() {
   }
 
   function sortByDate(list) {
+    const now = new Date();
     return [...list].sort((a, b) => {
       const da = parseDate(a.date);
       const db = parseDate(b.date);
       if (!da && !db) return 0;
       if (!da) return 1;
       if (!db) return -1;
-      return db - da; // most recent date first
+      const aUp = da >= now;
+      const bUp = db >= now;
+      if (aUp && !bUp) return -1;   // upcoming before past
+      if (!aUp && bUp) return 1;
+      if (aUp && bUp) return da - db; // soonest upcoming first
+      return db - da;               // most recently past first
     });
   }
 
