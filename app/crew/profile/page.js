@@ -47,9 +47,9 @@ function ProfileMenu() {
       </button>
       {open && (
         <div className="absolute right-0 top-8 bg-white rounded-2xl shadow-lg border py-1 z-50 min-w-[160px]" style={{ borderColor: "#e8e8e8" }}>
-          <a href="mailto:support@kroo.app" onClick={() => setOpen(false)} className="block px-4 py-3 text-sm text-gray-800 hover:bg-gray-50">
+          <Link href="/contact" onClick={() => setOpen(false)} className="block px-4 py-3 text-sm text-gray-800 hover:bg-gray-50">
             Contact us
-          </a>
+          </Link>
           <div className="h-px mx-4" style={{ backgroundColor: "#e8e8e8" }} />
           <a href="https://kroo.app/help" target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)} className="block px-4 py-3 text-sm text-gray-800 hover:bg-gray-50">
             Help
