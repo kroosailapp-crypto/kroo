@@ -51,13 +51,13 @@ function ProfileMenu() {
             Contact us
           </Link>
           <div className="h-px mx-4" style={{ backgroundColor: "#e8e8e8" }} />
-          <a href="https://kroo.app/help" target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)} className="block px-4 py-3 text-sm text-gray-800 hover:bg-gray-50">
+          <Link href="/help" onClick={() => setOpen(false)} className="block px-4 py-3 text-sm text-gray-800 hover:bg-gray-50">
             Help
-          </a>
+          </Link>
           <div className="h-px mx-4" style={{ backgroundColor: "#e8e8e8" }} />
-          <a href="https://kroo.app/terms" target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)} className="block px-4 py-3 text-sm text-gray-800 hover:bg-gray-50">
+          <Link href="/terms" onClick={() => setOpen(false)} className="block px-4 py-3 text-sm text-gray-800 hover:bg-gray-50">
             Terms of Use
-          </a>
+          </Link>
         </div>
       )}
     </div>
