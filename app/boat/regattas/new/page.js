@@ -6,6 +6,7 @@ import { IconArrowLeft, IconX } from "@tabler/icons-react";
 import BoatNavFooter from "@/app/components/BoatNavFooter";
 import LocationInput from "@/app/components/LocationInput";
 import YachtClubInput from "@/app/components/YachtClubInput";
+import RegattaNameInput from "@/app/components/RegattaNameInput";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
 
@@ -205,9 +206,9 @@ export default function CreateRegatta() {
       <div className="flex-1 overflow-y-auto px-4 pt-3 pb-28 flex flex-col gap-3">
 
         {/* Regatta Name */}
-        <input
+        <RegattaNameInput
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={setName}
           placeholder="Regatta name"
           className="w-full px-4 py-3.5 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400"
           style={{ borderColor: "#e0e0e0" }}

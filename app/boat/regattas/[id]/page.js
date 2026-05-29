@@ -15,6 +15,7 @@ import {
 import BoatNavFooter from "@/app/components/BoatNavFooter";
 import LocationInput from "@/app/components/LocationInput";
 import YachtClubInput from "@/app/components/YachtClubInput";
+import RegattaNameInput from "@/app/components/RegattaNameInput";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
 
@@ -419,9 +420,9 @@ export default function RegattaDetail({ params }) {
         <div className="px-4 pt-4 pb-3">
           {editing ? (
             <div className="flex flex-col gap-2 mb-4">
-              <input
+              <RegattaNameInput
                 value={editName}
-                onChange={(e) => setEditName(e.target.value)}
+                onChange={setEditName}
                 placeholder="Regatta name"
                 className="w-full px-4 py-2.5 rounded-2xl text-sm font-semibold text-gray-900 border outline-none"
                 style={{ borderColor: "#e0e0e0" }}
