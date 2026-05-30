@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { IconArrowLeft } from "@tabler/icons-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
@@ -75,6 +75,8 @@ function Divider() {
 
 export default function NotificationsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const profileType = searchParams.get("from") === "boat" ? "boat" : "crew";
   const { user } = useAuth();
   const [prefs, setPrefs] = useState({
     new_message: true,
@@ -85,23 +87,20 @@ export default function NotificationsPage() {
     crew_cancelled: true,
   });
   const [loading, setLoading] = useState(true);
-  const [profileType, setProfileType] = useState(null); // "crew" | "boat"
+
+  const settings = profileType === "boat" ? BOAT_SETTINGS : CREW_SETTINGS;
+  const table = profileType === "boat" ? "boat_profiles" : "crew_profiles";
 
   useEffect(() => {
     if (!user) return;
     async function load() {
-      // Check which profile the user has (prefer crew for these settings)
-      const [{ data: crew }, { data: boat }] = await Promise.all([
-        supabase.from("crew_profiles").select("notification_prefs").eq("id", user.id).maybeSingle(),
-        supabase.from("boat_profiles").select("notification_prefs").eq("id", user.id).maybeSingle(),
-      ]);
-
-      if (crew) {
-        setProfileType("crew");
-        setPrefs({ ...prefs, ...(crew.notification_prefs || {}) });
-      } else if (boat) {
-        setProfileType("boat");
-        setPrefs({ ...prefs, ...(boat.notification_prefs || {}) });
+      const { data } = await supabase
+        .from(table)
+        .select("notification_prefs")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (data?.notification_prefs) {
+        setPrefs((prev) => ({ ...prev, ...data.notification_prefs }));
       }
       setLoading(false);
     }
@@ -111,8 +110,6 @@ export default function NotificationsPage() {
   async function toggle(key, value) {
     const next = { ...prefs, [key]: value };
     setPrefs(next);
-
-    const table = profileType === "crew" ? "crew_profiles" : "boat_profiles";
     await supabase
       .from(table)
       .update({ notification_prefs: next })
@@ -129,7 +126,6 @@ export default function NotificationsPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
-      {/* Header */}
       <div
         className="flex items-center gap-3 px-4 pt-4 pb-3 border-b flex-shrink-0"
         style={{ borderColor: "#e8e8e8" }}
@@ -144,7 +140,7 @@ export default function NotificationsPage() {
         <p className="px-4 pt-5 pb-3 text-xs text-gray-400">Email Notifications</p>
         <Divider />
 
-        {(profileType === "boat" ? BOAT_SETTINGS : CREW_SETTINGS).map((setting, i) => (
+        {settings.map((setting) => (
           <div key={setting.key}>
             <div className="flex items-center gap-3 px-4 py-4">
               <div className="flex-1 min-w-0">

@@ -40,7 +40,7 @@ function ProfileMenu() {
       </button>
       {open && (
         <div className="absolute right-0 top-8 bg-white rounded-2xl shadow-lg border py-1 z-50 min-w-[160px]" style={{ borderColor: "#e8e8e8" }}>
-          <Link href="/notifications" onClick={() => setOpen(false)} className="block px-4 py-3 text-sm text-gray-800 hover:bg-gray-50">
+          <Link href="/notifications?from=boat" onClick={() => setOpen(false)} className="block px-4 py-3 text-sm text-gray-800 hover:bg-gray-50">
             Notifications
           </Link>
           <div className="h-px mx-4" style={{ backgroundColor: "#e8e8e8" }} />
