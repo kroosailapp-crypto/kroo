@@ -169,7 +169,7 @@ export default function PrivacyPage() {
           <Ul items={[
             "Access: request a copy of the personal data we hold about you",
             "Correction: request that we correct inaccurate or incomplete data",
-            "Deletion: request that we delete your personal data ("right to be forgotten")",
+            'Deletion: request that we delete your personal data ("right to be forgotten")',
             "Portability: request your data in a structured, machine-readable format",
             "Restriction: request that we limit how we use your data in certain circumstances",
             "Objection: object to processing based on legitimate interests",
