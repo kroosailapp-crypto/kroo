@@ -140,11 +140,13 @@ export default function CrewMessages() {
   }, [user]);
 
   async function loadConversations() {
-    const { data: msgs } = await supabase
-      .from("messages")
-      .select("*")
-      .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-      .order("created_at", { ascending: false });
+    const [{ data: msgs }, { data: hidden }] = await Promise.all([
+      supabase.from("messages").select("*").or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`).order("created_at", { ascending: false }),
+      supabase.from("hidden_conversations").select("other_user_id, hidden_at").eq("user_id", user.id),
+    ]);
+
+    const hiddenMap = {};
+    for (const h of hidden || []) hiddenMap[h.other_user_id] = h.hidden_at;
 
     if (!msgs || msgs.length === 0) {
       setLoading(false);
@@ -157,6 +159,9 @@ export default function CrewMessages() {
       const otherId = msg.sender_id === user.id ? msg.receiver_id : msg.sender_id;
       if (!seen.has(otherId)) {
         seen.add(otherId);
+        // Only hide if no new message arrived after the user hid it
+        const hiddenAt = hiddenMap[otherId];
+        if (hiddenAt && new Date(msg.created_at) <= new Date(hiddenAt)) continue;
         threads.push({ otherId, lastMessage: msg });
       }
     }
@@ -193,11 +198,8 @@ export default function CrewMessages() {
     const otherId = deleteTarget.otherId;
 
     await supabase
-      .from("messages")
-      .delete()
-      .or(
-        `and(sender_id.eq.${user.id},receiver_id.eq.${otherId}),and(sender_id.eq.${otherId},receiver_id.eq.${user.id})`
-      );
+      .from("hidden_conversations")
+      .upsert({ user_id: user.id, other_user_id: otherId, hidden_at: new Date().toISOString() });
 
     setConversations((prev) => prev.filter((c) => c.otherId !== otherId));
     setDeleteTarget(null);
