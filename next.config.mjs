@@ -1,6 +1,13 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  /* config options here */
-};
+import { withSentryConfig } from "@sentry/nextjs";
 
-export default nextConfig;
+/** @type {import('next').NextConfig} */
+const nextConfig = {};
+
+export default withSentryConfig(nextConfig, {
+  org: "kroo",
+  project: "javascript-nextjs",
+  silent: true,
+  widenClientFileUpload: true,
+  disableLogger: true,
+  automaticVercelMonitors: true,
+});
