@@ -65,6 +65,22 @@ export async function POST(request) {
       return Response.json({ ok: true, skipped: true });
     }
 
+    // Cooldown: max 1 notification per event per recipient per hour
+    const { data: cooldown } = await supabaseAdmin
+      .from("notification_cooldowns")
+      .select("last_sent_at")
+      .eq("recipient_id", recipient_id)
+      .eq("event", event)
+      .maybeSingle();
+
+    if (cooldown && (Date.now() - new Date(cooldown.last_sent_at).getTime()) < 60 * 60 * 1000) {
+      return Response.json({ ok: true, skipped: true, reason: "cooldown" });
+    }
+
+    await supabaseAdmin
+      .from("notification_cooldowns")
+      .upsert({ recipient_id, event, last_sent_at: new Date().toISOString() });
+
     let subject, html;
 
     switch (event) {
