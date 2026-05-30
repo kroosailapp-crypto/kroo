@@ -48,6 +48,8 @@ export default function ContactPage() {
     setSending(false);
     if (res.ok) {
       setSent(true);
+    } else if (res.status === 429) {
+      setError("You've already sent a message recently. Please wait an hour before sending another.");
     } else {
       setError("Something went wrong. Please try again.");
     }

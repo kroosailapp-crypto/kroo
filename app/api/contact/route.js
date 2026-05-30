@@ -7,6 +7,22 @@ export async function POST(request) {
   const { data: { user } } = await supabaseAdmin.auth.getUser(token);
   if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
+  // Rate limit: 1 contact message per user per hour
+  const { data: cooldown } = await supabaseAdmin
+    .from("notification_cooldowns")
+    .select("last_sent_at")
+    .eq("recipient_id", user.id)
+    .eq("event", "contact")
+    .maybeSingle();
+
+  if (cooldown && (Date.now() - new Date(cooldown.last_sent_at).getTime()) < 60 * 60 * 1000) {
+    return Response.json({ error: "Please wait before sending another message." }, { status: 429 });
+  }
+
+  await supabaseAdmin
+    .from("notification_cooldowns")
+    .upsert({ recipient_id: user.id, event: "contact", last_sent_at: new Date().toISOString() });
+
   const { name, email, subject, message } = await request.json();
 
   if (!subject?.trim() || !message?.trim()) {

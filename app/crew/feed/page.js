@@ -15,6 +15,7 @@ import {
 import CrewNavFooter from "@/app/components/CrewNavFooter";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
+import { fetchAdminIds } from "@/lib/fetch-admin-ids";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -345,16 +346,16 @@ export default function CrewFeedPage() {
   // Load boats + regattas with open positions
   useEffect(() => {
     async function load() {
-      const [{ data: boatData }, { data: regattaData }, adminRes] = await Promise.all([
+      const [{ data: boatData }, { data: regattaData }, adminIdList] = await Promise.all([
         supabase.from("boat_profiles").select("*").order("created_at", { ascending: false }),
         supabase.from("regattas").select(`
           id, name, date, location, boat_id,
           regatta_positions(id, role, level, status),
           boat_profiles(id, boat_name, photo_url, boat_class)
         `),
-        fetch("/api/admin/ids").then((r) => r.json()),
+        fetchAdminIds(),
       ]);
-      const adminIds = new Set(adminRes.ids || []);
+      const adminIds = new Set(adminIdList);
 
       // Build a map of boat_id → count of open positions across all their regattas
       const openCountByBoat = {};

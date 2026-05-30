@@ -102,6 +102,7 @@ export default function BoatSignupPage() {
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   const passwordsMatch = password && confirmPassword && password === confirmPassword;
   const passwordMismatch = confirmPassword.length > 0 && password !== confirmPassword;
@@ -149,18 +150,13 @@ export default function BoatSignupPage() {
         if (signUpError) throw signUpError;
 
         if (signUpData.session) {
-          // Email confirmation is disabled — session created immediately
+          // Email confirmation disabled — session created immediately
           userId = signUpData.user.id;
         } else {
-          // Email confirmation is enabled — sign in to establish session
-          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-          if (signInError) {
-            if (signInError.message.toLowerCase().includes("not confirmed")) {
-              throw new Error("Check your email and click the confirmation link, then come back to log in.");
-            }
-            throw signInError;
-          }
-          userId = signInData.user.id;
+          // Email confirmation enabled — show verification screen
+          setEmailSent(true);
+          setLoading(false);
+          return;
         }
       }
 
@@ -205,6 +201,32 @@ export default function BoatSignupPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p className="text-sm text-gray-400">Loading…</p>
+      </div>
+    );
+  }
+
+  if (emailSent) {
+    return (
+      <div className="flex flex-col min-h-screen bg-white px-5 py-5 items-center justify-center gap-5">
+        <Image src="/kroo-logo-blue.svg" alt="Kroo" width={60} height={24} />
+        <div className="flex flex-col items-center gap-3 text-center mt-4">
+          <div className="flex items-center justify-center rounded-full" style={{ width: 64, height: 64, backgroundColor: "#0161f0" }}>
+            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.8}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25H4.5a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5H4.5a2.25 2.25 0 00-2.25 2.25m19.5 0L12 13.5 2.25 6.75" />
+            </svg>
+          </div>
+          <p className="text-lg font-bold text-gray-900">Check your email</p>
+          <p className="text-sm text-gray-500 leading-relaxed max-w-[280px]">
+            We sent a confirmation link to <span className="font-semibold text-gray-800">{email}</span>. Click it to verify your account, then log in to complete your profile.
+          </p>
+        </div>
+        <button
+          onClick={() => router.push("/boat/login")}
+          className="mt-4 w-full max-w-[280px] py-3 rounded-full text-sm font-semibold text-white"
+          style={{ backgroundColor: "#0161f0" }}
+        >
+          Go to Log In
+        </button>
       </div>
     );
   }

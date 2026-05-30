@@ -6,6 +6,7 @@ import CrewNavFooter from "@/app/components/CrewNavFooter";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
 import { notify } from "@/lib/notify";
+import { fetchAdminIds } from "@/lib/fetch-admin-ids";
 
 function formatTime(ts) {
   const d = new Date(ts);
@@ -32,9 +33,7 @@ export default function CrewChat({ params }) {
 
   // Check if other user is admin
   useEffect(() => {
-    fetch("/api/admin/ids")
-      .then((r) => r.json())
-      .then(({ ids }) => setIsAdmin(ids.includes(id)));
+    fetchAdminIds().then((ids) => setIsAdmin(ids.includes(id)));
   }, [id]);
 
   // Load boat profile for header

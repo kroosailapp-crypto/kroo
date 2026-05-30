@@ -5,6 +5,7 @@ import Link from "next/link";
 import { IconSearch, IconX, IconUser } from "@tabler/icons-react";
 import BoatNavFooter from "@/app/components/BoatNavFooter";
 import { supabase } from "@/lib/supabase";
+import { fetchAdminIds } from "@/lib/fetch-admin-ids";
 
 function CrewCard({ member }) {
   return (
@@ -96,11 +97,11 @@ export default function BoatFeedPage() {
 
   useEffect(() => {
     async function load() {
-      const [{ data }, adminRes] = await Promise.all([
+      const [{ data }, adminIdList] = await Promise.all([
         supabase.from("crew_profiles").select("*").order("created_at", { ascending: false }),
-        fetch("/api/admin/ids").then((r) => r.json()),
+        fetchAdminIds(),
       ]);
-      const adminIds = new Set(adminRes.ids || []);
+      const adminIds = new Set(adminIdList);
       setCrew((data || []).filter((c) => !adminIds.has(c.id)));
       setLoading(false);
     }
