@@ -1,5 +1,5 @@
 "use client";
-import { useState, use, useEffect } from "react";
+import { useState, use, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   IconMessage,
@@ -9,6 +9,7 @@ import {
   IconFlag,
   IconX,
   IconCheck,
+  IconDots,
 } from "@tabler/icons-react";
 import BoatNavFooter from "@/app/components/BoatNavFooter";
 import { supabase } from "@/lib/supabase";
@@ -181,6 +182,88 @@ function InviteConfirmModal({ sailorName, regattaName, position, onClose }) {
   );
 }
 
+function ReportDrawer({ name, onSubmit, onClose }) {
+  const [reason, setReason] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleSubmit() {
+    if (!reason.trim() || submitting) return;
+    setSubmitting(true);
+    await onSubmit(reason.trim());
+    setSubmitting(false);
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center"
+      style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-t-2xl w-full max-w-[430px] px-5 pt-5 pb-10 flex flex-col gap-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <p className="text-base font-semibold text-gray-900">Report {name}</p>
+          <button onClick={onClose}><IconX size={18} color="#999" /></button>
+        </div>
+        <p className="text-sm text-gray-500">
+          Tell us what's wrong. We'll review this report and take action if needed.
+        </p>
+        <textarea
+          className="w-full border rounded-xl px-3 py-2.5 text-sm text-gray-800 resize-none outline-none"
+          style={{ borderColor: "#e0e0e0", minHeight: 100 }}
+          placeholder="Describe the issue…"
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          maxLength={1000}
+        />
+        <button
+          onClick={handleSubmit}
+          disabled={!reason.trim() || submitting}
+          className="w-full py-3.5 rounded-full text-sm font-semibold text-white"
+          style={{ backgroundColor: !reason.trim() || submitting ? "#c0c0c0" : "#e53e3e" }}
+        >
+          {submitting ? "Sending…" : "Submit Report"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ReportConfirmModal({ onClose }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center px-8"
+      style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl px-6 py-7 w-full max-w-[320px] flex flex-col items-center gap-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          className="flex items-center justify-center rounded-full"
+          style={{ width: 48, height: 48, backgroundColor: "#111" }}
+        >
+          <IconCheck size={22} color="white" strokeWidth={2.5} />
+        </div>
+        <p className="text-base font-semibold text-gray-900 text-center">Report submitted</p>
+        <p className="text-sm text-gray-500 text-center leading-relaxed">
+          Thank you. We'll review this report and take appropriate action.
+        </p>
+        <button
+          onClick={onClose}
+          className="w-full py-2.5 rounded-full text-sm font-semibold text-white"
+          style={{ backgroundColor: "#0161F0" }}
+        >
+          Got it
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function CrewPublicProfile({ params }) {
   const { id } = use(params);
   const { user } = useAuth();
@@ -192,6 +275,10 @@ export default function CrewPublicProfile({ params }) {
   const [showInviteDrawer, setShowInviteDrawer] = useState(false);
   const [inviteConfirm, setInviteConfirm] = useState(null);
   const [isInvited, setIsInvited] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showReportDrawer, setShowReportDrawer] = useState(false);
+  const [reportConfirm, setReportConfirm] = useState(false);
+  const menuRef = useRef(null);
 
   // Load crew profile
   useEffect(() => {
@@ -253,6 +340,23 @@ export default function CrewPublicProfile({ params }) {
       setIsFavorited(true);
     }
     setFavoriteLoading(false);
+  }
+
+  async function handleReport(reason) {
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+    await fetch("/api/report", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        reported_id: id,
+        reported_name: profile?.name || "Unknown",
+        profile_type: "crew",
+        reason,
+      }),
+    });
+    setShowReportDrawer(false);
+    setReportConfirm(true);
   }
 
   async function handleInvite({ regatta, position }) {
@@ -322,12 +426,49 @@ export default function CrewPublicProfile({ params }) {
         />
       )}
 
+      {showReportDrawer && (
+        <ReportDrawer
+          name={profile.name}
+          onSubmit={handleReport}
+          onClose={() => setShowReportDrawer(false)}
+        />
+      )}
+
+      {reportConfirm && <ReportConfirmModal onClose={() => setReportConfirm(false)} />}
+
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 pt-4 pb-3">
-        <Link href="/boat/feed">
-          <IconArrowLeft size={22} color="#111" />
-        </Link>
-        <p className="text-sm font-medium text-gray-800">{profile.name}</p>
+      <div className="flex items-center justify-between px-4 pt-4 pb-3">
+        <div className="flex items-center gap-3">
+          <Link href="/boat/feed">
+            <IconArrowLeft size={22} color="#111" />
+          </Link>
+          <p className="text-sm font-medium text-gray-800">{profile.name}</p>
+        </div>
+
+        {/* 3-dot menu */}
+        <div className="relative" ref={menuRef}>
+          <button
+            onClick={() => setShowMenu((v) => !v)}
+            className="p-1.5 rounded-full"
+            style={{ color: "#555" }}
+          >
+            <IconDots size={20} />
+          </button>
+          {showMenu && (
+            <div
+              className="absolute right-0 top-8 bg-white rounded-xl shadow-lg border z-50 min-w-[160px] overflow-hidden"
+              style={{ borderColor: "#e8e8e8" }}
+            >
+              <button
+                onClick={() => { setShowMenu(false); setShowReportDrawer(true); }}
+                className="w-full text-left px-4 py-3 text-sm font-medium"
+                style={{ color: "#e53e3e" }}
+              >
+                Report user
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="overflow-y-auto flex-1">
