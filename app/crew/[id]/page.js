@@ -280,6 +280,14 @@ export default function CrewPublicProfile({ params }) {
   const [reportConfirm, setReportConfirm] = useState(false);
   const menuRef = useRef(null);
 
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setShowMenu(false);
+    }
+    if (showMenu) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showMenu]);
+
   // Load crew profile
   useEffect(() => {
     async function load() {
@@ -445,30 +453,32 @@ export default function CrewPublicProfile({ params }) {
           <p className="text-sm font-medium text-gray-800">{profile.name}</p>
         </div>
 
-        {/* 3-dot menu */}
-        <div className="relative" ref={menuRef}>
-          <button
-            onClick={() => setShowMenu((v) => !v)}
-            className="p-1.5 rounded-full"
-            style={{ color: "#555" }}
-          >
-            <IconDots size={20} />
-          </button>
-          {showMenu && (
-            <div
-              className="absolute right-0 top-8 bg-white rounded-xl shadow-lg border z-50 min-w-[160px] overflow-hidden"
-              style={{ borderColor: "#e8e8e8" }}
+        {/* 3-dot menu — only show when viewing someone else's profile */}
+        {user?.id !== id && (
+          <div className="relative" ref={menuRef}>
+            <button
+              onClick={() => setShowMenu((v) => !v)}
+              className="p-1.5 rounded-full"
+              style={{ color: "#555" }}
             >
-              <button
-                onClick={() => { setShowMenu(false); setShowReportDrawer(true); }}
-                className="w-full text-left px-4 py-3 text-sm font-medium"
-                style={{ color: "#e53e3e" }}
+              <IconDots size={20} />
+            </button>
+            {showMenu && (
+              <div
+                className="absolute right-0 top-8 bg-white rounded-xl shadow-lg border z-50 min-w-[160px] overflow-hidden"
+                style={{ borderColor: "#e8e8e8" }}
               >
-                Report user
-              </button>
-            </div>
-          )}
-        </div>
+                <button
+                  onClick={() => { setShowMenu(false); setShowReportDrawer(true); }}
+                  className="w-full text-left px-4 py-3 text-sm font-medium"
+                  style={{ color: "#e53e3e" }}
+                >
+                  Report user
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="overflow-y-auto flex-1">

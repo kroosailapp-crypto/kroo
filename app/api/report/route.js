@@ -7,7 +7,8 @@ export async function POST(request) {
   const { data: { user } } = await supabaseAdmin.auth.getUser(token);
   if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { reported_id, reported_name, profile_type, reason } = await request.json();
+  const { reported_id, reported_name, profile_type, reason: rawReason } = await request.json();
+  const reason = String(rawReason || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
   if (!reported_id || !reason?.trim()) {
     return Response.json({ error: "Missing required fields." }, { status: 400 });
