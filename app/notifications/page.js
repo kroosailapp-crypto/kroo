@@ -50,19 +50,23 @@ function Toggle({ enabled, onChange }) {
   return (
     <button
       onClick={() => onChange(!enabled)}
-      className="relative flex-shrink-0 rounded-full transition-colors duration-200"
+      className="relative flex-shrink-0 rounded-full"
       style={{
-        width: 44,
-        height: 26,
+        width: 51,
+        height: 31,
         backgroundColor: enabled ? "#0161F0" : "#d0d0d0",
+        transition: "background-color 0.2s",
       }}
     >
       <span
-        className="absolute top-0.5 rounded-full bg-white shadow transition-transform duration-200"
+        className="absolute rounded-full bg-white shadow"
         style={{
-          width: 22,
-          height: 22,
-          transform: enabled ? "translateX(20px)" : "translateX(2px)",
+          width: 25,
+          height: 25,
+          top: 3,
+          left: 3,
+          transform: enabled ? "translateX(22px)" : "translateX(0px)",
+          transition: "transform 0.2s",
         }}
       />
     </button>
