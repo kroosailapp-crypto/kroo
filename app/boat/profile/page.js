@@ -51,6 +51,10 @@ function ProfileMenu() {
           <Link href="/terms" onClick={() => setOpen(false)} className="block px-4 py-3 text-sm text-gray-800 hover:bg-gray-50">
             Terms of Use
           </Link>
+          <div className="h-px mx-4" style={{ backgroundColor: "#e8e8e8" }} />
+          <Link href="/privacy" onClick={() => setOpen(false)} className="block px-4 py-3 text-sm text-gray-800 hover:bg-gray-50">
+            Privacy Policy
+          </Link>
         </div>
       )}
     </div>
