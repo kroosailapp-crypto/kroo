@@ -26,8 +26,16 @@ export default function BoatChat({ params }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const bottomRef = useRef(null);
   const messagesRef = useRef([]);
+
+  // Check if other user is admin
+  useEffect(() => {
+    fetch("/api/admin/ids")
+      .then((r) => r.json())
+      .then(({ ids }) => setIsAdmin(ids.includes(id)));
+  }, [id]);
 
   // Load crew profile for header
   useEffect(() => {
@@ -163,21 +171,24 @@ export default function BoatChat({ params }) {
         <Link href="/boat/messages">
           <IconArrowLeft size={22} color="#111" />
         </Link>
-        <Link href={`/crew/${id}`} className="rounded-full overflow-hidden flex items-center justify-center flex-shrink-0" style={{ width: 36, height: 36, backgroundColor: "#d8d8d8" }}>
-          {otherProfile?.avatar_url ? (
+        <div className="rounded-full overflow-hidden flex items-center justify-center flex-shrink-0" style={{ width: 36, height: 36, backgroundColor: "#d8d8d8" }}>
+          {isAdmin ? (
+            <img src="/kroo-logo-blue.svg" alt="Kroo" className="w-5 h-5 object-contain" />
+          ) : otherProfile?.avatar_url ? (
             <img src={otherProfile.avatar_url} alt="" className="w-full h-full object-cover" />
           ) : (
             <IconUser size={16} color="#aaa" />
           )}
-        </Link>
-        <Link href={`/crew/${id}`} className="flex-1 min-w-0">
+        </div>
+        <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-gray-900 truncate">
-            {otherProfile?.name || "Sailor"}
+            {isAdmin ? "Kroo" : otherProfile?.name || "Sailor"}
           </p>
-          {otherProfile?.positions?.[0] && (
-            <p className="text-xs text-gray-400">{otherProfile.positions[0]}</p>
-          )}
-        </Link>
+          {isAdmin
+            ? <p className="text-xs text-gray-400">Official message</p>
+            : otherProfile?.positions?.[0] && <p className="text-xs text-gray-400">{otherProfile.positions[0]}</p>
+          }
+        </div>
       </div>
 
       {/* Messages */}
@@ -225,6 +236,9 @@ export default function BoatChat({ params }) {
         className="fixed left-1/2 -translate-x-1/2 w-full max-w-[430px] px-4 py-3 border-t"
         style={{ bottom: "56px", backgroundColor: "#fff", borderColor: "#e8e8e8" }}
       >
+        {isAdmin ? (
+          <p className="text-xs text-gray-400 text-center py-1">This is an official message from Kroo. Replies are not available.</p>
+        ) : (
         <div className="flex items-center gap-2">
           <input
             value={input}
@@ -243,6 +257,7 @@ export default function BoatChat({ params }) {
             <IconSend size={16} color="white" />
           </button>
         </div>
+        )}
       </div>
 
       <BoatNavFooter active="Message" />

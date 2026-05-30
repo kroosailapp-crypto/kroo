@@ -343,14 +343,16 @@ export default function CrewFeedPage() {
   // Load boats + regattas with open positions
   useEffect(() => {
     async function load() {
-      const [{ data: boatData }, { data: regattaData }] = await Promise.all([
+      const [{ data: boatData }, { data: regattaData }, adminRes] = await Promise.all([
         supabase.from("boat_profiles").select("*").order("created_at", { ascending: false }),
         supabase.from("regattas").select(`
           id, name, date, location, boat_id,
           regatta_positions(id, role, level, status),
           boat_profiles(id, boat_name, photo_url, boat_class)
         `),
+        fetch("/api/admin/ids").then((r) => r.json()),
       ]);
+      const adminIds = new Set(adminRes.ids || []);
 
       // Build a map of boat_id → count of open positions across all their regattas
       const openCountByBoat = {};
@@ -364,11 +366,10 @@ export default function CrewFeedPage() {
         }
       }
 
-      // Annotate each boat with its real open position count
-      const allBoats = (boatData || []).map((b) => ({
-        ...b,
-        open_positions: openCountByBoat[b.id] || 0,
-      }));
+      // Annotate each boat with its real open position count (exclude admins)
+      const allBoats = (boatData || [])
+        .filter((b) => !adminIds.has(b.id))
+        .map((b) => ({ ...b, open_positions: openCountByBoat[b.id] || 0 }));
       setBoats(allBoats);
 
       // Regattas: keep only those with ≥1 open position

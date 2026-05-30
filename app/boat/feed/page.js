@@ -95,11 +95,12 @@ export default function BoatFeedPage() {
 
   useEffect(() => {
     async function load() {
-      const { data } = await supabase
-        .from("crew_profiles")
-        .select("*")
-        .order("created_at", { ascending: false });
-      setCrew(data || []);
+      const [{ data }, adminRes] = await Promise.all([
+        supabase.from("crew_profiles").select("*").order("created_at", { ascending: false }),
+        fetch("/api/admin/ids").then((r) => r.json()),
+      ]);
+      const adminIds = new Set(adminRes.ids || []);
+      setCrew((data || []).filter((c) => !adminIds.has(c.id)));
       setLoading(false);
     }
     load();

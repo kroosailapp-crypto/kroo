@@ -140,11 +140,11 @@ export default function CrewMessages() {
   }, [user]);
 
   async function loadConversations() {
-    const { data: msgs } = await supabase
-      .from("messages")
-      .select("*")
-      .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-      .order("created_at", { ascending: false });
+    const [{ data: msgs }, adminRes] = await Promise.all([
+      supabase.from("messages").select("*").or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`).order("created_at", { ascending: false }),
+      fetch("/api/admin/ids").then((r) => r.json()),
+    ]);
+    const adminIds = new Set(adminRes.ids || []);
 
     if (!msgs || msgs.length === 0) {
       setLoading(false);
@@ -155,7 +155,7 @@ export default function CrewMessages() {
     const threads = [];
     for (const msg of msgs) {
       const otherId = msg.sender_id === user.id ? msg.receiver_id : msg.sender_id;
-      if (!seen.has(otherId)) {
+      if (!seen.has(otherId) && !adminIds.has(otherId)) {
         seen.add(otherId);
         threads.push({ otherId, lastMessage: msg });
       }
