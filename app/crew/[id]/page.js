@@ -13,6 +13,7 @@ import {
 import BoatNavFooter from "@/app/components/BoatNavFooter";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
+import { notify } from "@/lib/notify";
 
 function Divider() {
   return <div className="h-px w-full" style={{ backgroundColor: "#e8e8e8" }} />;
@@ -255,7 +256,6 @@ export default function CrewPublicProfile({ params }) {
   }
 
   async function handleInvite({ regatta, position }) {
-    // position is now the full position object { id, role, level, status }
     await supabase.from("invitations").insert({
       regatta_id: regatta.id,
       position_id: position.id,
@@ -267,6 +267,15 @@ export default function CrewPublicProfile({ params }) {
     setInviteConfirm({ regattaName: regatta.name, position: position.role });
     setIsInvited(true);
     localStorage.setItem("kroo_crew_regatta_notif", "1");
+    // Notify crew member of invite
+    notify({
+      event: "new_invite",
+      recipient_id: id,
+      profile_type: "crew",
+      boat_name: profile?.boat_name || "A boat",
+      regatta_name: regatta.name,
+      position_role: position.role,
+    });
   }
 
   if (loading) {

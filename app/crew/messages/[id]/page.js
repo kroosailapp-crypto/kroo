@@ -5,6 +5,7 @@ import { IconArrowLeft, IconSend, IconAnchor, IconUser } from "@tabler/icons-rea
 import CrewNavFooter from "@/app/components/CrewNavFooter";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
+import { notify } from "@/lib/notify";
 
 function formatTime(ts) {
   const d = new Date(ts);
@@ -133,6 +134,14 @@ export default function CrewChat({ params }) {
         const updated = prev.map((m) => (m.id === optimistic.id ? data : m));
         messagesRef.current = updated;
         return updated;
+      });
+      // Notify boat of new message
+      notify({
+        event: "new_message",
+        recipient_id: id,
+        profile_type: "boat",
+        sender_name: otherProfile?.skipper_name || "A sailor",
+        message_preview: text.slice(0, 200),
       });
     }
   }

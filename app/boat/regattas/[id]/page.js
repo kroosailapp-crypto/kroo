@@ -18,6 +18,7 @@ import YachtClubInput from "@/app/components/YachtClubInput";
 import RegattaNameInput from "@/app/components/RegattaNameInput";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
+import { notify } from "@/lib/notify";
 
 const POSITIONS = [
   "Helm", "Tactician", "Navigator", "Mainsail Trimmer",
@@ -309,6 +310,18 @@ export default function RegattaDetail({ params }) {
       prev.map((inv) => (inv.id === invitationId ? { ...inv, status: "accepted" } : inv))
     );
     localStorage.setItem("kroo_crew_regatta_notif", "1");
+    // Notify crew of confirmation
+    const inv = invitations.find((i) => i.id === invitationId);
+    if (inv) {
+      notify({
+        event: "regatta_confirmation",
+        recipient_id: inv.crew_id,
+        profile_type: "crew",
+        boat_name: regatta?.boat_profiles?.boat_name || "The boat",
+        regatta_name: regatta?.name || "the regatta",
+        position_role: inv.role,
+      });
+    }
   }
 
   function openEdit() {

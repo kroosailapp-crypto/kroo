@@ -13,6 +13,7 @@ import {
 import CrewNavFooter from "@/app/components/CrewNavFooter";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
+import { notify } from "@/lib/notify";
 
 function Tag({ label, color }) {
   return (
@@ -293,6 +294,22 @@ export default function CrewRegattas() {
       setInvitations((prev) =>
         prev.map((i) => (i.id === inv.id ? { ...i, status: "cancelled" } : i))
       );
+
+      // Notify boat of crew cancellation
+      const regatta = inv.regattas;
+      const { data: crewProf } = await supabase
+        .from("crew_profiles")
+        .select("name")
+        .eq("id", user.id)
+        .maybeSingle();
+      notify({
+        event: "crew_cancelled",
+        recipient_id: regatta?.boat_id,
+        profile_type: "boat",
+        sailor_name: crewProf?.name || "A sailor",
+        regatta_name: regatta?.name || "the regatta",
+        position_role: inv.role,
+      });
     } else {
       // Not yet confirmed — just delete the row cleanly
       const { error: invErr } = await supabase

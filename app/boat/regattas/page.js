@@ -6,6 +6,7 @@ import { IconSearch, IconX, IconPlus, IconCalendar } from "@tabler/icons-react";
 import BoatNavFooter from "@/app/components/BoatNavFooter";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
+import { notify } from "@/lib/notify";
 
 function Divider() {
   return <div className="h-px w-full" style={{ backgroundColor: "#e8e8e8" }} />;
@@ -166,9 +167,27 @@ export default function BoatRegattas() {
   }
 
   async function handleConfirmCancel() {
+    // Fetch confirmed crew before deleting
+    const { data: accepted } = await supabase
+      .from("invitations")
+      .select("crew_id, role")
+      .eq("regatta_id", cancelTarget.id)
+      .eq("status", "accepted");
+
     await supabase.from("regattas").delete().eq("id", cancelTarget.id);
     setRegattaList((prev) => prev.filter((r) => r.id !== cancelTarget.id));
     setCancelTarget(null);
+
+    // Notify all confirmed crew
+    for (const inv of accepted || []) {
+      notify({
+        event: "regatta_cancelled",
+        recipient_id: inv.crew_id,
+        profile_type: "crew",
+        boat_name: cancelTarget.boat_profiles?.boat_name || "The boat",
+        regatta_name: cancelTarget.name,
+      });
+    }
   }
 
   return (

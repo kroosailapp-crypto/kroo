@@ -12,6 +12,7 @@ import {
 import CrewNavFooter from "@/app/components/CrewNavFooter";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
+import { notify } from "@/lib/notify";
 
 function Divider() {
   return <div className="h-px w-full" style={{ backgroundColor: "#e8e8e8" }} />;
@@ -197,6 +198,21 @@ export default function BoatPublicProfile({ params }) {
       },
       { onConflict: "position_id,crew_id", ignoreDuplicates: false }
     );
+
+    // Get crew profile name then notify the boat owner
+    const { data: crewProf } = await supabase
+      .from("crew_profiles")
+      .select("name")
+      .eq("id", user.id)
+      .maybeSingle();
+    notify({
+      event: "new_application",
+      recipient_id: id, // boat owner
+      profile_type: "boat",
+      sailor_name: crewProf?.name || "A sailor",
+      regatta_name: regatta.name,
+      position_role: pos.role,
+    });
   }
 
   if (loading) {

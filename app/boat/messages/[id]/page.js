@@ -5,6 +5,7 @@ import { IconUser, IconArrowLeft, IconSend, IconAnchor } from "@tabler/icons-rea
 import BoatNavFooter from "@/app/components/BoatNavFooter";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
+import { notify } from "@/lib/notify";
 
 function formatTime(ts) {
   const d = new Date(ts);
@@ -133,6 +134,14 @@ export default function BoatChat({ params }) {
         const updated = prev.map((m) => (m.id === optimistic.id ? data : m));
         messagesRef.current = updated;
         return updated;
+      });
+      // Notify crew of new message
+      notify({
+        event: "new_message",
+        recipient_id: id,
+        profile_type: "crew",
+        sender_name: otherProfile?.name || "A boat",
+        message_preview: text.slice(0, 200),
       });
     }
   }
