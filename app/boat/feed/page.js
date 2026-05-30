@@ -91,6 +91,7 @@ export default function BoatFeedPage() {
   const [crew, setCrew] = useState([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [visibleCount, setVisibleCount] = useState(25);
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -106,6 +107,9 @@ export default function BoatFeedPage() {
     load();
   }, []);
 
+  // Reset pagination when query changes
+  useEffect(() => setVisibleCount(25), [query]);
+
   // Filter: name, position, location
   const q = query.toLowerCase().trim();
   const filtered = q
@@ -116,6 +120,8 @@ export default function BoatFeedPage() {
           (m.positions || []).some((p) => p.toLowerCase().includes(q))
       )
     : crew;
+
+  const visible = filtered.slice(0, visibleCount);
 
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
@@ -151,14 +157,27 @@ export default function BoatFeedPage() {
         ) : filtered.length === 0 ? (
           <EmptyState query={query} />
         ) : (
-          filtered.map((member, i) => (
-            <div key={member.id}>
-              <CrewCard member={member} />
-              {i < filtered.length - 1 && (
-                <div className="h-px mx-4" style={{ backgroundColor: "#f0f0f0" }} />
-              )}
-            </div>
-          ))
+          <>
+            {visible.map((member, i) => (
+              <div key={member.id}>
+                <CrewCard member={member} />
+                {i < visible.length - 1 && (
+                  <div className="h-px mx-4" style={{ backgroundColor: "#f0f0f0" }} />
+                )}
+              </div>
+            ))}
+            {filtered.length > visibleCount && (
+              <div className="flex justify-center py-6">
+                <button
+                  onClick={() => setVisibleCount((c) => c + 25)}
+                  className="px-6 py-2.5 rounded-full text-sm font-semibold border"
+                  style={{ color: "#111", borderColor: "#d0d0d0" }}
+                >
+                  Load more
+                </button>
+              </div>
+            )}
+          </>
         )}
       </main>
 

@@ -337,7 +337,9 @@ export default function CrewFeedPage() {
   const [monthGroups, setMonthGroups] = useState([]);
   const [appliedPositions, setAppliedPositions] = useState(new Set());
   const [loading, setLoading] = useState(true);
-  const [modalBoat, setModalBoat] = useState(null); // { boat_name }
+  const [modalBoat, setModalBoat] = useState(null);
+  const [visibleBoats, setVisibleBoats] = useState(25);
+  const [visibleRegattas, setVisibleRegattas] = useState(25);
   const inputRef = useRef(null);
 
   // Load boats + regattas with open positions
@@ -411,6 +413,9 @@ export default function CrewFeedPage() {
       { onConflict: "position_id,crew_id", ignoreDuplicates: false }
     );
   }
+
+  // Reset pagination when query or view changes
+  useEffect(() => { setVisibleBoats(25); setVisibleRegattas(25); }, [query, view]);
 
   // ── Filtering ────────────────────────────────────────────────────────────
   const q = query.toLowerCase().trim();
@@ -505,14 +510,27 @@ export default function CrewFeedPage() {
               <EmptyBoats />
             )
           ) : (
-            filteredBoats.map((boat, i) => (
-              <div key={boat.id}>
-                <BoatCard boat={boat} />
-                {i < filteredBoats.length - 1 && (
-                  <div className="h-2" style={{ backgroundColor: "#F6F6F6" }} />
-                )}
-              </div>
-            ))
+            <>
+              {filteredBoats.slice(0, visibleBoats).map((boat, i) => (
+                <div key={boat.id}>
+                  <BoatCard boat={boat} />
+                  {i < Math.min(visibleBoats, filteredBoats.length) - 1 && (
+                    <div className="h-2" style={{ backgroundColor: "#F6F6F6" }} />
+                  )}
+                </div>
+              ))}
+              {filteredBoats.length > visibleBoats && (
+                <div className="flex justify-center py-6">
+                  <button
+                    onClick={() => setVisibleBoats((c) => c + 25)}
+                    className="px-6 py-2.5 rounded-full text-sm font-semibold border"
+                    style={{ color: "#111", borderColor: "#d0d0d0" }}
+                  >
+                    Load more
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </main>
       )}
@@ -534,25 +552,43 @@ export default function CrewFeedPage() {
             ) : (
               <EmptyPositions />
             )
-          ) : (
-            filteredMonthGroups.map((group) => (
-              <div key={group.label}>
-                <div
-                  className="px-4 py-2.5 sticky top-0 z-10"
-                  style={{ backgroundColor: "#F6F6F6" }}
-                >
-                  <p className="text-base font-bold text-gray-900">{group.label}</p>
-                </div>
-                {group.regattas.map((reg) => (
-                  <RegattaBlock
-                    key={reg.id}
-                    regatta={reg}
-                    appliedPositions={appliedPositions}
-                    onApply={handleApply}
-                  />
-                ))}
-              </div>
-            ))
+          ) : (() => {
+              const allRegattas = filteredMonthGroups.flatMap((g) => g.regattas);
+              const sliced = allRegattas.slice(0, visibleRegattas);
+              const visibleGroups = filteredMonthGroups
+                .map((g) => ({ ...g, regattas: g.regattas.filter((r) => sliced.includes(r)) }))
+                .filter((g) => g.regattas.length > 0);
+              return (
+                <>
+                  {visibleGroups.map((group) => (
+                    <div key={group.label}>
+                      <div className="px-4 py-2.5 sticky top-0 z-10" style={{ backgroundColor: "#F6F6F6" }}>
+                        <p className="text-base font-bold text-gray-900">{group.label}</p>
+                      </div>
+                      {group.regattas.map((reg) => (
+                        <RegattaBlock
+                          key={reg.id}
+                          regatta={reg}
+                          appliedPositions={appliedPositions}
+                          onApply={handleApply}
+                        />
+                      ))}
+                    </div>
+                  ))}
+                  {allRegattas.length > visibleRegattas && (
+                    <div className="flex justify-center py-6">
+                      <button
+                        onClick={() => setVisibleRegattas((c) => c + 25)}
+                        className="px-6 py-2.5 rounded-full text-sm font-semibold border"
+                        style={{ color: "#111", borderColor: "#d0d0d0" }}
+                      >
+                        Load more
+                      </button>
+                    </div>
+                  )}
+                </>
+              );
+            })()
           )}
         </main>
       )}
