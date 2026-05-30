@@ -188,6 +188,26 @@ export default function BoatMessages() {
       .from("hidden_conversations")
       .upsert({ user_id: user.id, other_user_id: otherId, hidden_at: new Date().toISOString() });
 
+    // Check if the other user has also deleted this conversation
+    const { data: otherHidden } = await supabase
+      .from("hidden_conversations")
+      .select("user_id")
+      .eq("user_id", otherId)
+      .eq("other_user_id", user.id)
+      .maybeSingle();
+
+    if (otherHidden) {
+      // Both sides deleted — permanently remove messages and hidden records
+      await Promise.all([
+        supabase.from("messages").delete().or(
+          `and(sender_id.eq.${user.id},receiver_id.eq.${otherId}),and(sender_id.eq.${otherId},receiver_id.eq.${user.id})`
+        ),
+        supabase.from("hidden_conversations").delete().or(
+          `and(user_id.eq.${user.id},other_user_id.eq.${otherId}),and(user_id.eq.${otherId},other_user_id.eq.${user.id})`
+        ),
+      ]);
+    }
+
     setConversations((prev) => prev.filter((c) => c.otherId !== otherId));
     setDeleteTarget(null);
   }
