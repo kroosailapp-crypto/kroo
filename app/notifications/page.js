@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { IconArrowLeft } from "@tabler/icons-react";
 import { useAuth } from "@/lib/auth-context";
@@ -73,7 +73,7 @@ function Divider() {
   return <div className="h-px w-full" style={{ backgroundColor: "#e8e8e8" }} />;
 }
 
-export default function NotificationsPage() {
+function NotificationsInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const profileType = searchParams.get("from") === "boat" ? "boat" : "crew";
@@ -161,5 +161,13 @@ export default function NotificationsPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function NotificationsPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><p className="text-sm text-gray-400">Loading…</p></div>}>
+      <NotificationsInner />
+    </Suspense>
   );
 }
