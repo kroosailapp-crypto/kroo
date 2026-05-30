@@ -292,6 +292,7 @@ export default function BoatPublicProfile({ params }) {
 
         {/* Action Buttons */}
         <div className="flex gap-2 px-4 pb-3">
+          {user?.id !== id && (
           <Link
             href={`/crew/messages/${id}`}
             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-medium text-white"
@@ -299,6 +300,7 @@ export default function BoatPublicProfile({ params }) {
           >
             <IconMessage size={13} /> Message
           </Link>
+          )}
           <button
             onClick={handleFavorite}
             disabled={favoriteLoading}

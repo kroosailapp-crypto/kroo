@@ -157,6 +157,7 @@ export default function BoatMessages() {
     const threads = [];
     for (const msg of msgs) {
       const otherId = msg.sender_id === user.id ? msg.receiver_id : msg.sender_id;
+      if (otherId === user.id) continue; // skip self-threads
       if (!seen.has(otherId)) {
         seen.add(otherId);
         const hiddenAt = hiddenMap[otherId];
