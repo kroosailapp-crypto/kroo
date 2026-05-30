@@ -55,10 +55,6 @@ function ProfileMenu() {
             Contact us
           </Link>
           <div className="h-px mx-4" style={{ backgroundColor: "#e8e8e8" }} />
-          <Link href="/help" onClick={() => setOpen(false)} className="block px-4 py-3 text-sm text-gray-800 hover:bg-gray-50">
-            Help
-          </Link>
-          <div className="h-px mx-4" style={{ backgroundColor: "#e8e8e8" }} />
           <Link href="/terms" onClick={() => setOpen(false)} className="block px-4 py-3 text-sm text-gray-800 hover:bg-gray-50">
             Terms of Use
           </Link>
