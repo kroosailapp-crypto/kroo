@@ -21,7 +21,7 @@ function Tag({ label }) {
   );
 }
 
-function ProfileMenu() {
+function ProfileMenu({ onDelete }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -47,6 +47,14 @@ function ProfileMenu() {
           <Link href="/contact" onClick={() => setOpen(false)} className="block px-4 py-3 text-sm text-gray-800 hover:bg-gray-50">
             Contact us
           </Link>
+          <div className="h-px mx-4" style={{ backgroundColor: "#e8e8e8" }} />
+          <button
+            onClick={() => { setOpen(false); onDelete(); }}
+            className="block w-full text-left px-4 py-3 text-sm hover:bg-gray-50"
+            style={{ color: "#e00" }}
+          >
+            Delete Boat Profile
+          </button>
           <div className="h-px mx-4" style={{ backgroundColor: "#e8e8e8" }} />
           <Link href="/terms" onClick={() => setOpen(false)} className="block px-4 py-3 text-sm text-gray-800 hover:bg-gray-50">
             Terms of Use
@@ -148,7 +156,7 @@ export default function BoatProfilePage() {
       {/* App Bar */}
       <div className="flex items-center gap-2 px-4 pt-3 pb-2 flex-shrink-0">
         <ProfileSwitcher />
-        <ProfileMenu />
+        <ProfileMenu onDelete={() => setShowDeleteModal(true)} />
       </div>
 
       <div className="overflow-y-auto flex-1">
@@ -255,13 +263,6 @@ export default function BoatProfilePage() {
             style={{ color: "#e00", borderColor: "#fca5a5" }}
           >
             Log Out
-          </button>
-          <button
-            onClick={() => setShowDeleteModal(true)}
-            className="w-full py-3 rounded-full text-sm font-semibold"
-            style={{ color: "#aaa" }}
-          >
-            Delete Boat Profile
           </button>
         </div>
       </div>
