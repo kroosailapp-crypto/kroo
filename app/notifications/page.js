@@ -28,6 +28,24 @@ const CREW_SETTINGS = [
   },
 ];
 
+const BOAT_SETTINGS = [
+  {
+    key: "new_message",
+    label: "New Message",
+    description: "When a sailor sends you a message",
+  },
+  {
+    key: "new_application",
+    label: "New Crew Application",
+    description: "When a sailor applies for a position",
+  },
+  {
+    key: "crew_cancelled",
+    label: "Crew Cancelled",
+    description: "When a sailor cancels a confirmed position",
+  },
+];
+
 function Toggle({ enabled, onChange }) {
   return (
     <button
@@ -63,6 +81,8 @@ export default function NotificationsPage() {
     new_invite: true,
     regatta_confirmation: true,
     regatta_cancelled: true,
+    new_application: true,
+    crew_cancelled: true,
   });
   const [loading, setLoading] = useState(true);
   const [profileType, setProfileType] = useState(null); // "crew" | "boat"
@@ -124,7 +144,7 @@ export default function NotificationsPage() {
         <p className="px-4 pt-5 pb-3 text-xs text-gray-400">Email Notifications</p>
         <Divider />
 
-        {CREW_SETTINGS.map((setting, i) => (
+        {(profileType === "boat" ? BOAT_SETTINGS : CREW_SETTINGS).map((setting, i) => (
           <div key={setting.key}>
             <div className="flex items-center gap-3 px-4 py-4">
               <div className="flex-1 min-w-0">
