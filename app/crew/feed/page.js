@@ -436,7 +436,7 @@ export default function CrewFeedPage() {
           return {
             ...group,
             regattas: monthMatches
-              ? group.regattas // show all regattas in matching month
+              ? group.regattas
               : group.regattas.filter(
                   (reg) =>
                     reg.name?.toLowerCase().includes(q) ||
@@ -449,6 +449,12 @@ export default function CrewFeedPage() {
         })
         .filter((group) => group.regattas.length > 0)
     : monthGroups;
+
+  const allFilteredRegattas = filteredMonthGroups.flatMap((g) => g.regattas);
+  const slicedRegattas = new Set(allFilteredRegattas.slice(0, visibleRegattas).map((r) => r.id));
+  const visibleMonthGroups = filteredMonthGroups
+    .map((g) => ({ ...g, regattas: g.regattas.filter((r) => slicedRegattas.has(r.id)) }))
+    .filter((g) => g.regattas.length > 0);
 
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
@@ -552,43 +558,35 @@ export default function CrewFeedPage() {
             ) : (
               <EmptyPositions />
             )
-          ) : (() => {
-              const allRegattas = filteredMonthGroups.flatMap((g) => g.regattas);
-              const sliced = allRegattas.slice(0, visibleRegattas);
-              const visibleGroups = filteredMonthGroups
-                .map((g) => ({ ...g, regattas: g.regattas.filter((r) => sliced.includes(r)) }))
-                .filter((g) => g.regattas.length > 0);
-              return (
-                <>
-                  {visibleGroups.map((group) => (
-                    <div key={group.label}>
-                      <div className="px-4 py-2.5 sticky top-0 z-10" style={{ backgroundColor: "#F6F6F6" }}>
-                        <p className="text-base font-bold text-gray-900">{group.label}</p>
-                      </div>
-                      {group.regattas.map((reg) => (
-                        <RegattaBlock
-                          key={reg.id}
-                          regatta={reg}
-                          appliedPositions={appliedPositions}
-                          onApply={handleApply}
-                        />
-                      ))}
-                    </div>
+          ) : (
+            <>
+              {visibleMonthGroups.map((group) => (
+                <div key={group.label}>
+                  <div className="px-4 py-2.5 sticky top-0 z-10" style={{ backgroundColor: "#F6F6F6" }}>
+                    <p className="text-base font-bold text-gray-900">{group.label}</p>
+                  </div>
+                  {group.regattas.map((reg) => (
+                    <RegattaBlock
+                      key={reg.id}
+                      regatta={reg}
+                      appliedPositions={appliedPositions}
+                      onApply={handleApply}
+                    />
                   ))}
-                  {allRegattas.length > visibleRegattas && (
-                    <div className="flex justify-center py-6">
-                      <button
-                        onClick={() => setVisibleRegattas((c) => c + 25)}
-                        className="px-6 py-2.5 rounded-full text-sm font-semibold border"
-                        style={{ color: "#111", borderColor: "#d0d0d0" }}
-                      >
-                        Load more
-                      </button>
-                    </div>
-                  )}
-                </>
-              );
-            })()
+                </div>
+              ))}
+              {allFilteredRegattas.length > visibleRegattas && (
+                <div className="flex justify-center py-6">
+                  <button
+                    onClick={() => setVisibleRegattas((c) => c + 25)}
+                    className="px-6 py-2.5 rounded-full text-sm font-semibold border"
+                    style={{ color: "#111", borderColor: "#d0d0d0" }}
+                  >
+                    Load more
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </main>
       )}
