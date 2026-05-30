@@ -57,12 +57,28 @@ function ProfileMenu() {
   );
 }
 
+function DeleteProfileModal({ onConfirm, onClose }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-8" style={{ backgroundColor: "rgba(0,0,0,0.4)" }} onClick={onClose}>
+      <div className="bg-white rounded-2xl px-6 py-7 w-full max-w-[320px] flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
+        <p className="text-base font-semibold text-gray-900 text-center leading-snug">Delete Boat Profile?</p>
+        <p className="text-xs text-gray-400 text-center -mt-2">Your boat profile, regattas, and messages will be permanently deleted. This cannot be undone.</p>
+        <div className="flex gap-3">
+          <button onClick={onClose} className="flex-1 py-2.5 rounded-full text-sm font-semibold border" style={{ color: "#111", borderColor: "#d0d0d0" }}>Cancel</button>
+          <button onClick={onConfirm} className="flex-1 py-2.5 rounded-full text-sm font-semibold text-white" style={{ backgroundColor: "#e00" }}>Delete</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function BoatProfilePage() {
   const { user, signOut } = useAuth();
   const router = useRouter();
   const [profile, setProfile] = useState(null);
   const [regattas, setRegattas] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     if (user === undefined) return;
@@ -101,12 +117,30 @@ export default function BoatProfilePage() {
     setLoading(false);
   }
 
+  async function handleDeleteProfile() {
+    setShowDeleteModal(false);
+    const { data: { session } } = await supabase.auth.getSession();
+    const res = await fetch("/api/profile/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
+      body: JSON.stringify({ profileType: "boat" }),
+    });
+    const data = await res.json();
+    if (data.deleteAccount) {
+      await signOut();
+      router.push("/");
+    } else {
+      router.push(data.redirectTo);
+    }
+  }
+
   if (loading || user === undefined) {
     return <div className="flex items-center justify-center min-h-screen"><p className="text-sm text-gray-400">Loading…</p></div>;
   }
 
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
+      {showDeleteModal && <DeleteProfileModal onConfirm={handleDeleteProfile} onClose={() => setShowDeleteModal(false)} />}
       {/* App Bar */}
       <div className="flex items-center gap-2 px-4 pt-3 pb-2 flex-shrink-0">
         <ProfileSwitcher />
@@ -213,10 +247,17 @@ export default function BoatProfilePage() {
           <div className="h-px w-full mb-6" style={{ backgroundColor: "#e8e8e8" }} />
           <button
             onClick={async () => { await signOut(); router.push("/"); }}
-            className="w-full py-3 rounded-full text-sm font-semibold border"
+            className="w-full py-3 rounded-full text-sm font-semibold border mb-3"
             style={{ color: "#e00", borderColor: "#fca5a5" }}
           >
             Log Out
+          </button>
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            className="w-full py-3 rounded-full text-sm font-semibold"
+            style={{ color: "#aaa" }}
+          >
+            Delete Boat Profile
           </button>
         </div>
       </div>
