@@ -2,14 +2,58 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { IconArrowLeft, IconSearch, IconX, IconUser, IconAnchor } from "@tabler/icons-react";
+import { IconArrowLeft, IconSearch, IconX, IconUser, IconAnchor, IconAlertTriangle } from "@tabler/icons-react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
 
+function ConfirmModal({ title, message, confirmLabel, confirmColor, onConfirm, onCancel }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center px-8"
+      style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
+      onClick={onCancel}
+    >
+      <div
+        className="bg-white rounded-2xl px-6 py-7 w-full max-w-[320px] flex flex-col items-center gap-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          className="flex items-center justify-center rounded-full"
+          style={{ width: 48, height: 48, backgroundColor: "#FFF4E5" }}
+        >
+          <IconAlertTriangle size={22} color="#f59e0b" strokeWidth={2} />
+        </div>
+        <p className="text-base font-semibold text-gray-900 text-center">{title}</p>
+        <p className="text-sm text-gray-500 text-center leading-relaxed">{message}</p>
+        <div className="flex gap-3 w-full mt-1">
+          <button
+            onClick={onCancel}
+            className="flex-1 py-2.5 rounded-full text-sm font-semibold border"
+            style={{ color: "#555", borderColor: "#e0e0e0" }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 py-2.5 rounded-full text-sm font-semibold text-white"
+            style={{ backgroundColor: confirmColor }}
+          >
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function UserRow({ user, token, onUpdate }) {
   const [loading, setLoading] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null); // "suspend" | "unsuspend" | "remove"
 
-  async function handleSuspend() {
+  const name = user.type === "crew" ? user.name : user.boat_name;
+
+  async function executeSuspend() {
+    setConfirmAction(null);
     setLoading(true);
     await fetch("/api/admin/suspend", {
       method: "POST",
@@ -20,8 +64,8 @@ function UserRow({ user, token, onUpdate }) {
     setLoading(false);
   }
 
-  async function handleRemove() {
-    if (!confirm(`Remove ${user.name || user.boat_name}? This cannot be undone.`)) return;
+  async function executeRemove() {
+    setConfirmAction(null);
     setLoading(true);
     await fetch("/api/admin/remove", {
       method: "POST",
@@ -32,53 +76,85 @@ function UserRow({ user, token, onUpdate }) {
     setLoading(false);
   }
 
-  const name = user.type === "crew" ? user.name : user.boat_name;
   const sub = user.type === "crew" ? user.location : user.skipper_name;
 
   return (
-    <div className="flex items-center gap-3 py-3 border-b" style={{ borderColor: "#f0f0f0" }}>
-      <div
-        className="flex-shrink-0 flex items-center justify-center overflow-hidden"
-        style={{
-          width: 44, height: 44, backgroundColor: "#e0e0e0",
-          borderRadius: user.type === "crew" ? "50%" : "10px",
-        }}
-      >
-        {(user.avatar_url || user.photo_url)
-          ? <img src={user.avatar_url || user.photo_url} alt="" className="w-full h-full object-cover" />
-          : user.type === "crew" ? <IconUser size={18} color="#aaa" /> : <IconAnchor size={18} color="#aaa" />}
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-0.5">
-          <p className="text-sm font-semibold text-gray-900 truncate">{name || "—"}</p>
-          <span className="text-[11px] px-1.5 py-0.5 rounded-full flex-shrink-0"
-            style={{ backgroundColor: user.type === "crew" ? "#EEF4FF" : "#E8EDF8", color: "#0161F0" }}>
-            {user.type}
-          </span>
-          {user.banned && <span className="text-[11px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: "#FFF0F0", color: "#e00" }}>suspended</span>}
+    <>
+      {confirmAction === "suspend" && (
+        <ConfirmModal
+          title={`Suspend ${name}?`}
+          message="This user won't be able to log in until unsuspended."
+          confirmLabel="Suspend"
+          confirmColor="#f59e0b"
+          onConfirm={executeSuspend}
+          onCancel={() => setConfirmAction(null)}
+        />
+      )}
+      {confirmAction === "unsuspend" && (
+        <ConfirmModal
+          title={`Unsuspend ${name}?`}
+          message="This user will regain full access to their account."
+          confirmLabel="Unsuspend"
+          confirmColor="#0161F0"
+          onConfirm={executeSuspend}
+          onCancel={() => setConfirmAction(null)}
+        />
+      )}
+      {confirmAction === "remove" && (
+        <ConfirmModal
+          title={`Remove ${name}?`}
+          message="This will permanently delete their account and all data. This cannot be undone."
+          confirmLabel="Remove"
+          confirmColor="#e00"
+          onConfirm={executeRemove}
+          onCancel={() => setConfirmAction(null)}
+        />
+      )}
+
+      <div className="flex items-center gap-3 py-3 border-b" style={{ borderColor: "#f0f0f0" }}>
+        <div
+          className="flex-shrink-0 flex items-center justify-center overflow-hidden"
+          style={{
+            width: 44, height: 44, backgroundColor: "#e0e0e0",
+            borderRadius: user.type === "crew" ? "50%" : "10px",
+          }}
+        >
+          {(user.avatar_url || user.photo_url)
+            ? <img src={user.avatar_url || user.photo_url} alt="" className="w-full h-full object-cover" />
+            : user.type === "crew" ? <IconUser size={18} color="#aaa" /> : <IconAnchor size={18} color="#aaa" />}
         </div>
-        <p className="text-xs text-gray-400 truncate">{user.email}</p>
-        {sub && <p className="text-xs text-gray-400 truncate">{sub}</p>}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            <p className="text-sm font-semibold text-gray-900 truncate">{name || "—"}</p>
+            <span className="text-[11px] px-1.5 py-0.5 rounded-full flex-shrink-0"
+              style={{ backgroundColor: user.type === "crew" ? "#EEF4FF" : "#E8EDF8", color: "#0161F0" }}>
+              {user.type}
+            </span>
+            {user.banned && <span className="text-[11px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: "#FFF0F0", color: "#e00" }}>suspended</span>}
+          </div>
+          <p className="text-xs text-gray-400 truncate">{user.email}</p>
+          {sub && <p className="text-xs text-gray-400 truncate">{sub}</p>}
+        </div>
+        <div className="flex flex-col gap-1.5 flex-shrink-0">
+          <button
+            onClick={() => setConfirmAction(user.banned ? "unsuspend" : "suspend")}
+            disabled={loading}
+            className="text-xs font-medium px-2.5 py-1.5 rounded-full border"
+            style={{ color: user.banned ? "#0161F0" : "#f59e0b", borderColor: user.banned ? "#0161F0" : "#f59e0b" }}
+          >
+            {user.banned ? "Unsuspend" : "Suspend"}
+          </button>
+          <button
+            onClick={() => setConfirmAction("remove")}
+            disabled={loading}
+            className="text-xs font-medium px-2.5 py-1.5 rounded-full border"
+            style={{ color: "#e00", borderColor: "#fca5a5" }}
+          >
+            Remove
+          </button>
+        </div>
       </div>
-      <div className="flex flex-col gap-1.5 flex-shrink-0">
-        <button
-          onClick={handleSuspend}
-          disabled={loading}
-          className="text-xs font-medium px-2.5 py-1.5 rounded-full border"
-          style={{ color: user.banned ? "#0161F0" : "#f59e0b", borderColor: user.banned ? "#0161F0" : "#f59e0b" }}
-        >
-          {user.banned ? "Unsuspend" : "Suspend"}
-        </button>
-        <button
-          onClick={handleRemove}
-          disabled={loading}
-          className="text-xs font-medium px-2.5 py-1.5 rounded-full border"
-          style={{ color: "#e00", borderColor: "#fca5a5" }}
-        >
-          Remove
-        </button>
-      </div>
-    </div>
+    </>
   );
 }
 
