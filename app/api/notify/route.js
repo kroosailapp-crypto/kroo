@@ -36,6 +36,11 @@ async function getPrefs(userId, profileType) {
 
 export async function POST(request) {
   try {
+    const token = request.headers.get("Authorization")?.replace("Bearer ", "");
+    if (!token) return Response.json({ error: "Unauthorized" }, { status: 401 });
+    const { data: { user: caller } } = await supabaseAdmin.auth.getUser(token);
+    if (!caller) return Response.json({ error: "Unauthorized" }, { status: 401 });
+
     const body = await request.json();
     const { event, recipient_id, profile_type = "crew", ...data } = body;
 

@@ -1,6 +1,12 @@
 import nodemailer from "nodemailer";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export async function POST(request) {
+  const token = request.headers.get("Authorization")?.replace("Bearer ", "");
+  if (!token) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+  if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
+
   const { name, email, subject, message } = await request.json();
 
   if (!subject?.trim() || !message?.trim()) {

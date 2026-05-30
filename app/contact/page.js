@@ -36,9 +36,12 @@ export default function ContactPage() {
       name = crew?.name || boat?.skipper_name || "";
     }
 
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+
     const res = await fetch("/api/contact", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ name, email, subject: subject.trim(), message: message.trim() }),
     });
 
