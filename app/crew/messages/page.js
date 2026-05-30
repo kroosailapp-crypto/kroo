@@ -162,13 +162,25 @@ export default function CrewMessages() {
     }
 
     const otherIds = threads.map((t) => t.otherId);
-    const { data: profiles } = await supabase
+    const { data: boatProfiles } = await supabase
       .from("boat_profiles")
       .select("id, boat_name, photo_url, skipper_name")
       .in("id", otherIds);
 
     const profileMap = {};
-    for (const p of profiles || []) profileMap[p.id] = p;
+    for (const p of boatProfiles || []) profileMap[p.id] = p;
+
+    // For IDs with no boat profile (e.g. admin), try crew_profiles
+    const missingIds = otherIds.filter((oid) => !profileMap[oid]);
+    if (missingIds.length > 0) {
+      const { data: crewFallback } = await supabase
+        .from("crew_profiles")
+        .select("id, name, avatar_url")
+        .in("id", missingIds);
+      for (const p of crewFallback || []) {
+        profileMap[p.id] = { id: p.id, boat_name: p.name, photo_url: p.avatar_url, skipper_name: null };
+      }
+    }
 
     setConversations(
       threads.map((t) => ({ ...t, otherProfile: profileMap[t.otherId] || null }))
