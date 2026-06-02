@@ -340,7 +340,7 @@ export default function RaceTimerPage() {
             ) : (
               <span style={{
                 display: 'flex', alignItems: 'center',
-                color: over ? '#ef4444' : '#ffffff',
+                color: over ? '#22c55e' : '#ffffff',
                 fontSize: isPostStart
                   ? 'clamp(70px, 20vw, 130px)'
                   : timeLeft <= 59
