@@ -11,11 +11,34 @@ function formatTime(seconds) {
   return { m: String(m), s: s.toString().padStart(2, '0'), over: seconds < 0 };
 }
 
+// Web Audio beep generator
+function createBeep(audioCtx, duration, frequency = 880, volume = 1) {
+  const oscillator = audioCtx.createOscillator();
+  const gainNode = audioCtx.createGain();
+  oscillator.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+  oscillator.type = 'sine';
+  oscillator.frequency.value = frequency;
+  gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+  oscillator.start(audioCtx.currentTime);
+  oscillator.stop(audioCtx.currentTime + duration);
+}
+
+function playPattern(audioCtx, pattern) {
+  // pattern: array of { delay, duration, freq }
+  pattern.forEach(({ delay, duration, freq = 880 }) => {
+    setTimeout(() => createBeep(audioCtx, duration, freq), delay * 1000);
+  });
+}
+
 export default function RaceTimerPage() {
   const [durationMin, setDurationMin] = useState(3);
   const [timeLeft, setTimeLeft] = useState(3 * 60);
   const [running, setRunning] = useState(false);
   const [started, setStarted] = useState(false);
+  const [showStart, setShowStart] = useState(false); // flashing START at 0:00
+  const [flashOn, setFlashOn] = useState(true);
 
   const [heading, setHeading] = useState(null);
   const [speed, setSpeed] = useState(null);
@@ -24,6 +47,20 @@ export default function RaceTimerPage() {
   const startTimeRef = useRef(null);
   const durationRef = useRef(3 * 60);
   const orientListenerRef = useRef(null);
+  const audioCtxRef = useRef(null);
+  const beeped = useRef(new Set());
+  const showStartTimeout = useRef(null);
+  const flashIntervalRef = useRef(null);
+
+  // Initialise AudioContext on first user gesture
+  const ensureAudio = () => {
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtxRef.current.state === 'suspended') {
+      audioCtxRef.current.resume();
+    }
+  };
 
   useEffect(() => {
     if (!running && !started) {
@@ -32,18 +69,70 @@ export default function RaceTimerPage() {
     }
   }, [durationMin, running, started]);
 
+  // Main countdown + beep logic
   useEffect(() => {
     if (!running) return;
     const id = setInterval(() => {
-      setTimeLeft(Math.round(durationRef.current - (Date.now() - startTimeRef.current) / 1000));
+      const t = Math.round(durationRef.current - (Date.now() - startTimeRef.current) / 1000);
+      setTimeLeft(t);
+
+      const ac = audioCtxRef.current;
+      if (!ac) return;
+
+      const key = t;
+      if (beeped.current.has(key)) return;
+      beeped.current.add(key);
+
+      if (t === 120 || t === 60) {
+        // 1-second single beep
+        createBeep(ac, 1.0, 880);
+      } else if (t === 30) {
+        // 3 short beeps
+        playPattern(ac, [
+          { delay: 0,   duration: 0.15 },
+          { delay: 0.3, duration: 0.15 },
+          { delay: 0.6, duration: 0.15 },
+        ]);
+      } else if (t === 20) {
+        // 2 short beeps
+        playPattern(ac, [
+          { delay: 0,   duration: 0.15 },
+          { delay: 0.3, duration: 0.15 },
+        ]);
+      } else if (t === 10) {
+        // 1 short beep
+        createBeep(ac, 0.15, 880);
+      } else if (t >= 1 && t <= 5) {
+        // beep every second
+        createBeep(ac, 0.15, 1046); // slightly higher pitch
+      } else if (t === 0) {
+        // long 3-second beep
+        createBeep(ac, 3.0, 1046, 1);
+        // show flashing START
+        setShowStart(true);
+        let on = true;
+        flashIntervalRef.current = setInterval(() => {
+          on = !on;
+          setFlashOn(on);
+        }, 400);
+        showStartTimeout.current = setTimeout(() => {
+          setShowStart(false);
+          clearInterval(flashIntervalRef.current);
+        }, 10000);
+      }
     }, 100);
     return () => clearInterval(id);
   }, [running]);
 
   const handleStart = useCallback(() => {
+    ensureAudio();
+    beeped.current = new Set();
     durationRef.current = durationMin * 60;
     startTimeRef.current = Date.now();
     setTimeLeft(durationMin * 60);
+    setShowStart(false);
+    clearTimeout(showStartTimeout.current);
+    clearInterval(flashIntervalRef.current);
     setRunning(true);
     setStarted(true);
   }, [durationMin]);
@@ -51,14 +140,34 @@ export default function RaceTimerPage() {
   const handleStop = useCallback(() => {
     setRunning(false);
     setStarted(false);
+    setShowStart(false);
+    clearTimeout(showStartTimeout.current);
+    clearInterval(flashIntervalRef.current);
     setTimeLeft(durationMin * 60);
+    beeped.current = new Set();
   }, [durationMin]);
 
   const handleReset = useCallback(() => {
+    ensureAudio();
+    beeped.current = new Set();
     durationRef.current = durationMin * 60;
     startTimeRef.current = Date.now();
     setTimeLeft(durationMin * 60);
+    setShowStart(false);
+    clearTimeout(showStartTimeout.current);
+    clearInterval(flashIntervalRef.current);
   }, [durationMin]);
+
+  // Sync: snap to nearest whole minute
+  const handleSync = useCallback(() => {
+    const current = Math.round(durationRef.current - (Date.now() - startTimeRef.current) / 1000);
+    const snapped = Math.round(current / 60) * 60;
+    const newDuration = durationRef.current + (snapped - current);
+    durationRef.current = newDuration;
+    startTimeRef.current = Date.now();
+    beeped.current = new Set();
+    setTimeLeft(snapped);
+  }, []);
 
   // Geolocation speed
   useEffect(() => {
@@ -99,10 +208,7 @@ export default function RaceTimerPage() {
   };
 
   const speedKnots = speed != null && speed >= 0 ? (speed * 1.94384).toFixed(1) : '--';
-  const headingDisplay = heading != null ? `${heading}°` : (
-    orientError === 'needs-permission' ? '---' : '---'
-  );
-
+  const headingDisplay = heading != null ? `${heading}°` : '---';
   const { m, s, over } = formatTime(timeLeft);
 
   return (
@@ -112,7 +218,7 @@ export default function RaceTimerPage() {
       <div className="flex-1 flex flex-col items-center justify-center border-b border-white/20 px-4">
         <div className="text-xl font-light tracking-widest uppercase mb-1" style={{ color: '#888888' }}>Heading</div>
         {orientError === 'needs-permission' ? (
-          <button onClick={requestCompass} className="text-white/40 text-6xl font-bold underline">
+          <button onClick={requestCompass} className="font-bold underline" style={{ color: '#555', fontSize: 'clamp(80px, 26vw, 160px)' }}>
             {headingDisplay}
           </button>
         ) : (
@@ -130,10 +236,10 @@ export default function RaceTimerPage() {
         </div>
       </div>
 
-      {/* CONTROLS + TIMER + START section */}
+      {/* CONTROLS + TIMER + BUTTON section */}
       <div className="flex-[2] flex flex-col px-4 pt-3 pb-4">
 
-        {/* Control row: Reset | Count Down | Stop */}
+        {/* Control row */}
         <div className="flex items-center justify-between mb-2 px-1">
           <button
             onClick={handleReset}
@@ -153,35 +259,52 @@ export default function RaceTimerPage() {
 
         {/* Preset minute buttons */}
         <div className="flex justify-around mb-2 px-4">
-          {PRESETS.map(m => (
+          {PRESETS.map(n => (
             <button
-              key={m}
-              onClick={() => { setDurationMin(m); }}
+              key={n}
+              onClick={() => setDurationMin(n)}
               className={`text-3xl font-bold w-14 h-14 flex items-center justify-center active:opacity-50
-                ${durationMin === m ? 'text-kroo-blue' : 'text-white'}`}
+                ${durationMin === n ? 'text-kroo-blue' : 'text-white'}`}
             >
-              {m}
+              {n}
             </button>
           ))}
         </div>
 
-        {/* Timer display */}
-        <div className={`flex-1 flex items-center justify-center font-black leading-none
-          ${over ? 'text-red-500' : 'text-white'}`}
-          style={{ fontSize: 'clamp(130px, 39vw, 260px)' }}>
-          <span>{m}</span>
-          <span className="mx-1" style={{ fontSize: '60%', marginBottom: '0.05em' }}>•</span>
-          <span>{s}</span>
+        {/* Timer display or flashing START */}
+        <div className="flex-1 flex items-center justify-center font-black leading-none">
+          {showStart ? (
+            <span style={{ color: flashOn ? '#ffffff' : '#000000', fontSize: 'clamp(80px, 24vw, 180px)', transition: 'none' }}>
+              START
+            </span>
+          ) : (
+            <span className={over ? 'text-red-500' : 'text-white'}
+              style={{ fontSize: 'clamp(130px, 39vw, 260px)', display: 'flex', alignItems: 'center' }}>
+              <span>{m}</span>
+              <span style={{ fontSize: '60%', margin: '0 4px', paddingBottom: '0.05em' }}>•</span>
+              <span>{s}</span>
+            </span>
+          )}
         </div>
 
-        {/* START button */}
-        <button
-          onClick={handleStart}
-          className="w-full py-7 rounded-full bg-kroo-blue text-white font-black tracking-widest active:scale-95 transition-transform"
-          style={{ fontSize: 'clamp(48px, 14vw, 80px)' }}
-        >
-          START
-        </button>
+        {/* START / SYNC button */}
+        {running ? (
+          <button
+            onClick={handleSync}
+            className="w-full py-7 rounded-full font-black tracking-widest active:scale-95 transition-transform"
+            style={{ fontSize: 'clamp(48px, 14vw, 80px)', backgroundColor: '#f59e0b', color: '#000' }}
+          >
+            SYNC
+          </button>
+        ) : (
+          <button
+            onClick={handleStart}
+            className="w-full py-7 rounded-full bg-kroo-blue text-white font-black tracking-widest active:scale-95 transition-transform"
+            style={{ fontSize: 'clamp(48px, 14vw, 80px)' }}
+          >
+            START
+          </button>
+        )}
       </div>
     </div>
   );
