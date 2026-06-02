@@ -273,7 +273,7 @@ export default function RaceTimerPage() {
 
       {/* HEADING */}
       {showHeading && <div
-        className="flex flex-col items-center justify-start border-b border-white/20 px-4 transition-all duration-300 min-h-0 overflow-hidden"
+        className="flex flex-col items-center justify-center border-b border-white/20 px-4 transition-all duration-300 min-h-0 overflow-hidden"
         style={{ flex: sensorFlex, paddingTop: 0, paddingBottom: 0 }}
       >
         <div className="font-light tracking-widest uppercase" style={{ color: '#888888', fontSize: sensorLabelSize }}>Heading</div>
@@ -290,7 +290,7 @@ export default function RaceTimerPage() {
 
       {/* SPEED */}
       {showSpeed && <div
-        className="flex flex-col items-center justify-start border-b border-white/20 px-4 transition-all duration-300 min-h-0 overflow-hidden"
+        className="flex flex-col items-center justify-center border-b border-white/20 px-4 transition-all duration-300 min-h-0 overflow-hidden"
         style={{ flex: sensorFlex, paddingTop: 0, paddingBottom: 0 }}
       >
         <div className="font-light tracking-widest uppercase" style={{ color: '#888888', fontSize: sensorLabelSize }}>Speed</div>
