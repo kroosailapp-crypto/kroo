@@ -11,13 +11,12 @@ function formatTime(seconds) {
   return { m: String(m), s: s.toString().padStart(2, '0'), over: seconds < 0 };
 }
 
-// Web Audio beep generator
-function createBeep(audioCtx, duration, frequency = 880, volume = 1) {
+function createBeep(audioCtx, duration, frequency = 1400, volume = 2.5) {
   const oscillator = audioCtx.createOscillator();
   const gainNode = audioCtx.createGain();
   oscillator.connect(gainNode);
   gainNode.connect(audioCtx.destination);
-  oscillator.type = 'sine';
+  oscillator.type = 'square'; // louder, more piercing than sine
   oscillator.frequency.value = frequency;
   gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
   gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
@@ -26,8 +25,7 @@ function createBeep(audioCtx, duration, frequency = 880, volume = 1) {
 }
 
 function playPattern(audioCtx, pattern) {
-  // pattern: array of { delay, duration, freq }
-  pattern.forEach(({ delay, duration, freq = 880 }) => {
+  pattern.forEach(({ delay, duration, freq = 1400 }) => {
     setTimeout(() => createBeep(audioCtx, duration, freq), delay * 1000);
   });
 }
@@ -37,7 +35,7 @@ export default function RaceTimerPage() {
   const [timeLeft, setTimeLeft] = useState(3 * 60);
   const [running, setRunning] = useState(false);
   const [started, setStarted] = useState(false);
-  const [showStart, setShowStart] = useState(false); // flashing START at 0:00
+  const [showStart, setShowStart] = useState(false);
   const [flashOn, setFlashOn] = useState(true);
 
   const [heading, setHeading] = useState(null);
@@ -51,8 +49,8 @@ export default function RaceTimerPage() {
   const beeped = useRef(new Set());
   const showStartTimeout = useRef(null);
   const flashIntervalRef = useRef(null);
+  const startBeepIntervalRef = useRef(null);
 
-  // Initialise AudioContext on first user gesture
   const ensureAudio = () => {
     if (!audioCtxRef.current) {
       audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
@@ -60,6 +58,14 @@ export default function RaceTimerPage() {
     if (audioCtxRef.current.state === 'suspended') {
       audioCtxRef.current.resume();
     }
+    return audioCtxRef.current;
+  };
+
+  const clearStartSequence = () => {
+    clearTimeout(showStartTimeout.current);
+    clearInterval(flashIntervalRef.current);
+    clearInterval(startBeepIntervalRef.current);
+    setShowStart(false);
   };
 
   useEffect(() => {
@@ -79,45 +85,45 @@ export default function RaceTimerPage() {
       const ac = audioCtxRef.current;
       if (!ac) return;
 
-      const key = t;
-      if (beeped.current.has(key)) return;
-      beeped.current.add(key);
+      if (beeped.current.has(t)) return;
+      beeped.current.add(t);
 
       if (t === 120 || t === 60) {
-        // 1-second single beep
-        createBeep(ac, 1.0, 880);
+        createBeep(ac, 1.0, 1400);
       } else if (t === 30) {
-        // 3 short beeps
         playPattern(ac, [
-          { delay: 0,   duration: 0.15 },
-          { delay: 0.3, duration: 0.15 },
-          { delay: 0.6, duration: 0.15 },
+          { delay: 0,   duration: 0.12 },
+          { delay: 0.25, duration: 0.12 },
+          { delay: 0.5, duration: 0.12 },
         ]);
       } else if (t === 20) {
-        // 2 short beeps
         playPattern(ac, [
-          { delay: 0,   duration: 0.15 },
-          { delay: 0.3, duration: 0.15 },
+          { delay: 0,   duration: 0.12 },
+          { delay: 0.25, duration: 0.12 },
         ]);
       } else if (t === 10) {
-        // 1 short beep
-        createBeep(ac, 0.15, 880);
+        createBeep(ac, 0.12, 1400);
       } else if (t >= 1 && t <= 5) {
-        // beep every second
-        createBeep(ac, 0.15, 1046); // slightly higher pitch
+        createBeep(ac, 0.12, 1600);
       } else if (t === 0) {
         // long 3-second beep
-        createBeep(ac, 3.0, 1046, 1);
-        // show flashing START
+        createBeep(ac, 3.0, 1600);
+        // flashing START
         setShowStart(true);
         let on = true;
         flashIntervalRef.current = setInterval(() => {
           on = !on;
           setFlashOn(on);
         }, 400);
+        // beep every 1.5s during the START flash
+        startBeepIntervalRef.current = setInterval(() => {
+          if (audioCtxRef.current) createBeep(audioCtxRef.current, 0.2, 1600);
+        }, 1500);
+        // stop after 10s
         showStartTimeout.current = setTimeout(() => {
-          setShowStart(false);
           clearInterval(flashIntervalRef.current);
+          clearInterval(startBeepIntervalRef.current);
+          setShowStart(false);
         }, 10000);
       }
     }, 100);
@@ -127,12 +133,11 @@ export default function RaceTimerPage() {
   const handleStart = useCallback(() => {
     ensureAudio();
     beeped.current = new Set();
+    clearStartSequence();
+    // Reset timer to selected duration and begin
     durationRef.current = durationMin * 60;
     startTimeRef.current = Date.now();
     setTimeLeft(durationMin * 60);
-    setShowStart(false);
-    clearTimeout(showStartTimeout.current);
-    clearInterval(flashIntervalRef.current);
     setRunning(true);
     setStarted(true);
   }, [durationMin]);
@@ -140,9 +145,7 @@ export default function RaceTimerPage() {
   const handleStop = useCallback(() => {
     setRunning(false);
     setStarted(false);
-    setShowStart(false);
-    clearTimeout(showStartTimeout.current);
-    clearInterval(flashIntervalRef.current);
+    clearStartSequence();
     setTimeLeft(durationMin * 60);
     beeped.current = new Set();
   }, [durationMin]);
@@ -150,20 +153,20 @@ export default function RaceTimerPage() {
   const handleReset = useCallback(() => {
     ensureAudio();
     beeped.current = new Set();
+    clearStartSequence();
     durationRef.current = durationMin * 60;
     startTimeRef.current = Date.now();
     setTimeLeft(durationMin * 60);
-    setShowStart(false);
-    clearTimeout(showStartTimeout.current);
-    clearInterval(flashIntervalRef.current);
   }, [durationMin]);
 
-  // Sync: snap to nearest whole minute
+  // Sync: snap display to the nearest whole minute, keep counting from there
   const handleSync = useCallback(() => {
-    const current = Math.round(durationRef.current - (Date.now() - startTimeRef.current) / 1000);
+    // How many seconds are left right now?
+    const current = durationRef.current - (Date.now() - startTimeRef.current) / 1000;
+    // Round to nearest minute
     const snapped = Math.round(current / 60) * 60;
-    const newDuration = durationRef.current + (snapped - current);
-    durationRef.current = newDuration;
+    // From now, count down from `snapped` seconds
+    durationRef.current = snapped;
     startTimeRef.current = Date.now();
     beeped.current = new Set();
     setTimeLeft(snapped);
@@ -241,18 +244,11 @@ export default function RaceTimerPage() {
 
         {/* Control row */}
         <div className="flex items-center justify-between mb-2 px-1">
-          <button
-            onClick={handleReset}
-            className="font-bold text-xl tracking-wide active:opacity-60"
-            style={{ color: '#22c55e' }}
-          >
+          <button onClick={handleReset} className="font-bold text-xl tracking-wide active:opacity-60" style={{ color: '#22c55e' }}>
             Reset
           </button>
           <span className="text-white font-light text-lg tracking-widest">Count Down</span>
-          <button
-            onClick={handleStop}
-            className="text-red-500 font-bold text-xl tracking-wide active:opacity-60"
-          >
+          <button onClick={handleStop} className="text-red-500 font-bold text-xl tracking-wide active:opacity-60">
             Stop
           </button>
         </div>
@@ -274,12 +270,11 @@ export default function RaceTimerPage() {
         {/* Timer display or flashing START */}
         <div className="flex-1 flex items-center justify-center font-black leading-none">
           {showStart ? (
-            <span style={{ color: flashOn ? '#ffffff' : '#000000', fontSize: 'clamp(80px, 24vw, 180px)', transition: 'none' }}>
+            <span style={{ color: flashOn ? '#ffffff' : '#000000', fontSize: 'clamp(80px, 24vw, 180px)' }}>
               START
             </span>
           ) : (
-            <span className={over ? 'text-red-500' : 'text-white'}
-              style={{ fontSize: 'clamp(130px, 39vw, 260px)', display: 'flex', alignItems: 'center' }}>
+            <span style={{ display: 'flex', alignItems: 'center', fontSize: 'clamp(130px, 39vw, 260px)', color: over ? '#ef4444' : '#ffffff' }}>
               <span>{m}</span>
               <span style={{ fontSize: '60%', margin: '0 4px', paddingBottom: '0.05em' }}>•</span>
               <span>{s}</span>
