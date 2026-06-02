@@ -103,17 +103,17 @@ export default function RaceTimerPage() {
         createBeep(ac, 1.0, 1400);
       } else if (t === 30) {
         playPattern(ac, [
-          { delay: 0,    duration: 0.12 },
-          { delay: 0.25, duration: 0.12 },
-          { delay: 0.5,  duration: 0.12 },
+          { delay: 0,   duration: 0.5 },
+          { delay: 0.7, duration: 0.5 },
+          { delay: 1.4, duration: 0.5 },
         ]);
       } else if (t === 20) {
         playPattern(ac, [
-          { delay: 0,    duration: 0.12 },
-          { delay: 0.25, duration: 0.12 },
+          { delay: 0,   duration: 0.5 },
+          { delay: 0.7, duration: 0.5 },
         ]);
       } else if (t === 10) {
-        createBeep(ac, 0.12, 1400);
+        createBeep(ac, 0.5, 1400);
       } else if (t >= 1 && t <= 5) {
         createBeep(ac, 0.12, 1600);
       } else if (t === 0) {
