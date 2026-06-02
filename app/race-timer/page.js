@@ -274,7 +274,7 @@ export default function RaceTimerPage() {
       {/* HEADING */}
       {showHeading && <div
         className="flex flex-col items-center justify-center border-b border-white/20 px-4 transition-all duration-300 min-h-0 overflow-hidden"
-        style={{ flex: sensorFlex, paddingTop: isCounting ? '6px' : '12px', paddingBottom: isCounting ? '6px' : '12px' }}
+        style={{ flex: sensorFlex, paddingTop: isCounting ? '5px' : '10px', paddingBottom: isCounting ? '5px' : '10px' }}
       >
         <div className="font-light tracking-widest uppercase" style={{ color: '#888888', fontSize: sensorLabelSize }}>Heading</div>
         {orientError === 'needs-permission' ? (
@@ -291,7 +291,7 @@ export default function RaceTimerPage() {
       {/* SPEED */}
       {showSpeed && <div
         className="flex flex-col items-center justify-center border-b border-white/20 px-4 transition-all duration-300 min-h-0 overflow-hidden"
-        style={{ flex: sensorFlex, paddingTop: isCounting ? '6px' : '12px', paddingBottom: isCounting ? '6px' : '12px' }}
+        style={{ flex: sensorFlex, paddingTop: isCounting ? '5px' : '10px', paddingBottom: isCounting ? '5px' : '10px' }}
       >
         <div className="font-light tracking-widest uppercase" style={{ color: '#888888', fontSize: sensorLabelSize }}>Speed</div>
         <div className="text-white font-bold leading-none" style={{ fontSize: sensorFontSize }}>
