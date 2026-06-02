@@ -117,10 +117,10 @@ export default function RaceTimerPage() {
       } else if (t >= 1 && t <= 5) {
         createBeep(ac, 0.12, 1600);
       } else if (t === 0) {
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 3; i++) {
           setTimeout(() => {
-            if (audioCtxRef.current) createBeep(audioCtxRef.current, 3.0, 1600);
-          }, i * 2000);
+            if (audioCtxRef.current) createBeep(audioCtxRef.current, 2.0, 1600);
+          }, i * 2500);
         }
         setShowStart(true);
         let on = true;
