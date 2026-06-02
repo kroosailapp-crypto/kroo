@@ -168,7 +168,7 @@ export default function RaceTimerPage() {
         {/* Timer display */}
         <div className={`flex-1 flex items-center justify-center font-black leading-none
           ${over ? 'text-red-500' : 'text-white'}`}
-          style={{ fontSize: 'clamp(100px, 30vw, 200px)' }}>
+          style={{ fontSize: 'clamp(130px, 39vw, 260px)' }}>
           <span>{m}</span>
           <span className="mx-1" style={{ fontSize: '60%', marginBottom: '0.05em' }}>•</span>
           <span>{s}</span>
