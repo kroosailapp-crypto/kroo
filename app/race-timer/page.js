@@ -273,7 +273,7 @@ export default function RaceTimerPage() {
 
       {/* HEADING */}
       {showHeading && <div
-        className="flex flex-col items-center justify-center border-b border-white/20 px-4 transition-all duration-300"
+        className="flex flex-col items-center justify-center border-b border-white/20 px-4 transition-all duration-300 min-h-0 overflow-hidden"
         style={{ flex: sensorFlex, paddingTop: isCounting ? '6px' : '12px', paddingBottom: isCounting ? '6px' : '12px' }}
       >
         <div className="font-light tracking-widest uppercase" style={{ color: '#888888', fontSize: sensorLabelSize }}>Heading</div>
@@ -290,7 +290,7 @@ export default function RaceTimerPage() {
 
       {/* SPEED */}
       {showSpeed && <div
-        className="flex flex-col items-center justify-center border-b border-white/20 px-4 transition-all duration-300"
+        className="flex flex-col items-center justify-center border-b border-white/20 px-4 transition-all duration-300 min-h-0 overflow-hidden"
         style={{ flex: sensorFlex, paddingTop: isCounting ? '6px' : '12px', paddingBottom: isCounting ? '6px' : '12px' }}
       >
         <div className="font-light tracking-widest uppercase" style={{ color: '#888888', fontSize: sensorLabelSize }}>Speed</div>
@@ -301,7 +301,7 @@ export default function RaceTimerPage() {
 
       {/* CONTROLS + TIMER + BUTTON */}
       {showTimer && <div
-        className="flex flex-col px-4 pt-3 pb-2 transition-all duration-300"
+        className="flex flex-col px-4 pt-3 pb-2 transition-all duration-300 min-h-0 overflow-hidden"
         style={{ flex: controlsFlex }}
       >
         {/* Control row: always visible */}
@@ -375,7 +375,7 @@ export default function RaceTimerPage() {
       </div>}
 
       {/* BOTTOM BAR */}
-      <div className="flex-shrink-0 flex items-center justify-between px-8 pb-6 pt-2">
+      <div className="flex-shrink-0 flex items-center justify-between px-8 pb-8 pt-1" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
         <button
           onClick={() => setShowSettings(true)}
           className="p-3 rounded-full active:opacity-60"
