@@ -106,8 +106,12 @@ export default function RaceTimerPage() {
       } else if (t >= 1 && t <= 5) {
         createBeep(ac, 0.12, 1600);
       } else if (t === 0) {
-        // long 3-second beep
-        createBeep(ac, 3.0, 1600);
+        // First long beep + 4 repeats, spaced 4s apart
+        for (let i = 0; i < 5; i++) {
+          setTimeout(() => {
+            if (audioCtxRef.current) createBeep(audioCtxRef.current, 3.0, 1600);
+          }, i * 4000);
+        }
         // flashing START
         setShowStart(true);
         let on = true;
@@ -115,14 +119,9 @@ export default function RaceTimerPage() {
           on = !on;
           setFlashOn(on);
         }, 400);
-        // beep every 1.5s during the START flash
-        startBeepIntervalRef.current = setInterval(() => {
-          if (audioCtxRef.current) createBeep(audioCtxRef.current, 0.2, 1600);
-        }, 1500);
         // stop after 10s
         showStartTimeout.current = setTimeout(() => {
           clearInterval(flashIntervalRef.current);
-          clearInterval(startBeepIntervalRef.current);
           setShowStart(false);
         }, 10000);
       }
