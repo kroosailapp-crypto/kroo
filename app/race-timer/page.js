@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { IconSettings, IconLock, IconLockOpen } from '@tabler/icons-react';
 
 const PRESETS = [1, 2, 3, 5];
 
@@ -42,6 +43,13 @@ export default function RaceTimerPage() {
   const [speed, setSpeed] = useState(null);
   const [orientError, setOrientError] = useState(null);
 
+  const [showSettings, setShowSettings] = useState(false);
+  const [showHeading, setShowHeading] = useState(true);
+  const [showSpeed, setShowSpeed] = useState(true);
+  const [showTimer, setShowTimer] = useState(true);
+  const [locked, setLocked] = useState(false);
+  const [unlockProgress, setUnlockProgress] = useState(0);
+
   const startTimeRef = useRef(null);
   const durationRef = useRef(3 * 60);
   const orientListenerRef = useRef(null);
@@ -49,6 +57,8 @@ export default function RaceTimerPage() {
   const beeped = useRef(new Set());
   const showStartTimeout = useRef(null);
   const flashIntervalRef = useRef(null);
+  const lockHoldRef = useRef(null);
+  const lockProgressRef = useRef(null);
 
   // Derived layout states
   // - idle:      !started
@@ -197,6 +207,25 @@ export default function RaceTimerPage() {
     } catch {}
   };
 
+  const startUnlockHold = () => {
+    let prog = 0;
+    setUnlockProgress(0);
+    lockProgressRef.current = setInterval(() => {
+      prog += 100 / 20; // reach 100 in 2s (20 steps of 100ms)
+      setUnlockProgress(prog);
+      if (prog >= 100) {
+        clearInterval(lockProgressRef.current);
+        setLocked(false);
+        setUnlockProgress(0);
+      }
+    }, 100);
+  };
+
+  const cancelUnlockHold = () => {
+    clearInterval(lockProgressRef.current);
+    setUnlockProgress(0);
+  };
+
   const speedKnots = speed != null && speed >= 0 ? (speed * 1.94384).toFixed(1) : '--';
   const headingDisplay = heading != null ? `${heading}°` : '---';
   const { m, s, over } = formatTime(timeLeft);
@@ -239,7 +268,7 @@ export default function RaceTimerPage() {
       </div>
 
       {/* HEADING */}
-      <div
+      {showHeading && <div
         className="flex flex-col items-center justify-center border-b border-white/20 px-4 transition-all duration-300"
         style={{ flex: sensorFlex, paddingTop: isCounting ? '6px' : '12px', paddingBottom: isCounting ? '6px' : '12px' }}
       >
@@ -253,10 +282,10 @@ export default function RaceTimerPage() {
             {headingDisplay}
           </div>
         )}
-      </div>
+      </div>}
 
       {/* SPEED */}
-      <div
+      {showSpeed && <div
         className="flex flex-col items-center justify-center border-b border-white/20 px-4 transition-all duration-300"
         style={{ flex: sensorFlex, paddingTop: isCounting ? '6px' : '12px', paddingBottom: isCounting ? '6px' : '12px' }}
       >
@@ -264,11 +293,11 @@ export default function RaceTimerPage() {
         <div className="text-white font-bold leading-none" style={{ fontSize: sensorFontSize }}>
           {speedKnots}
         </div>
-      </div>
+      </div>}
 
       {/* CONTROLS + TIMER + BUTTON */}
       <div
-        className="flex flex-col px-4 pt-3 pb-4 transition-all duration-300"
+        className="flex flex-col px-4 pt-3 pb-2 transition-all duration-300"
         style={{ flex: controlsFlex }}
       >
         {/* Control row: always visible */}
@@ -282,7 +311,7 @@ export default function RaceTimerPage() {
           </button>
         </div>
 
-        {/* Preset buttons — hidden while counting or post-start */}
+        {/* Preset buttons — idle only */}
         {isIdle && (
           <div className="flex justify-around mb-2 px-4">
             {PRESETS.map(n => (
@@ -299,31 +328,33 @@ export default function RaceTimerPage() {
         )}
 
         {/* Timer display or flashing START */}
-        <div className="flex-1 flex items-center justify-center font-black leading-none">
-          {showStart ? (
-            <span style={{ color: flashOn ? '#ffffff' : '#000000', fontSize: 'clamp(80px, 24vw, 180px)' }}>
-              START
-            </span>
-          ) : (
-            <span style={{
-              display: 'flex', alignItems: 'center',
-              color: over ? '#ef4444' : '#ffffff',
-              fontSize: isPostStart
-                ? 'clamp(70px, 20vw, 130px)'   // smaller after start
-                : 'clamp(130px, 39vw, 260px)',  // big while counting / idle
-            }}>
-              <span>{m}</span>
-              <span style={{ fontSize: '60%', margin: '0 4px', paddingBottom: '0.05em' }}>•</span>
-              <span>{s}</span>
-            </span>
-          )}
-        </div>
+        {showTimer && (
+          <div className="flex-1 flex items-center justify-center font-black leading-none">
+            {showStart ? (
+              <span style={{ color: flashOn ? '#ffffff' : '#000000', fontSize: 'clamp(80px, 24vw, 180px)' }}>
+                START
+              </span>
+            ) : (
+              <span style={{
+                display: 'flex', alignItems: 'center',
+                color: over ? '#ef4444' : '#ffffff',
+                fontSize: isPostStart
+                  ? 'clamp(70px, 20vw, 130px)'
+                  : 'clamp(130px, 39vw, 260px)',
+              }}>
+                <span>{m}</span>
+                <span style={{ fontSize: '60%', margin: '0 4px', paddingBottom: '0.05em' }}>•</span>
+                <span>{s}</span>
+              </span>
+            )}
+          </div>
+        )}
 
-        {/* Button: START (idle), SYNC (counting), nothing (post-start) */}
+        {/* START / SYNC button — above the bottom bar */}
         {isIdle && (
           <button
             onClick={handleStart}
-            className="w-full rounded-full bg-kroo-blue text-white font-black tracking-widest active:scale-95 transition-transform"
+            className="w-full rounded-full bg-kroo-blue text-white font-black tracking-widest active:scale-95 transition-transform mb-2"
             style={{ fontSize: 'clamp(48px, 14vw, 80px)', paddingTop: '1.2rem', paddingBottom: '1.2rem' }}
           >
             START
@@ -332,13 +363,94 @@ export default function RaceTimerPage() {
         {isCounting && (
           <button
             onClick={handleSync}
-            className="w-full rounded-full font-black tracking-widest active:scale-95 transition-transform"
+            className="w-full rounded-full font-black tracking-widest active:scale-95 transition-transform mb-2"
             style={{ fontSize: 'clamp(48px, 14vw, 80px)', paddingTop: '1.2rem', paddingBottom: '1.2rem', backgroundColor: '#f59e0b', color: '#000' }}
           >
             SYNC
           </button>
         )}
       </div>
+
+      {/* BOTTOM BAR */}
+      <div className="flex-shrink-0 flex items-center justify-between px-8 pb-6 pt-2">
+        <button
+          onClick={() => setShowSettings(true)}
+          className="p-3 rounded-full active:opacity-60"
+          style={{ color: '#888' }}
+        >
+          <IconSettings size={32} stroke={1.5} />
+        </button>
+        <button
+          onClick={() => setLocked(true)}
+          className="p-3 rounded-full active:opacity-60"
+          style={{ color: '#888' }}
+        >
+          <IconLock size={32} stroke={1.5} />
+        </button>
+      </div>
+
+      {/* SETTINGS PANEL */}
+      {showSettings && (
+        <div className="fixed inset-0 z-50 flex items-end" onClick={() => setShowSettings(false)}>
+          <div
+            className="w-full rounded-t-3xl p-8 pb-12"
+            style={{ backgroundColor: '#111' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="w-12 h-1 rounded-full bg-white/20 mx-auto mb-6" />
+            <div className="text-white font-bold text-2xl mb-6 tracking-wide">Display Settings</div>
+            {[
+              { label: 'Heading', value: showHeading, set: setShowHeading },
+              { label: 'Speed',   value: showSpeed,   set: setShowSpeed   },
+              { label: 'Timer',   value: showTimer,   set: setShowTimer   },
+            ].map(({ label, value, set }) => (
+              <div key={label} className="flex items-center justify-between py-4 border-b border-white/10">
+                <span className="text-white text-xl">{label}</span>
+                <button
+                  onClick={() => set(v => !v)}
+                  className="w-14 h-8 rounded-full transition-colors relative"
+                  style={{ backgroundColor: value ? '#0161f0' : '#333' }}
+                >
+                  <span
+                    className="absolute top-1 w-6 h-6 bg-white rounded-full transition-all"
+                    style={{ left: value ? '2rem' : '0.125rem' }}
+                  />
+                </button>
+              </div>
+            ))}
+            <button
+              onClick={() => setShowSettings(false)}
+              className="mt-8 w-full py-4 rounded-full text-white font-bold text-xl"
+              style={{ backgroundColor: '#222' }}
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* LOCK OVERLAY */}
+      {locked && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center"
+          style={{ backgroundColor: 'rgba(0,0,0,0.85)' }}
+          onTouchStart={startUnlockHold}
+          onTouchEnd={cancelUnlockHold}
+          onMouseDown={startUnlockHold}
+          onMouseUp={cancelUnlockHold}
+          onMouseLeave={cancelUnlockHold}
+        >
+          <IconLockOpen size={64} stroke={1.2} color="#888" />
+          <div className="text-white/50 text-lg mt-4 mb-8">Hold to unlock</div>
+          {/* Progress ring */}
+          <svg width="80" height="80" className="absolute" style={{ opacity: unlockProgress > 0 ? 1 : 0 }}>
+            <circle cx="40" cy="40" r="36" fill="none" stroke="#0161f0" strokeWidth="4"
+              strokeDasharray={`${(unlockProgress / 100) * 226} 226`}
+              strokeLinecap="round"
+              transform="rotate(-90 40 40)" />
+          </svg>
+        </div>
+      )}
     </div>
   );
 }
