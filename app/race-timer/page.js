@@ -110,7 +110,7 @@ export default function RaceTimerPage() {
         for (let i = 0; i < 5; i++) {
           setTimeout(() => {
             if (audioCtxRef.current) createBeep(audioCtxRef.current, 3.0, 1600);
-          }, i * 4000);
+          }, i * 2000);
         }
         // flashing START
         setShowStart(true);
@@ -123,7 +123,7 @@ export default function RaceTimerPage() {
         showStartTimeout.current = setTimeout(() => {
           clearInterval(flashIntervalRef.current);
           setShowStart(false);
-        }, 10000);
+        }, 12000);
       }
     }, 100);
     return () => clearInterval(id);
