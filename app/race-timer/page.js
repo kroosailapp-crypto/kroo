@@ -203,8 +203,10 @@ export default function RaceTimerPage() {
 
   // Font sizes per state
   const sensorFontSize = isCounting
-    ? 'clamp(40px, 12vw, 80px)'   // small while counting
-    : 'clamp(80px, 26vw, 160px)'; // large idle / post-start
+    ? 'clamp(40px, 12vw, 80px)'    // small while counting
+    : isPostStart
+    ? 'clamp(110px, 36vw, 220px)'  // huge after start
+    : 'clamp(80px, 26vw, 160px)';  // normal idle
 
   const sensorLabelSize = isCounting ? '0.85rem' : '1.25rem';
 
