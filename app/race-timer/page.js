@@ -358,7 +358,7 @@ export default function RaceTimerPage() {
           <button
             onClick={handleStart}
             className="w-full rounded-full bg-kroo-blue text-white font-black tracking-widest active:scale-95 transition-transform mb-2"
-            style={{ fontSize: 'clamp(48px, 14vw, 80px)', paddingTop: '1.2rem', paddingBottom: '1.2rem' }}
+            style={{ fontSize: 'clamp(28px, 8vw, 48px)', paddingTop: '0.7rem', paddingBottom: '0.7rem' }}
           >
             START
           </button>
@@ -367,7 +367,7 @@ export default function RaceTimerPage() {
           <button
             onClick={handleSync}
             className="w-full rounded-full font-black tracking-widest active:scale-95 transition-transform mb-2"
-            style={{ fontSize: 'clamp(48px, 14vw, 80px)', paddingTop: '1.2rem', paddingBottom: '1.2rem', backgroundColor: '#f59e0b', color: '#000' }}
+            style={{ fontSize: 'clamp(28px, 8vw, 48px)', paddingTop: '0.7rem', paddingBottom: '0.7rem', backgroundColor: '#f59e0b', color: '#000' }}
           >
             SYNC
           </button>
