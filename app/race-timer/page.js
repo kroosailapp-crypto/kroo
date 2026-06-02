@@ -296,7 +296,7 @@ export default function RaceTimerPage() {
       </div>}
 
       {/* CONTROLS + TIMER + BUTTON */}
-      <div
+      {showTimer && <div
         className="flex flex-col px-4 pt-3 pb-2 transition-all duration-300"
         style={{ flex: controlsFlex }}
       >
@@ -328,8 +328,7 @@ export default function RaceTimerPage() {
         )}
 
         {/* Timer display or flashing START */}
-        {showTimer && (
-          <div className="flex-1 flex items-center justify-center font-black leading-none">
+        <div className="flex-1 flex items-center justify-center font-black leading-none">
             {showStart ? (
               <span style={{ color: flashOn ? '#ffffff' : '#000000', fontSize: 'clamp(80px, 24vw, 180px)' }}>
                 START
@@ -348,7 +347,6 @@ export default function RaceTimerPage() {
               </span>
             )}
           </div>
-        )}
 
         {/* START / SYNC button — above the bottom bar */}
         {isIdle && (
@@ -369,7 +367,7 @@ export default function RaceTimerPage() {
             SYNC
           </button>
         )}
-      </div>
+      </div>}
 
       {/* BOTTOM BAR */}
       <div className="flex-shrink-0 flex items-center justify-between px-8 pb-6 pt-2">
