@@ -231,13 +231,17 @@ export default function RaceTimerPage() {
   const { m, s, over } = formatTime(timeLeft);
 
   // Font sizes per state
+  const timerHidden = !showTimer;
+
   const sensorFontSize = isCounting
     ? 'clamp(40px, 12vw, 80px)'    // small while counting
+    : timerHidden
+    ? 'clamp(140px, 22vh, 320px)'  // fills half screen when timer off
     : isPostStart
     ? 'clamp(110px, 36vw, 220px)'  // huge after start
     : 'clamp(80px, 26vw, 160px)';  // normal idle
 
-  const sensorLabelSize = isCounting ? '0.85rem' : '1.25rem';
+  const sensorLabelSize = (isCounting || !timerHidden) ? (isCounting ? '0.85rem' : '1.25rem') : '1.1rem';
 
   // Flex weights
   const sensorFlex = isCounting ? '0 0 auto' : '1';
