@@ -16,7 +16,7 @@ function createBeep(audioCtx, duration, frequency = 1400, volume = 2.5) {
   const gainNode = audioCtx.createGain();
   oscillator.connect(gainNode);
   gainNode.connect(audioCtx.destination);
-  oscillator.type = 'square'; // louder, more piercing than sine
+  oscillator.type = 'square';
   oscillator.frequency.value = frequency;
   gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
   gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
@@ -35,7 +35,7 @@ export default function RaceTimerPage() {
   const [timeLeft, setTimeLeft] = useState(3 * 60);
   const [running, setRunning] = useState(false);
   const [started, setStarted] = useState(false);
-  const [showStart, setShowStart] = useState(false);
+  const [showStart, setShowStart] = useState(false); // flashing START phase
   const [flashOn, setFlashOn] = useState(true);
 
   const [heading, setHeading] = useState(null);
@@ -49,22 +49,26 @@ export default function RaceTimerPage() {
   const beeped = useRef(new Set());
   const showStartTimeout = useRef(null);
   const flashIntervalRef = useRef(null);
-  const startBeepIntervalRef = useRef(null);
+
+  // Derived layout states
+  // - idle:      !started
+  // - counting:  started && timeLeft > 0
+  // - postStart: started && timeLeft <= 0 (showStart phase + after)
+  const isIdle = !started;
+  const isCounting = started && timeLeft > 0;
+  const isPostStart = started && timeLeft <= 0;
 
   const ensureAudio = () => {
     if (!audioCtxRef.current) {
       audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
     }
-    if (audioCtxRef.current.state === 'suspended') {
-      audioCtxRef.current.resume();
-    }
+    if (audioCtxRef.current.state === 'suspended') audioCtxRef.current.resume();
     return audioCtxRef.current;
   };
 
   const clearStartSequence = () => {
     clearTimeout(showStartTimeout.current);
     clearInterval(flashIntervalRef.current);
-    clearInterval(startBeepIntervalRef.current);
     setShowStart(false);
   };
 
@@ -75,7 +79,6 @@ export default function RaceTimerPage() {
     }
   }, [durationMin, running, started]);
 
-  // Main countdown + beep logic
   useEffect(() => {
     if (!running) return;
     const id = setInterval(() => {
@@ -83,22 +86,20 @@ export default function RaceTimerPage() {
       setTimeLeft(t);
 
       const ac = audioCtxRef.current;
-      if (!ac) return;
-
-      if (beeped.current.has(t)) return;
+      if (!ac || beeped.current.has(t)) return;
       beeped.current.add(t);
 
       if (t === 120 || t === 60) {
         createBeep(ac, 1.0, 1400);
       } else if (t === 30) {
         playPattern(ac, [
-          { delay: 0,   duration: 0.12 },
+          { delay: 0,    duration: 0.12 },
           { delay: 0.25, duration: 0.12 },
-          { delay: 0.5, duration: 0.12 },
+          { delay: 0.5,  duration: 0.12 },
         ]);
       } else if (t === 20) {
         playPattern(ac, [
-          { delay: 0,   duration: 0.12 },
+          { delay: 0,    duration: 0.12 },
           { delay: 0.25, duration: 0.12 },
         ]);
       } else if (t === 10) {
@@ -106,20 +107,14 @@ export default function RaceTimerPage() {
       } else if (t >= 1 && t <= 5) {
         createBeep(ac, 0.12, 1600);
       } else if (t === 0) {
-        // First long beep + 4 repeats, spaced 4s apart
         for (let i = 0; i < 5; i++) {
           setTimeout(() => {
             if (audioCtxRef.current) createBeep(audioCtxRef.current, 3.0, 1600);
           }, i * 2000);
         }
-        // flashing START
         setShowStart(true);
         let on = true;
-        flashIntervalRef.current = setInterval(() => {
-          on = !on;
-          setFlashOn(on);
-        }, 400);
-        // stop after 10s
+        flashIntervalRef.current = setInterval(() => { on = !on; setFlashOn(on); }, 400);
         showStartTimeout.current = setTimeout(() => {
           clearInterval(flashIntervalRef.current);
           setShowStart(false);
@@ -133,7 +128,6 @@ export default function RaceTimerPage() {
     ensureAudio();
     beeped.current = new Set();
     clearStartSequence();
-    // Reset timer to selected duration and begin
     durationRef.current = durationMin * 60;
     startTimeRef.current = Date.now();
     setTimeLeft(durationMin * 60);
@@ -156,22 +150,18 @@ export default function RaceTimerPage() {
     durationRef.current = durationMin * 60;
     startTimeRef.current = Date.now();
     setTimeLeft(durationMin * 60);
+    // Keep running=true, started=true so we stay in counting mode
   }, [durationMin]);
 
-  // Sync: snap display to the nearest whole minute, keep counting from there
   const handleSync = useCallback(() => {
-    // How many seconds are left right now?
     const current = durationRef.current - (Date.now() - startTimeRef.current) / 1000;
-    // Round to nearest minute
     const snapped = Math.round(current / 60) * 60;
-    // From now, count down from `snapped` seconds
     durationRef.current = snapped;
     startTimeRef.current = Date.now();
     beeped.current = new Set();
     setTimeLeft(snapped);
   }, []);
 
-  // Geolocation speed
   useEffect(() => {
     if (!navigator.geolocation) return;
     const id = navigator.geolocation.watchPosition(
@@ -182,14 +172,12 @@ export default function RaceTimerPage() {
     return () => navigator.geolocation.clearWatch(id);
   }, []);
 
-  // Compass
   useEffect(() => {
     const handler = (e) => {
       if (e.webkitCompassHeading != null) setHeading(Math.round(e.webkitCompassHeading));
       else if (e.alpha != null) setHeading(Math.round((360 - e.alpha) % 360));
     };
     orientListenerRef.current = handler;
-
     if (typeof DeviceOrientationEvent !== 'undefined' &&
         typeof DeviceOrientationEvent.requestPermission === 'function') {
       setOrientError('needs-permission');
@@ -213,35 +201,54 @@ export default function RaceTimerPage() {
   const headingDisplay = heading != null ? `${heading}°` : '---';
   const { m, s, over } = formatTime(timeLeft);
 
+  // Font sizes per state
+  const sensorFontSize = isCounting
+    ? 'clamp(40px, 12vw, 80px)'   // small while counting
+    : 'clamp(80px, 26vw, 160px)'; // large idle / post-start
+
+  const sensorLabelSize = isCounting ? '0.85rem' : '1.25rem';
+
+  // Flex weights
+  const sensorFlex = isCounting ? '0 0 auto' : '1';
+  const controlsFlex = isCounting ? '1' : isPostStart ? '0 0 auto' : '2';
+
   return (
     <div className="fixed inset-0 bg-black flex flex-col" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
 
-      {/* HEADING section */}
-      <div className="flex-1 flex flex-col items-center justify-center border-b border-white/20 px-4">
-        <div className="text-xl font-light tracking-widest uppercase mb-1" style={{ color: '#888888' }}>Heading</div>
+      {/* HEADING */}
+      <div
+        className="flex flex-col items-center justify-center border-b border-white/20 px-4 transition-all duration-300"
+        style={{ flex: sensorFlex, paddingTop: isCounting ? '6px' : '12px', paddingBottom: isCounting ? '6px' : '12px' }}
+      >
+        <div className="font-light tracking-widest uppercase" style={{ color: '#888888', fontSize: sensorLabelSize }}>Heading</div>
         {orientError === 'needs-permission' ? (
-          <button onClick={requestCompass} className="font-bold underline" style={{ color: '#555', fontSize: 'clamp(80px, 26vw, 160px)' }}>
+          <button onClick={requestCompass} className="font-bold underline" style={{ color: '#555', fontSize: sensorFontSize }}>
             {headingDisplay}
           </button>
         ) : (
-          <div className="text-white font-bold leading-none" style={{ fontSize: 'clamp(80px, 26vw, 160px)' }}>
+          <div className="text-white font-bold leading-none" style={{ fontSize: sensorFontSize }}>
             {headingDisplay}
           </div>
         )}
       </div>
 
-      {/* SPEED section */}
-      <div className="flex-1 flex flex-col items-center justify-center border-b border-white/20 px-4">
-        <div className="text-xl font-light tracking-widest uppercase mb-1" style={{ color: '#888888' }}>Speed</div>
-        <div className="text-white font-bold leading-none" style={{ fontSize: 'clamp(80px, 26vw, 160px)' }}>
+      {/* SPEED */}
+      <div
+        className="flex flex-col items-center justify-center border-b border-white/20 px-4 transition-all duration-300"
+        style={{ flex: sensorFlex, paddingTop: isCounting ? '6px' : '12px', paddingBottom: isCounting ? '6px' : '12px' }}
+      >
+        <div className="font-light tracking-widest uppercase" style={{ color: '#888888', fontSize: sensorLabelSize }}>Speed</div>
+        <div className="text-white font-bold leading-none" style={{ fontSize: sensorFontSize }}>
           {speedKnots}
         </div>
       </div>
 
-      {/* CONTROLS + TIMER + BUTTON section */}
-      <div className="flex-[2] flex flex-col px-4 pt-3 pb-4">
-
-        {/* Control row */}
+      {/* CONTROLS + TIMER + BUTTON */}
+      <div
+        className="flex flex-col px-4 pt-3 pb-4 transition-all duration-300"
+        style={{ flex: controlsFlex }}
+      >
+        {/* Control row: always visible */}
         <div className="flex items-center justify-between mb-2 px-1">
           <button onClick={handleReset} className="font-bold text-xl tracking-wide active:opacity-60" style={{ color: '#22c55e' }}>
             Reset
@@ -252,19 +259,21 @@ export default function RaceTimerPage() {
           </button>
         </div>
 
-        {/* Preset minute buttons */}
-        <div className="flex justify-around mb-2 px-4">
-          {PRESETS.map(n => (
-            <button
-              key={n}
-              onClick={() => setDurationMin(n)}
-              className={`text-3xl font-bold w-14 h-14 flex items-center justify-center active:opacity-50
-                ${durationMin === n ? 'text-kroo-blue' : 'text-white'}`}
-            >
-              {n}
-            </button>
-          ))}
-        </div>
+        {/* Preset buttons — hidden while counting or post-start */}
+        {isIdle && (
+          <div className="flex justify-around mb-2 px-4">
+            {PRESETS.map(n => (
+              <button
+                key={n}
+                onClick={() => setDurationMin(n)}
+                className={`text-3xl font-bold w-14 h-14 flex items-center justify-center active:opacity-50
+                  ${durationMin === n ? 'text-kroo-blue' : 'text-white'}`}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Timer display or flashing START */}
         <div className="flex-1 flex items-center justify-center font-black leading-none">
@@ -273,7 +282,13 @@ export default function RaceTimerPage() {
               START
             </span>
           ) : (
-            <span style={{ display: 'flex', alignItems: 'center', fontSize: 'clamp(130px, 39vw, 260px)', color: over ? '#ef4444' : '#ffffff' }}>
+            <span style={{
+              display: 'flex', alignItems: 'center',
+              color: over ? '#ef4444' : '#ffffff',
+              fontSize: isPostStart
+                ? 'clamp(70px, 20vw, 130px)'   // smaller after start
+                : 'clamp(130px, 39vw, 260px)',  // big while counting / idle
+            }}>
               <span>{m}</span>
               <span style={{ fontSize: '60%', margin: '0 4px', paddingBottom: '0.05em' }}>•</span>
               <span>{s}</span>
@@ -281,22 +296,23 @@ export default function RaceTimerPage() {
           )}
         </div>
 
-        {/* START / SYNC button */}
-        {running ? (
-          <button
-            onClick={handleSync}
-            className="w-full py-7 rounded-full font-black tracking-widest active:scale-95 transition-transform"
-            style={{ fontSize: 'clamp(48px, 14vw, 80px)', backgroundColor: '#f59e0b', color: '#000' }}
-          >
-            SYNC
-          </button>
-        ) : (
+        {/* Button: START (idle), SYNC (counting), nothing (post-start) */}
+        {isIdle && (
           <button
             onClick={handleStart}
-            className="w-full py-7 rounded-full bg-kroo-blue text-white font-black tracking-widest active:scale-95 transition-transform"
-            style={{ fontSize: 'clamp(48px, 14vw, 80px)' }}
+            className="w-full rounded-full bg-kroo-blue text-white font-black tracking-widest active:scale-95 transition-transform"
+            style={{ fontSize: 'clamp(48px, 14vw, 80px)', paddingTop: '1.2rem', paddingBottom: '1.2rem' }}
           >
             START
+          </button>
+        )}
+        {isCounting && (
+          <button
+            onClick={handleSync}
+            className="w-full rounded-full font-black tracking-widest active:scale-95 transition-transform"
+            style={{ fontSize: 'clamp(48px, 14vw, 80px)', paddingTop: '1.2rem', paddingBottom: '1.2rem', backgroundColor: '#f59e0b', color: '#000' }}
+          >
+            SYNC
           </button>
         )}
       </div>
