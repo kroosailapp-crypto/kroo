@@ -343,10 +343,11 @@ export default function RaceTimerPage() {
                 color: over ? '#ef4444' : '#ffffff',
                 fontSize: isPostStart
                   ? 'clamp(70px, 20vw, 130px)'
+                  : timeLeft <= 59
+                  ? 'clamp(180px, 52vw, 340px)'
                   : 'clamp(130px, 39vw, 260px)',
               }}>
-                <span>{m}</span>
-                <span style={{ fontSize: '60%', margin: '0 4px', paddingBottom: '0.05em' }}>•</span>
+                {timeLeft > 59 && <><span>{m}</span><span style={{ fontSize: '60%', margin: '0 4px', paddingBottom: '0.05em' }}>•</span></>}
                 <span>{s}</span>
               </span>
             )}
