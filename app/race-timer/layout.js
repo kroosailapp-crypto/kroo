@@ -8,7 +8,7 @@ export const metadata = {
     title: 'Race Timer',
   },
   icons: {
-    apple: '/icons/icon-180.png',
+    apple: '/icons/timer-icon-180.png',
   },
 };
 
