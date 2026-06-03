@@ -374,21 +374,37 @@ export default function RaceTimerPage() {
         )}
       </div>}
 
-      {/* BOTTOM BAR — always visible */}
-      <div className="flex-shrink-0 flex items-center justify-between px-4 pt-2" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
+      {/* BOTTOM BAR — always visible, sits above touch-blocker */}
+      <div className="flex-shrink-0 flex items-center justify-between px-4 pt-2 relative z-50" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
+        {!locked ? (
+          <button
+            onClick={() => setShowSettings(true)}
+            className="p-3 rounded-full active:opacity-60"
+            style={{ color: '#888' }}
+          >
+            <IconSettings size={32} stroke={1.5} />
+          </button>
+        ) : (
+          <span className="text-sm font-semibold" style={{ color: '#ef4444' }}>Hold to Unlock</span>
+        )}
         <button
-          onClick={() => setShowSettings(true)}
-          className="p-3 rounded-full active:opacity-60"
-          style={{ color: '#888' }}
-        >
-          <IconSettings size={32} stroke={1.5} />
-        </button>
-        <button
-          onClick={() => setLocked(true)}
-          className="p-3 rounded-full active:opacity-60"
-          style={{ color: '#888' }}
+          onClick={() => { if (!locked) setLocked(true); }}
+          onTouchStart={() => { if (locked) startUnlockHold(); }}
+          onTouchEnd={() => { if (locked) cancelUnlockHold(); }}
+          onMouseDown={() => { if (locked) startUnlockHold(); }}
+          onMouseUp={() => { if (locked) cancelUnlockHold(); }}
+          onMouseLeave={() => { if (locked) cancelUnlockHold(); }}
+          className="p-3 rounded-full relative"
+          style={{ color: locked ? '#ef4444' : '#888' }}
         >
           <IconLock size={32} stroke={1.5} />
+          {unlockProgress > 0 && (
+            <svg width="52" height="52" className="absolute inset-0 m-auto pointer-events-none">
+              <circle cx="26" cy="26" r="22" fill="none" stroke="#0161f0" strokeWidth="3"
+                strokeDasharray={`${(unlockProgress / 100) * 138} 138`}
+                strokeLinecap="round" transform="rotate(-90 26 26)" />
+            </svg>
+          )}
         </button>
       </div>
 
@@ -432,27 +448,9 @@ export default function RaceTimerPage() {
         </div>
       )}
 
-      {/* LOCK OVERLAY */}
+      {/* Invisible touch-blocker when locked */}
       {locked && (
-        <div
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center"
-          style={{ backgroundColor: 'rgba(0,0,0,0.85)' }}
-          onTouchStart={startUnlockHold}
-          onTouchEnd={cancelUnlockHold}
-          onMouseDown={startUnlockHold}
-          onMouseUp={cancelUnlockHold}
-          onMouseLeave={cancelUnlockHold}
-        >
-          <IconLockOpen size={64} stroke={1.2} color="#888" />
-          <div className="text-white/50 text-lg mt-4 mb-8">Hold to unlock</div>
-          {/* Progress ring */}
-          <svg width="80" height="80" className="absolute" style={{ opacity: unlockProgress > 0 ? 1 : 0 }}>
-            <circle cx="40" cy="40" r="36" fill="none" stroke="#0161f0" strokeWidth="4"
-              strokeDasharray={`${(unlockProgress / 100) * 226} 226`}
-              strokeLinecap="round"
-              transform="rotate(-90 40 40)" />
-          </svg>
-        </div>
+        <div className="fixed inset-0 z-40" style={{ pointerEvents: 'all' }} />
       )}
     </div>
   );
