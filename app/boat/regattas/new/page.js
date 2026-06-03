@@ -151,8 +151,10 @@ export default function CreateRegatta() {
     setShowModal(false);
   }
 
+  const isValid = name.trim() && location.trim() && month && day && year;
+
   async function handleSave() {
-    if (!name.trim() || !user) return;
+    if (!isValid || !user) return;
     setSaving(true);
     setError("");
 
@@ -209,7 +211,7 @@ export default function CreateRegatta() {
         <RegattaNameInput
           value={name}
           onChange={setName}
-          placeholder="Regatta name"
+          placeholder="Regatta name *"
           className="w-full px-4 py-3.5 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400"
           style={{ borderColor: "#e0e0e0" }}
         />
@@ -218,7 +220,7 @@ export default function CreateRegatta() {
         <LocationInput
           value={location}
           onChange={setLocation}
-          placeholder="Location"
+          placeholder="Location *"
           className="w-full px-4 py-3.5 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400"
           style={{ borderColor: "#e0e0e0" }}
         />
@@ -234,35 +236,44 @@ export default function CreateRegatta() {
 
         {/* Date */}
         <div>
-          <p className="text-sm text-gray-700 font-medium mb-2">Date</p>
+          <p className="text-sm text-gray-700 font-medium mb-2">Date *</p>
           <div className="flex gap-2">
-            <input
-              value={month}
-              onChange={(e) => setMonth(e.target.value)}
-              placeholder="05"
-              maxLength={2}
-              inputMode="numeric"
-              className="w-16 px-3 py-3.5 rounded-2xl text-sm text-center text-gray-900 border outline-none placeholder-gray-400"
-              style={{ borderColor: "#e0e0e0" }}
-            />
-            <input
-              value={day}
-              onChange={(e) => setDay(e.target.value)}
-              placeholder="12"
-              maxLength={2}
-              inputMode="numeric"
-              className="w-16 px-3 py-3.5 rounded-2xl text-sm text-center text-gray-900 border outline-none placeholder-gray-400"
-              style={{ borderColor: "#e0e0e0" }}
-            />
-            <input
-              value={year}
-              onChange={(e) => setYear(e.target.value)}
-              placeholder="2026"
-              maxLength={4}
-              inputMode="numeric"
-              className="w-24 px-3 py-3.5 rounded-2xl text-sm text-center text-gray-900 border outline-none placeholder-gray-400"
-              style={{ borderColor: "#e0e0e0" }}
-            />
+            <div className="flex flex-col items-center gap-1">
+              <input
+                value={month}
+                onChange={(e) => setMonth(e.target.value)}
+                placeholder="05"
+                maxLength={2}
+                inputMode="numeric"
+                className="w-16 px-3 py-3.5 rounded-2xl text-sm text-center text-gray-900 border outline-none placeholder-gray-400"
+                style={{ borderColor: "#e0e0e0" }}
+              />
+              <p className="text-xs text-gray-400">Month</p>
+            </div>
+            <div className="flex flex-col items-center gap-1">
+              <input
+                value={day}
+                onChange={(e) => setDay(e.target.value)}
+                placeholder="12"
+                maxLength={2}
+                inputMode="numeric"
+                className="w-16 px-3 py-3.5 rounded-2xl text-sm text-center text-gray-900 border outline-none placeholder-gray-400"
+                style={{ borderColor: "#e0e0e0" }}
+              />
+              <p className="text-xs text-gray-400">Day</p>
+            </div>
+            <div className="flex flex-col items-center gap-1">
+              <input
+                value={year}
+                onChange={(e) => setYear(e.target.value)}
+                placeholder="2026"
+                maxLength={4}
+                inputMode="numeric"
+                className="w-24 px-3 py-3.5 rounded-2xl text-sm text-center text-gray-900 border outline-none placeholder-gray-400"
+                style={{ borderColor: "#e0e0e0" }}
+              />
+              <p className="text-xs text-gray-400">Year</p>
+            </div>
           </div>
         </div>
 
@@ -315,9 +326,9 @@ export default function CreateRegatta() {
         {error && <p className="text-xs text-center mb-2" style={{ color: "#e00" }}>{error}</p>}
         <button
           onClick={handleSave}
-          disabled={!name.trim() || saving}
+          disabled={!isValid || saving}
           className="w-full py-3.5 rounded-full text-sm font-semibold text-white"
-          style={{ backgroundColor: name.trim() && !saving ? "#0161F0" : "#c0c0c0" }}
+          style={{ backgroundColor: isValid && !saving ? "#0161F0" : "#c0c0c0" }}
         >
           {saving ? "Saving…" : "Save Regatta"}
         </button>
