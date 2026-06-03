@@ -183,18 +183,30 @@ export default function RaceTimerPage() {
   }, []);
 
   useEffect(() => {
-    const handler = (e) => {
-      if (e.webkitCompassHeading != null) setHeading(Math.round(e.webkitCompassHeading));
-      else if (e.alpha != null) setHeading(Math.round((360 - e.alpha) % 360));
+    const iosHandler = (e) => {
+      if (e.webkitCompassHeading != null) {
+        setHeading(Math.round(e.webkitCompassHeading));
+      }
     };
-    orientListenerRef.current = handler;
+
+    const androidHandler = (e) => {
+      if (e.alpha != null) {
+        setHeading(Math.round((360 - e.alpha) % 360));
+      }
+    };
+
+    orientListenerRef.current = iosHandler;
+
     if (typeof DeviceOrientationEvent !== 'undefined' &&
         typeof DeviceOrientationEvent.requestPermission === 'function') {
       setOrientError('needs-permission');
+    } else if ('ondeviceorientationabsolute' in window) {
+      window.addEventListener('deviceorientationabsolute', androidHandler, true);
+      return () => window.removeEventListener('deviceorientationabsolute', androidHandler, true);
     } else if (typeof DeviceOrientationEvent !== 'undefined') {
-      window.addEventListener('deviceorientation', handler, true);
+      window.addEventListener('deviceorientation', iosHandler, true);
+      return () => window.removeEventListener('deviceorientation', iosHandler, true);
     }
-    return () => window.removeEventListener('deviceorientation', handler, true);
   }, []);
 
   const requestCompass = async () => {
