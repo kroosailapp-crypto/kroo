@@ -464,7 +464,7 @@ export default function CrewFeedPage() {
       )}
 
       {/* Header */}
-      <div className="flex items-center gap-2 px-4 pt-3 pb-2 flex-shrink-0">
+      <div className="flex items-center gap-2 pl-4 pr-6 pt-3 pb-2 flex-shrink-0">
         <ProfileSwitcher />
         <div
           className="flex-1 flex items-center gap-1.5 px-3 py-1.5 rounded-full"
@@ -488,7 +488,7 @@ export default function CrewFeedPage() {
         {/* Toggle view */}
         <button
           onClick={() => { setView((v) => (v === "boats" ? "positions" : "boats")); setQuery(""); }}
-          className="flex items-center justify-center rounded-full flex-shrink-0 mr-2"
+          className="flex items-center justify-center rounded-full flex-shrink-0"
           style={{ width: 34, height: 34, backgroundColor: view === "positions" ? "#111" : "#f0f0f0" }}
         >
           {view === "boats" ? (
