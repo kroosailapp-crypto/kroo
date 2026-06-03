@@ -60,7 +60,7 @@ function groupRegattasByMonth(regattas) {
 
     if (monthKey !== curMonthKey) {
       curMonthKey = monthKey;
-      curGroup = { label, regattas: [] };
+      curGroup = { label, year: date ? date.getFullYear() : null, regattas: [] };
       groups.push(curGroup);
     }
     curGroup.regattas.push({ ...reg, parsedDate: date });
@@ -563,8 +563,9 @@ export default function CrewFeedPage() {
             <>
               {visibleMonthGroups.map((group) => (
                 <div key={group.label}>
-                  <div className="px-4 py-2.5 sticky top-0 z-10" style={{ backgroundColor: "#F6F6F6" }}>
+                  <div className="px-4 py-2.5 sticky top-0 z-10 flex items-center justify-between" style={{ backgroundColor: "#F6F6F6" }}>
                     <p className="text-base font-bold text-gray-900">{group.label}</p>
+                    {group.year && <p className="text-base font-bold text-gray-900">{group.year}</p>}
                   </div>
                   {group.regattas.map((reg) => (
                     <RegattaBlock
