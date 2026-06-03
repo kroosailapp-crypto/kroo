@@ -372,8 +372,10 @@ export default function RaceTimerPage() {
             SYNC
           </button>
         )}
-        {/* BOTTOM BAR */}
-        <div className="flex items-center justify-between px-4 pt-2 flex-shrink-0" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
+      </div>}
+
+      {/* BOTTOM BAR — always visible */}
+      <div className="flex-shrink-0 flex items-center justify-between px-4 pt-2" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
         <button
           onClick={() => setShowSettings(true)}
           className="p-3 rounded-full active:opacity-60"
@@ -388,8 +390,7 @@ export default function RaceTimerPage() {
         >
           <IconLock size={32} stroke={1.5} />
         </button>
-        </div>
-      </div>}
+      </div>
 
       {/* SETTINGS PANEL */}
       {showSettings && (
