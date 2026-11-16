@@ -32,7 +32,7 @@
 
 html,
 body {
-  overflow-x: hidden;
+  overflow-x: clip;
   width: 100%;
 }
 
@@ -46,7 +46,20 @@ body {
 #app-root {
   max-width: 430px;
   margin: 0 auto;
-  min-height: 100vh;
+  height: 100svh;
   position: relative;
-  overflow-x: hidden;
+  overflow-x: clip;
+  overflow-y: auto;
+}
+
+/* Desktop: full-width layout with sidebar (only when logged in) */
+@media (min-width: 1024px) {
+  #app-root {
+    max-width: 100%;
+    margin: 0;
+    height: 100vh;
+  }
+  #app-root.has-sidebar {
+    padding-left: 220px;
+  }
 }

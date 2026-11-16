@@ -8,26 +8,6 @@ import CrewNavFooter from "@/app/components/CrewNavFooter";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
 
-function Divider() {
-  return <div className="h-px w-full" style={{ backgroundColor: "#e8e8e8" }} />;
-}
-
-function Tag({ label, onRemove }) {
-  return (
-    <span
-      className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold"
-      style={{ backgroundColor: "#E8EDF8", color: "#111" }}
-    >
-      {label}
-      {onRemove && (
-        <button onClick={onRemove} className="ml-0.5 flex-shrink-0">
-          <IconX size={11} color="#666" />
-        </button>
-      )}
-    </span>
-  );
-}
-
 function ProfileMenu({ onDelete }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -76,7 +56,7 @@ function ProfileMenu({ onDelete }) {
   );
 }
 
-const BOAT_CLASSES =["Melges 24","J/24","J/70","J/105","Snipe","470","Laser","Etchells","Farr 40","Swan 42","Finn","49er","Nacra 17","Lightning","Flying Dutchman","Optimist","RS200","Sunfish"];
+const BOAT_CLASSES = ["Melges 24","J/24","J/70","J/105","Snipe","470","Laser","Etchells","Farr 40","Swan 42","Finn","49er","Nacra 17","Lightning","Flying Dutchman","Optimist","RS200","Sunfish"];
 const MAX_CLASSES = 5;
 
 function AddClassModal({ existing, onAdd, onClose }) {
@@ -97,16 +77,19 @@ function AddClassModal({ existing, onAdd, onClose }) {
         </div>
         <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto">
           {available.map((cls) => (
-            <button key={cls} onClick={() => { setSelected(cls); setCustom(""); }} className="px-3 py-1.5 rounded-lg text-xs font-semibold border" style={{ backgroundColor: selected === cls ? "#111" : "#F4F4F4", color: selected === cls ? "#fff" : "#111", borderColor: selected === cls ? "#111" : "#F4F4F4" }}>
+            <button key={cls} onClick={() => { setSelected(cls); setCustom(""); }} className="px-3 py-1.5 rounded-lg text-xs font-semibold border"
+              style={{ backgroundColor: selected === cls ? "#111" : "#F4F4F4", color: selected === cls ? "#fff" : "#111", borderColor: selected === cls ? "#111" : "#F4F4F4" }}>
               {cls}
             </button>
           ))}
         </div>
         <div>
           <p className="text-xs text-gray-400 mb-1.5">Or type a class</p>
-          <input value={custom} onChange={(e) => { setCustom(e.target.value); setSelected(null); }} placeholder="e.g. Transpac 52" className="w-full px-4 py-3 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400" style={{ borderColor: "#e0e0e0" }} />
+          <input value={custom} onChange={(e) => { setCustom(e.target.value); setSelected(null); }} placeholder="e.g. Transpac 52"
+            className="w-full px-4 py-3 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400" style={{ borderColor: "#e0e0e0" }} />
         </div>
-        <button onClick={() => toAdd && onAdd(toAdd)} disabled={!toAdd} className="w-full py-3.5 rounded-full text-sm font-semibold text-white" style={{ backgroundColor: toAdd ? "#0161F0" : "#c0c0c0" }}>
+        <button onClick={() => toAdd && onAdd(toAdd)} disabled={!toAdd} className="w-full lg:w-auto py-3.5 rounded-2xl text-sm font-semibold text-white"
+          style={{ backgroundColor: toAdd ? "#0161F0" : "#c0c0c0" }}>
           Add Class
         </button>
       </div>
@@ -121,8 +104,8 @@ function DeleteProfileModal({ onConfirm, onClose }) {
         <p className="text-base font-semibold text-gray-900 text-center leading-snug">Delete Sailor Profile?</p>
         <p className="text-xs text-gray-400 text-center -mt-2">Your sailing profile, applications, and messages will be permanently deleted. This cannot be undone.</p>
         <div className="flex gap-3">
-          <button onClick={onClose} className="flex-1 py-2.5 rounded-full text-sm font-semibold border" style={{ color: "#111", borderColor: "#d0d0d0" }}>Cancel</button>
-          <button onClick={onConfirm} className="flex-1 py-2.5 rounded-full text-sm font-semibold text-white" style={{ backgroundColor: "#e00" }}>Delete</button>
+          <button onClick={onClose} className="flex-1 py-2.5 rounded-2xl text-sm font-semibold border" style={{ color: "#111", borderColor: "#d0d0d0" }}>Cancel</button>
+          <button onClick={onConfirm} className="flex-1 py-2.5 rounded-2xl text-sm font-semibold text-white" style={{ backgroundColor: "#e00" }}>Delete</button>
         </div>
       </div>
     </div>
@@ -192,95 +175,140 @@ export default function CrewProfilePage() {
     return <div className="flex items-center justify-center min-h-screen"><p className="text-sm text-gray-400">Loading…</p></div>;
   }
 
+  const krooHistory = profile?.kroo_history || [];
+
   return (
-    <div className="flex flex-col min-h-screen bg-white pb-20">
+    <div className="flex flex-col min-h-screen pb-20" style={{ backgroundColor: "#f5f5f5" }}>
       {showDeleteModal && <DeleteProfileModal onConfirm={handleDeleteProfile} onClose={() => setShowDeleteModal(false)} />}
       {showClassModal && <AddClassModal existing={classes} onAdd={addClass} onClose={() => setShowClassModal(false)} />}
 
-      {/* App Bar */}
-      <div className="flex items-center gap-2 px-4 pt-3 pb-2 flex-shrink-0">
-        <ProfileSwitcher />
+      {/* Header */}
+      <div className="sticky top-0 z-20 bg-white flex items-center gap-2 px-4 pt-3 pb-2 flex-shrink-0" style={{ borderBottom: "1px solid #e8e8e8" }}>
+        <ProfileSwitcher className="lg:hidden" />
         <ProfileMenu onDelete={() => setShowDeleteModal(true)} />
       </div>
 
       <div className="overflow-y-auto flex-1">
-        {/* Avatar + Info */}
-        <div className="flex gap-3.5 px-4 py-3 items-start">
-          <div className="rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden" style={{ width: 105, height: 105, backgroundColor: "#d8d8d8" }}>
-            {profile?.avatar_url
-              ? <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
-              : <IconUser size={32} color="#aaa" />}
-          </div>
-          <div className="flex-1">
-            <p className="text-base font-semibold mb-0.5 text-gray-900">{profile?.name || "—"}</p>
-            <p className="text-xs text-gray-500 mb-2">{profile?.location || "—"}</p>
-            <div className="flex flex-wrap gap-1.5 mb-1.5">
-              {(profile?.positions || []).map((p) => <Tag key={p} label={p} />)}
-            </div>
-            <p className="text-xs text-gray-400 mb-1.5">{profile?.experience_level || ""}</p>
-            {(profile?.sex || profile?.weight_lbs) && (
-              <div className="flex flex-wrap gap-1.5 mb-2.5">
-                {profile?.sex && <Tag label={profile.sex} />}
-                {profile?.weight_lbs && <Tag label={`${profile.weight_lbs} lbs`} />}
-              </div>
-            )}
-            <div className="flex gap-5">
-              <div><p className="text-base font-semibold text-gray-900">0</p><p className="text-[13px] text-gray-500">Kroo</p></div>
-              <div><p className="text-base font-semibold text-gray-900">0</p><p className="text-[13px] text-gray-500">Favorites</p></div>
-              <div><p className="text-base font-semibold text-gray-900">0</p><p className="text-[13px] text-gray-500">Following</p></div>
-            </div>
-          </div>
-        </div>
+        <div className="flex flex-col gap-3 px-3 pt-3 pb-4 max-w-[800px] mx-auto w-full">
 
-        <div className="px-4 pb-3">
-          <Link href="/crew/edit" className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-medium border" style={{ color: "#0161f0", borderColor: "#0161f0" }}>
+        {/* Profile Card */}
+        <div className="bg-white rounded-2xl px-4 py-4" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.07)" }}>
+          <div className="flex gap-4 items-start">
+            <div className="rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center" style={{ width: 90, height: 90, backgroundColor: "#d8d8d8" }}>
+              {profile?.avatar_url
+                ? <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                : <IconUser size={32} color="#aaa" />}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] text-gray-400 mb-0.5">{profile?.location}</p>
+              <div className="flex items-baseline gap-2 mb-2 flex-wrap">
+                <p className="text-[17px] font-bold text-gray-900">{profile?.name || "—"}</p>
+                {profile?.experience_level && (
+                  <p className="text-[13px] text-gray-400">{profile.experience_level}</p>
+                )}
+              </div>
+              {(profile?.sex || profile?.weight_lbs) && (
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {profile.sex && (
+                    <span className="text-[13px] px-3 py-1 rounded-md font-medium" style={{ backgroundColor: "#f0f2f5", color: "#444" }}>{profile.sex}</span>
+                  )}
+                  {profile.weight_lbs && (
+                    <span className="text-[13px] px-3 py-1 rounded-md font-medium" style={{ backgroundColor: "#f0f2f5", color: "#444" }}>{profile.weight_lbs} lbs</span>
+                  )}
+                </div>
+              )}
+              {(profile?.positions || []).length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {(profile.positions || []).map((pos) => (
+                    <span key={pos} className="text-[13px] px-3 py-1 rounded-md font-semibold" style={{ backgroundColor: "#111", color: "#fff" }}>{pos}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Edit Profile */}
+          <Link
+            href="/crew/edit"
+            className="mt-4 flex items-center justify-center py-2.5 rounded-xl text-[15px] font-semibold border"
+            style={{ color: "#0161F0", borderColor: "#0161F0" }}
+          >
             Edit Profile
           </Link>
         </div>
 
-        <Divider />
-
-        {/* Boat Classes */}
-        <div className="px-4 py-3">
-          <p className="text-xs text-gray-400 mb-2">Boat Classes Sailed</p>
-          <div className="flex flex-wrap gap-1.5 mb-2">
+        {/* Boat Classes Sailed */}
+        <div className="bg-white rounded-2xl px-4 py-4" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.07)" }}>
+          <p className="text-[13px] text-gray-400 mb-3">Boat Classes Sailed</p>
+          <div className="flex flex-wrap gap-2">
             {classes.map((cls, i) => (
-              <Tag key={i} label={cls} onRemove={() => removeClass(i)} />
+              <span key={i} className="flex items-center gap-1 text-[14px] px-3 py-1 rounded-full font-medium" style={{ backgroundColor: "#f0f2f5", color: "#444" }}>
+                {cls}
+                <button onClick={() => removeClass(i)} className="ml-0.5 flex-shrink-0">
+                  <IconX size={11} color="#888" />
+                </button>
+              </span>
             ))}
           </div>
           {classes.length < MAX_CLASSES
-            ? <button onClick={() => setShowClassModal(true)} className="mt-1 text-xs font-medium" style={{ color: "#0161f0" }}>+ Add Class</button>
-            : <p className="mt-1 text-xs text-gray-400">Maximum of {MAX_CLASSES} classes reached</p>
+            ? <button onClick={() => setShowClassModal(true)} className="mt-3 text-[14px] font-semibold" style={{ color: "#0161F0" }}>+ Add Class</button>
+            : <p className="mt-3 text-[13px] text-gray-400">Maximum of {MAX_CLASSES} classes reached</p>
           }
         </div>
 
-        <Divider />
-
         {/* About */}
-        <div className="px-4 py-3 pb-6">
-          <p className="text-xs text-gray-400 mb-2">About</p>
-          <p className="text-sm text-gray-600 leading-relaxed mb-2">
-            {profile?.about || "Add a bio to tell boats about yourself."}
-          </p>
-          {profile?.website && <p className="text-sm" style={{ color: "#007AFF" }}>{profile.website}</p>}
-        </div>
+        {profile?.about && (
+          <div className="bg-white rounded-2xl px-4 py-4" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.07)" }}>
+            <p className="text-[13px] text-gray-400 mb-2">About</p>
+            <p className="text-[15px] text-gray-800 leading-relaxed">{profile.about}</p>
+          </div>
+        )}
 
-        <div className="px-4 pb-8">
-          <Link href="/crew/feed" className="w-full flex items-center justify-center py-3 rounded-full font-medium text-sm" style={{ backgroundColor: "#0161f0", color: "#fff" }}>
-            Browse Boats →
-          </Link>
-        </div>
+        {/* Instagram / Website */}
+        {(profile?.instagram || profile?.website) && (
+          <div className="bg-white rounded-2xl px-4 py-4" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.07)" }}>
+            {profile.instagram && (
+              <a href={`https://${profile.instagram.replace(/^https?:\/\//, "")}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[15px] font-semibold text-gray-900">
+                <span>🔗</span> {profile.instagram.replace(/^https?:\/\//, "")}
+              </a>
+            )}
+            {profile.website && (
+              <a href={`https://${profile.website.replace(/^https?:\/\//, "")}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[15px] font-semibold text-gray-900 mt-2">
+                <span>🔗</span> {profile.website.replace(/^https?:\/\//, "")}
+              </a>
+            )}
+          </div>
+        )}
 
-        <div className="px-4 pb-10">
-          <div className="h-px w-full mb-6" style={{ backgroundColor: "#e8e8e8" }} />
+        {/* Kroo History */}
+        {krooHistory.length > 0 && (
+          <div className="bg-white rounded-2xl px-4 py-4" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.07)" }}>
+            <p className="text-[13px] text-gray-400 mb-3">Kroo History</p>
+            <div className="flex flex-col gap-3">
+              {krooHistory.map((h, i) => (
+                <div key={i} className="flex items-center gap-2 flex-wrap">
+                  <p className="text-[14px] text-gray-500">{h.date}</p>
+                  {h.position && <span className="text-[13px] px-2.5 py-0.5 rounded-md font-medium" style={{ backgroundColor: "#f0f2f5", color: "#444" }}>{h.position}</span>}
+                  {h.boat_name && <p className="text-[14px] font-bold text-gray-900">{h.boat_name}</p>}
+                  {h.boat_class && <span className="text-[13px] px-2.5 py-0.5 rounded-md font-medium" style={{ backgroundColor: "#f0f2f5", color: "#444" }}>{h.boat_class}</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Log Out */}
+        <div className="mt-2">
           <button
             onClick={async () => { await signOut(); router.push("/"); }}
-            className="w-full py-3 rounded-full text-sm font-semibold border mb-3"
-            style={{ color: "#e00", borderColor: "#fca5a5" }}
+            className="w-full py-3 rounded-2xl text-[15px] font-semibold bg-white border"
+            style={{ color: "#e00", borderColor: "#e00", boxShadow: "0 1px 6px rgba(0,0,0,0.07)" }}
           >
             Log Out
           </button>
         </div>
+        </div>
+
       </div>
 
       <CrewNavFooter active="Profile" />

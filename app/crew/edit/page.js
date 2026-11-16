@@ -32,7 +32,7 @@ function DeleteProfileModal({ onConfirm, onClose, deleting, error }) {
         <button
           onClick={onConfirm}
           disabled={deleting}
-          className="w-full py-3.5 rounded-full text-sm font-semibold text-white"
+          className="w-full lg:w-auto py-3.5 rounded-2xl text-sm font-semibold text-white"
           style={{ backgroundColor: deleting ? "#ccc" : "#DC2626" }}
         >
           {deleting ? "Deleting…" : "Yes, Delete Profile"}
@@ -40,7 +40,7 @@ function DeleteProfileModal({ onConfirm, onClose, deleting, error }) {
         <button
           onClick={onClose}
           disabled={deleting}
-          className="w-full py-3 rounded-full text-sm font-semibold border"
+          className="w-full lg:w-auto py-3 rounded-2xl text-sm font-semibold border"
           style={{ color: "#111", borderColor: "#e0e0e0" }}
         >
           Cancel
@@ -216,7 +216,7 @@ export default function EditCrewProfile() {
         />
       )}
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 pt-4 pb-3 border-b flex-shrink-0" style={{ borderColor: "#e8e8e8" }}>
+      <div className="sticky top-0 z-20 bg-white flex items-center gap-3 px-4 pt-4 pb-3 border-b flex-shrink-0" style={{ borderColor: "#e8e8e8" }}>
         <Link href="/crew/profile"><IconArrowLeft size={22} color="#111" /></Link>
         <p className="flex-1 text-sm font-semibold text-gray-900">Edit Profile</p>
         <button onClick={handleSave} disabled={saving} className="text-sm font-semibold" style={{ color: "#0161F0" }}>
@@ -225,6 +225,7 @@ export default function EditCrewProfile() {
       </div>
 
       <div className="overflow-y-auto flex-1 pb-8">
+        <div className="max-w-[800px] mx-auto w-full">
         {/* Photo upload */}
         <div className="flex flex-col items-center py-6 gap-2">
           <div className="relative">
@@ -354,7 +355,7 @@ export default function EditCrewProfile() {
         <Divider />
 
         <div className="px-4 pt-5">
-          <button onClick={handleSave} disabled={saving} className="w-full py-3.5 rounded-full text-sm font-semibold text-white" style={{ backgroundColor: "#0161F0" }}>
+          <button onClick={handleSave} disabled={saving} className="w-full lg:w-auto lg:px-10 py-3.5 rounded-2xl text-sm font-semibold text-white" style={{ backgroundColor: "#0161F0" }}>
             {saving ? "Saving…" : "Save Changes"}
           </button>
         </div>
@@ -363,11 +364,12 @@ export default function EditCrewProfile() {
           <div className="h-px w-full mb-6" style={{ backgroundColor: "#e8e8e8" }} />
           <button
             onClick={() => setShowDeleteModal(true)}
-            className="w-full py-3.5 rounded-full text-sm font-semibold border"
+            className="w-full lg:w-auto lg:px-10 py-3.5 rounded-2xl text-sm font-semibold border"
             style={{ color: "#DC2626", borderColor: "#FCA5A5" }}
           >
             Delete Sailor Profile
           </button>
+        </div>
         </div>
       </div>
 

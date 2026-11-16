@@ -16,20 +16,6 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
 import { notify } from "@/lib/notify";
 
-function Divider() {
-  return <div className="h-px w-full" style={{ backgroundColor: "#e8e8e8" }} />;
-}
-
-function Tag({ label }) {
-  return (
-    <span
-      className="px-2.5 py-1 rounded-lg text-xs font-bold"
-      style={{ backgroundColor: "#E8EDF8", color: "#111" }}
-    >
-      {label}
-    </span>
-  );
-}
 
 function InviteDrawer({ sailorName, regattas, onInvite, onClose }) {
   const [selectedRegatta, setSelectedRegatta] = useState(null);
@@ -134,7 +120,7 @@ function InviteDrawer({ sailorName, regattas, onInvite, onClose }) {
         <button
           onClick={handleSend}
           disabled={!canSend}
-          className="w-full py-3.5 rounded-full text-sm font-semibold text-white"
+          className="w-full lg:w-auto py-3.5 rounded-2xl text-sm font-semibold text-white"
           style={{ backgroundColor: canSend ? "#0161F0" : "#c0c0c0" }}
         >
           Send Invite
@@ -172,7 +158,7 @@ function InviteConfirmModal({ sailorName, regattaName, position, onClose }) {
         </p>
         <button
           onClick={onClose}
-          className="w-full py-2.5 rounded-full text-sm font-semibold text-white"
+          className="w-full lg:w-auto py-2.5 rounded-2xl text-sm font-semibold text-white"
           style={{ backgroundColor: "#0161F0" }}
         >
           Got it
@@ -211,7 +197,7 @@ function ReportDrawer({ name, onSubmit, onClose }) {
           Tell us what's wrong. We'll review this report and take action if needed.
         </p>
         <textarea
-          className="w-full border rounded-xl px-3 py-2.5 text-sm text-gray-800 resize-none outline-none"
+          className="w-full lg:w-auto border rounded-xl px-3 py-2.5 text-sm text-gray-800 resize-none outline-none"
           style={{ borderColor: "#e0e0e0", minHeight: 100 }}
           placeholder="Describe the issue…"
           value={reason}
@@ -221,7 +207,7 @@ function ReportDrawer({ name, onSubmit, onClose }) {
         <button
           onClick={handleSubmit}
           disabled={!reason.trim() || submitting}
-          className="w-full py-3.5 rounded-full text-sm font-semibold text-white"
+          className="w-full lg:w-auto py-3.5 rounded-2xl text-sm font-semibold text-white"
           style={{ backgroundColor: !reason.trim() || submitting ? "#c0c0c0" : "#e53e3e" }}
         >
           {submitting ? "Sending…" : "Submit Report"}
@@ -254,7 +240,7 @@ function ReportConfirmModal({ onClose }) {
         </p>
         <button
           onClick={onClose}
-          className="w-full py-2.5 rounded-full text-sm font-semibold text-white"
+          className="w-full lg:w-auto py-2.5 rounded-2xl text-sm font-semibold text-white"
           style={{ backgroundColor: "#0161F0" }}
         >
           Got it
@@ -278,6 +264,7 @@ export default function CrewPublicProfile({ params }) {
   const [showMenu, setShowMenu] = useState(false);
   const [showReportDrawer, setShowReportDrawer] = useState(false);
   const [reportConfirm, setReportConfirm] = useState(false);
+  const [blocked, setBlocked] = useState(false);
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -401,7 +388,7 @@ export default function CrewPublicProfile({ params }) {
   if (!profile) {
     return (
       <div className="flex flex-col min-h-screen bg-white pb-20">
-        <div className="flex items-center gap-3 px-4 pt-4 pb-3">
+        <div className="sticky top-0 z-20 bg-white flex items-center gap-3 px-4 pt-4 pb-3 border-b flex-shrink-0" style={{ borderColor: "#e8e8e8" }}>
           <Link href="/boat/feed">
             <IconArrowLeft size={22} color="#111" />
           </Link>
@@ -415,7 +402,7 @@ export default function CrewPublicProfile({ params }) {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-white pb-20">
+    <div className="flex flex-col min-h-screen pb-20" style={{ backgroundColor: "#f5f5f5" }}>
       {showInviteDrawer && (
         <InviteDrawer
           sailorName={profile.name}
@@ -445,180 +432,146 @@ export default function CrewPublicProfile({ params }) {
       {reportConfirm && <ReportConfirmModal onClose={() => setReportConfirm(false)} />}
 
       {/* Header */}
-      <div className="flex items-center justify-between px-4 pt-4 pb-3">
-        <div className="flex items-center gap-3">
-          <Link href="/boat/feed">
-            <IconArrowLeft size={22} color="#111" />
-          </Link>
-          <p className="text-sm font-medium text-gray-800">{profile.name}</p>
-        </div>
-
-        {/* 3-dot menu — only show when viewing someone else's profile */}
+      <div className="sticky top-0 z-20 bg-white flex items-center justify-between px-4 pt-4 pb-3 flex-shrink-0" style={{ borderBottom: "1px solid #e8e8e8" }}>
+        <Link href="/boat/feed" className="flex items-center gap-2 text-sm font-medium text-gray-800">
+          <IconArrowLeft size={20} color="#111" />
+          Back to crew feed
+        </Link>
         {user?.id !== id && (
           <div className="relative" ref={menuRef}>
-            <button
-              onClick={() => setShowMenu((v) => !v)}
-              className="p-1.5 rounded-full"
-              style={{ color: "#555" }}
-            >
+            <button onClick={() => setShowMenu((v) => !v)} className="p-1.5 rounded-full" style={{ color: "#555" }}>
               <IconDots size={20} />
             </button>
             {showMenu && (
-              <div
-                className="absolute right-0 top-8 bg-white rounded-xl shadow-lg border z-50 min-w-[160px] overflow-hidden"
-                style={{ borderColor: "#e8e8e8" }}
-              >
-                <button
-                  onClick={() => { setShowMenu(false); setShowReportDrawer(true); }}
-                  className="w-full text-left px-4 py-3 text-sm font-medium"
-                  style={{ color: "#e53e3e" }}
-                >
-                  Report user
-                </button>
+              <div className="absolute right-0 top-8 bg-white rounded-xl shadow-lg border z-50 min-w-[160px] overflow-hidden" style={{ borderColor: "#e8e8e8" }}>
+                <button onClick={() => { setShowMenu(false); setShowReportDrawer(true); }} className="w-full text-left px-4 py-3 text-sm font-medium" style={{ color: "#e53e3e" }}>Report user</button>
+                <button onClick={() => { setShowMenu(false); setBlocked(true); }} className="w-full text-left px-4 py-3 text-sm font-medium border-t" style={{ color: "#e53e3e", borderColor: "#f0f0f0" }}>{blocked ? "Unblock user" : "Block user"}</button>
               </div>
             )}
           </div>
         )}
       </div>
 
+      {blocked && (
+        <div className="mx-3 mb-2 px-4 py-3 rounded-2xl text-sm text-gray-700" style={{ backgroundColor: "#fff" }}>
+          <p className="font-semibold mb-0.5">User blocked</p>
+          <p className="text-xs text-gray-500">You won't see this user in your feed. <button onClick={() => setBlocked(false)} className="underline">Unblock</button></p>
+        </div>
+      )}
+
       <div className="overflow-y-auto flex-1">
-        {/* Avatar + Info */}
-        <div className="flex gap-3.5 px-4 py-3 items-start">
-          <div
-            className="rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden"
-            style={{ width: 105, height: 105, backgroundColor: "#d8d8d8" }}
-          >
-            {profile.avatar_url ? (
-              <img
-                src={profile.avatar_url}
-                alt={profile.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <IconUser size={32} color="#aaa" />
-            )}
-          </div>
-          <div className="flex-1">
-            <p className="text-xs text-gray-400">{profile.location}</p>
-            <p className="text-base font-semibold mb-0.5 text-gray-900">{profile.name}</p>
-            {profile.experience_level && (
-              <p className="text-xs text-gray-400 mb-1.5">{profile.experience_level}</p>
-            )}
-            {(profile.positions || []).length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mb-1.5">
-                {(profile.positions || []).map((pos) => (
-                  <span
-                    key={pos}
-                    className="px-2.5 py-1 rounded-lg text-xs font-bold"
-                    style={{ backgroundColor: "#111", color: "#fff" }}
-                  >
-                    {pos}
-                  </span>
-                ))}
+        <div className="flex flex-col gap-3 px-3 pt-3 max-w-[800px] mx-auto w-full">
+
+        {/* Profile card */}
+        <div className="bg-white rounded-2xl px-4 py-4" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.07)" }}>
+          <div className="flex gap-4 items-start">
+            <div className="rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden" style={{ width: 90, height: 90, backgroundColor: "#d8d8d8" }}>
+              {profile.avatar_url
+                ? <img src={profile.avatar_url} alt={profile.name} className="w-full h-full object-cover" />
+                : <IconUser size={32} color="#aaa" />}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] text-gray-400 mb-0.5">{profile.location}</p>
+              <div className="flex items-baseline gap-2 mb-2">
+                <p className="text-[17px] font-bold text-gray-900">{profile.name}</p>
+                {profile.experience_level && <p className="text-[13px] text-gray-400">{profile.experience_level}</p>}
               </div>
-            )}
-            {(profile.sex || profile.weight_lbs) && (
-              <div className="flex flex-wrap gap-1.5">
-                {profile.sex && <Tag label={profile.sex} />}
-                {profile.weight_lbs && <Tag label={`${profile.weight_lbs} lbs`} />}
-              </div>
-            )}
+              {(profile.sex || profile.weight_lbs) && (
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {profile.sex && <span className="text-[13px] px-3 py-1 rounded-md font-medium" style={{ backgroundColor: "#f0f2f5", color: "#444" }}>{profile.sex}</span>}
+                  {profile.weight_lbs && <span className="text-[13px] px-3 py-1 rounded-md font-medium" style={{ backgroundColor: "#f0f2f5", color: "#444" }}>{profile.weight_lbs} lbs</span>}
+                </div>
+              )}
+              {(profile.positions || []).length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {(profile.positions || []).map((pos) => (
+                    <span key={pos} className="text-[13px] px-3 py-1 rounded-md font-semibold" style={{ backgroundColor: "#111", color: "#fff" }}>{pos}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+            {/* Favorite star */}
+            <button onClick={handleFavorite} disabled={favoriteLoading} className="p-1 flex-shrink-0">
+              <IconStar size={22} color={isFavorited ? "#f5a623" : "#bbb"} fill={isFavorited ? "#f5a623" : "none"} />
+            </button>
           </div>
+
+          {/* Action buttons */}
+          {user?.id !== id && (
+            <div className="flex gap-2 mt-4">
+              <Link
+                href={`/boat/messages/${id}`}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border"
+                style={{ color: "#0161F0", borderColor: "#0161F0" }}
+              >
+                <IconMessage size={16} /> Message
+              </Link>
+              <button
+                onClick={() => !isInvited && setShowInviteDrawer(true)}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white"
+                style={{ backgroundColor: isInvited ? "#555" : "#0161F0" }}
+              >
+                {isInvited
+                  ? <><IconCheck size={16} strokeWidth={2.5} /> Invited</>
+                  : <><IconFlag size={16} /> Race Invite</>}
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-2 px-4 pb-3">
-          <Link
-            href={`/boat/messages/${id}`}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-medium text-white"
-            style={{ backgroundColor: "#024BB9" }}
-          >
-            <IconMessage size={13} /> Message
-          </Link>
-          <button
-            onClick={handleFavorite}
-            disabled={favoriteLoading}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-medium text-white"
-            style={{ backgroundColor: "#024BB9" }}
-          >
-            <IconStar size={13} color="white" fill={isFavorited ? "white" : "none"} />
-            {isFavorited ? "Unfavorite" : "Favorite"}
-          </button>
-          <button
-            onClick={() => !isInvited && setShowInviteDrawer(true)}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-medium text-white"
-            style={{ backgroundColor: isInvited ? "#111" : "#0161F0" }}
-          >
-            {isInvited ? (
-              <>
-                <IconCheck size={13} color="white" strokeWidth={2.5} /> Invited
-              </>
-            ) : (
-              <>
-                <IconFlag size={13} /> Invite to Sail
-              </>
-            )}
-          </button>
-        </div>
-
-        <Divider />
-
-        {/* Availability */}
-        {(profile.availability || []).length > 0 && (
-          <>
-            <div className="px-4 py-3">
-              <p className="text-xs text-gray-400 mb-2">Availability</p>
-              {profile.availability.map((date, i) => (
-                <p key={i} className="text-sm text-gray-800 mb-1.5">
-                  {date}
-                </p>
-              ))}
-            </div>
-            <Divider />
-          </>
-        )}
-
-        {/* Interested Regattas */}
-        {(profile.interested_regattas || []).length > 0 && (
-          <>
-            <div className="px-4 py-3">
-              <p className="text-xs text-gray-400 mb-2">Interested Regattas</p>
-              {profile.interested_regattas.map((r, i) => (
-                <p key={i} className="text-sm text-gray-800 mb-1.5">
-                  {r}
-                </p>
-              ))}
-            </div>
-            <Divider />
-          </>
-        )}
-
-        {/* Boat Classes */}
+        {/* Boat Classes Sailed */}
         {(profile.boat_classes || []).length > 0 && (
-          <>
-            <div className="px-4 py-3">
-              <p className="text-xs text-gray-400 mb-2">Boat Classes Sailed</p>
-              <div className="flex flex-wrap gap-1.5">
-                {profile.boat_classes.map((cls) => (
-                  <Tag key={cls} label={cls} />
-                ))}
-              </div>
+          <div className="bg-white rounded-2xl px-4 py-4" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.07)" }}>
+            <p className="text-[13px] text-gray-400 mb-3">Boat Classes Sailed</p>
+            <div className="flex flex-wrap gap-2">
+              {profile.boat_classes.map((cls) => (
+                <span key={cls} className="text-[14px] px-3 py-1 rounded-md font-medium" style={{ backgroundColor: "#f0f2f5", color: "#444" }}>{cls}</span>
+              ))}
             </div>
-            <Divider />
-          </>
+          </div>
         )}
 
         {/* About */}
-        <div className="px-4 py-3 pb-8">
-          <p className="text-xs text-gray-400 mb-2">About</p>
-          <p className="text-sm text-gray-600 leading-relaxed mb-2">
-            {profile.about || "No bio yet."}
-          </p>
-          {profile.website && (
-            <p className="text-sm" style={{ color: "#007AFF" }}>
-              {profile.website}
-            </p>
-          )}
+        {profile.about && (
+          <div className="bg-white rounded-2xl px-4 py-4" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.07)" }}>
+            <p className="text-[13px] text-gray-400 mb-2">About</p>
+            <p className="text-[15px] text-gray-800 leading-relaxed">{profile.about}</p>
+          </div>
+        )}
+
+        {/* Instagram / Website */}
+        {(profile.instagram || profile.website) && (
+          <div className="bg-white rounded-2xl px-4 py-4" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.07)" }}>
+            {profile.instagram && (
+              <a href={`https://${profile.instagram.replace(/^https?:\/\//, "")}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[15px] font-semibold text-gray-900">
+                <span>🔗</span> {profile.instagram.replace(/^https?:\/\//, "")}
+              </a>
+            )}
+            {profile.website && (
+              <a href={`https://${profile.website.replace(/^https?:\/\//, "")}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[15px] font-semibold text-gray-900 mt-2">
+                <span>🔗</span> {profile.website.replace(/^https?:\/\//, "")}
+              </a>
+            )}
+          </div>
+        )}
+
+        {/* Kroo History */}
+        {(profile.kroo_history || []).length > 0 && (
+          <div className="bg-white rounded-2xl px-4 py-4" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.07)" }}>
+            <p className="text-[13px] text-gray-400 mb-3">Kroo History</p>
+            <div className="flex flex-col gap-3">
+              {profile.kroo_history.map((h, i) => (
+                <div key={i} className="flex items-center gap-2 flex-wrap">
+                  <p className="text-[14px] text-gray-500">{h.date}</p>
+                  {h.position && <span className="text-[13px] px-2.5 py-0.5 rounded-md font-medium" style={{ backgroundColor: "#f0f2f5", color: "#444" }}>{h.position}</span>}
+                  {h.boat_name && <p className="text-[14px] font-bold text-gray-900">{h.boat_name}</p>}
+                  {h.boat_class && <span className="text-[13px] px-2.5 py-0.5 rounded-md font-medium" style={{ backgroundColor: "#f0f2f5", color: "#444" }}>{h.boat_class}</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         </div>
       </div>
 

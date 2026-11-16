@@ -50,7 +50,7 @@ export default function AdminMessagesPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
-      <div className="flex items-center gap-3 px-4 pt-4 pb-3 border-b flex-shrink-0" style={{ borderColor: "#e8e8e8" }}>
+      <div className="sticky top-0 z-20 bg-white flex items-center gap-3 px-4 pt-4 pb-3 border-b flex-shrink-0" style={{ borderColor: "#e8e8e8" }}>
         <Link href="/admin"><IconArrowLeft size={22} color="#111" /></Link>
         <p className="text-sm font-semibold text-gray-900 flex-1">Message Center</p>
       </div>
@@ -71,7 +71,7 @@ export default function AdminMessagesPage() {
               <button
                 key={t}
                 onClick={() => { setTarget(t); setSent(null); }}
-                className="flex-1 py-2.5 rounded-full text-sm font-semibold border"
+                className="flex-1 py-2.5 rounded-2xl text-sm font-semibold border"
                 style={{
                   backgroundColor: target === t ? "#0161F0" : "#fff",
                   color: target === t ? "#fff" : "#666",
@@ -100,7 +100,7 @@ export default function AdminMessagesPage() {
         <button
           onClick={handleSend}
           disabled={!message.trim() || sending}
-          className="w-full py-3.5 rounded-full text-sm font-semibold text-white"
+          className="w-full py-3.5 rounded-2xl text-sm font-semibold text-white"
           style={{ backgroundColor: message.trim() && !sending ? "#0161F0" : "#c0c0c0" }}
         >
           {sending ? "Sending…" : `Send to All ${target === "crew" ? "Crew" : "Boat"} Users`}

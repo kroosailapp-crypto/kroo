@@ -70,7 +70,7 @@ export default function ContactPage() {
         </p>
         <button
           onClick={() => router.back()}
-          className="mt-2 px-6 py-2.5 rounded-full text-sm font-semibold text-white"
+          className="mt-2 px-6 py-2.5 rounded-2xl text-sm font-semibold text-white"
           style={{ backgroundColor: "#0161F0" }}
         >
           Done
@@ -82,7 +82,7 @@ export default function ContactPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 pt-4 pb-3 border-b flex-shrink-0" style={{ borderColor: "#e8e8e8" }}>
+      <div className="sticky top-0 z-20 bg-white flex items-center gap-3 px-4 pt-4 pb-3 border-b flex-shrink-0" style={{ borderColor: "#e8e8e8" }}>
         <button onClick={() => router.back()}>
           <IconArrowLeft size={22} color="#111" />
         </button>
@@ -97,7 +97,7 @@ export default function ContactPage() {
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             placeholder="What's this about?"
-            className="w-full px-4 py-3 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400"
+            className="w-full lg:w-auto px-4 py-3 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400"
             style={{ borderColor: "#e0e0e0" }}
           />
         </div>
@@ -110,7 +110,7 @@ export default function ContactPage() {
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Tell us how we can help…"
             rows={8}
-            className="w-full px-4 py-3 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400 resize-none"
+            className="w-full lg:w-auto px-4 py-3 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400 resize-none"
             style={{ borderColor: "#e0e0e0" }}
           />
         </div>
@@ -122,7 +122,7 @@ export default function ContactPage() {
         <button
           onClick={handleSend}
           disabled={!subject.trim() || !message.trim() || sending}
-          className="w-full py-3.5 rounded-full text-sm font-semibold text-white"
+          className="w-full lg:w-auto py-3.5 rounded-2xl text-sm font-semibold text-white"
           style={{ backgroundColor: subject.trim() && message.trim() && !sending ? "#0161F0" : "#c0c0c0" }}
         >
           {sending ? "Sending…" : "Send Message"}

@@ -42,7 +42,7 @@ export default function PrivacyPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
-      <div className="flex items-center gap-3 px-4 pt-4 pb-3 border-b flex-shrink-0" style={{ borderColor: "#e8e8e8" }}>
+      <div className="sticky top-0 z-20 bg-white flex items-center gap-3 px-4 pt-4 pb-3 border-b flex-shrink-0" style={{ borderColor: "#e8e8e8" }}>
         <button onClick={() => router.back()}>
           <IconArrowLeft size={22} color="#111" />
         </button>
@@ -217,6 +217,18 @@ export default function PrivacyPage() {
           <P>Kroo — Privacy Team</P>
           <P>privacy@kroo.app</P>
         </Section>
+
+        <div id="kroo-timer">
+          <Section number="15" title="Kroo Timer App">
+            <P>Kroo Timer is a separate sail-racing start timer app. It does not require an account and does not collect, store, or share any personal data. It contains no advertising, analytics, or third-party trackers.</P>
+            <Ul items={[
+              "Location: if you grant permission, your device's GPS is used only to display your current speed in knots. Location data is processed on your device in real time and is never transmitted, stored, or shared.",
+              "Motion and compass: device orientation sensors are used only to display your compass heading on screen. This data stays on your device.",
+              "Settings: your timer preferences (such as countdown length and which displays are shown) are kept on your device only.",
+            ]} />
+            <P>You can withdraw location or motion permission at any time in your device settings; the timer will continue to work without them. For questions about Kroo Timer, contact privacy@kroo.app.</P>
+          </Section>
+        </div>
 
         <p className="text-xs text-gray-400 italic text-center mt-4 mb-8">— End of Privacy Policy —</p>
       </div>

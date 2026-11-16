@@ -12,24 +12,11 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import CrewNavFooter from "@/app/components/CrewNavFooter";
+import ProfileSwitcher from "@/app/components/ProfileSwitcher";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
 import { notify } from "@/lib/notify";
 
-function Divider() {
-  return <div className="h-px w-full" style={{ backgroundColor: "#e8e8e8" }} />;
-}
-
-function Tag({ label }) {
-  return (
-    <span
-      className="px-2.5 py-1 rounded-lg text-xs font-bold"
-      style={{ backgroundColor: "#E8EDF8", color: "#111" }}
-    >
-      {label}
-    </span>
-  );
-}
 
 function ApplyModal({ boatName, onClose }) {
   return (
@@ -58,7 +45,7 @@ function ApplyModal({ boatName, onClose }) {
         </p>
         <button
           onClick={onClose}
-          className="mt-1 w-full py-2.5 rounded-full text-sm font-semibold text-white"
+          className="mt-1 w-full lg:w-auto py-2.5 rounded-2xl text-sm font-semibold text-white"
           style={{ backgroundColor: "#0161f0" }}
         >
           Got it
@@ -97,7 +84,7 @@ function ReportDrawer({ name, onSubmit, onClose }) {
           Tell us what's wrong. We'll review this report and take action if needed.
         </p>
         <textarea
-          className="w-full border rounded-xl px-3 py-2.5 text-sm text-gray-800 resize-none outline-none"
+          className="w-full lg:w-auto border rounded-xl px-3 py-2.5 text-sm text-gray-800 resize-none outline-none"
           style={{ borderColor: "#e0e0e0", minHeight: 100 }}
           placeholder="Describe the issue…"
           value={reason}
@@ -107,7 +94,7 @@ function ReportDrawer({ name, onSubmit, onClose }) {
         <button
           onClick={handleSubmit}
           disabled={!reason.trim() || submitting}
-          className="w-full py-3.5 rounded-full text-sm font-semibold text-white"
+          className="w-full lg:w-auto py-3.5 rounded-2xl text-sm font-semibold text-white"
           style={{ backgroundColor: !reason.trim() || submitting ? "#c0c0c0" : "#e53e3e" }}
         >
           {submitting ? "Sending…" : "Submit Report"}
@@ -140,7 +127,7 @@ function ReportConfirmModal({ onClose }) {
         </p>
         <button
           onClick={onClose}
-          className="w-full py-2.5 rounded-full text-sm font-semibold text-white"
+          className="w-full lg:w-auto py-2.5 rounded-2xl text-sm font-semibold text-white"
           style={{ backgroundColor: "#0161F0" }}
         >
           Got it
@@ -159,11 +146,13 @@ export default function BoatPublicProfile({ params }) {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [appliedPositions, setAppliedPositions] = useState(new Set());
+  const [applicantCountByPosition, setApplicantCountByPosition] = useState({});
   const [isFavorited, setIsFavorited] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [showReportDrawer, setShowReportDrawer] = useState(false);
   const [reportConfirm, setReportConfirm] = useState(false);
+  const [blocked, setBlocked] = useState(false);
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -240,6 +229,20 @@ export default function BoatPublicProfile({ params }) {
       .maybeSingle()
       .then(({ data }) => setIsFavorited(!!data));
   }, [user, id]);
+
+  // Load pending applicant counts per position (owner view)
+  useEffect(() => {
+    if (!user || user.id !== id || regattas.length === 0) return;
+    const positionIds = regattas.flatMap(r => (r.regatta_positions || []).map(p => p.id));
+    if (positionIds.length === 0) return;
+    supabase.from("invitations").select("position_id").in("position_id", positionIds).eq("status", "applied")
+      .then(({ data }) => {
+        if (!data) return;
+        const counts = {};
+        for (const row of data) counts[row.position_id] = (counts[row.position_id] || 0) + 1;
+        setApplicantCountByPosition(counts);
+      });
+  }, [user, id, regattas]);
 
   // Load already-applied positions
   useEffect(() => {
@@ -339,7 +342,7 @@ export default function BoatPublicProfile({ params }) {
   if (!profile) {
     return (
       <div className="flex flex-col min-h-screen bg-white pb-20">
-        <div className="flex items-center gap-3 px-4 pt-4 pb-3">
+        <div className="sticky top-0 z-20 bg-white flex items-center gap-3 px-4 pt-4 pb-3 border-b flex-shrink-0" style={{ borderColor: "#e8e8e8" }}>
           <Link href="/crew/feed">
             <IconArrowLeft size={22} color="#111" />
           </Link>
@@ -352,247 +355,199 @@ export default function BoatPublicProfile({ params }) {
     );
   }
 
+  const isOwner = user?.id === id;
+  const openCount = regattas.reduce((sum, r) =>
+    sum + (r.regatta_positions || []).filter(p => p.status === "open").length, 0);
+
+  function formatRegattaDate(str) {
+    if (!str) return null;
+    const [m, d, y] = str.split("/");
+    if (!m || !d || !y) return str;
+    const date = new Date(`${y}-${m.padStart(2,"0")}-${d.padStart(2,"0")}`);
+    return date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  }
+
   return (
-    <div className="flex flex-col min-h-screen bg-white pb-20">
-      {showModal && (
-        <ApplyModal
-          boatName={profile.boat_name}
-          onClose={() => setShowModal(false)}
-        />
-      )}
-
-      {showReportDrawer && (
-        <ReportDrawer
-          name={profile.boat_name}
-          onSubmit={handleReport}
-          onClose={() => setShowReportDrawer(false)}
-        />
-      )}
-
+    <div className="flex flex-col min-h-screen pb-20" style={{ backgroundColor: "#f5f5f5" }}>
+      {showModal && <ApplyModal boatName={profile.boat_name} onClose={() => setShowModal(false)} />}
+      {showReportDrawer && <ReportDrawer name={profile.boat_name} onSubmit={handleReport} onClose={() => setShowReportDrawer(false)} />}
       {reportConfirm && <ReportConfirmModal onClose={() => setReportConfirm(false)} />}
 
       {/* Header */}
-      <div className="flex items-center justify-between px-4 pt-4 pb-3">
-        <div className="flex items-center gap-3">
-          <Link href="/crew/feed">
-            <IconArrowLeft size={22} color="#111" />
-          </Link>
-          <p className="text-sm font-medium text-gray-800">{profile.boat_name}</p>
+      <div className="sticky top-0 z-20 bg-white flex items-center justify-between px-4 pt-4 pb-3 flex-shrink-0" style={{ borderBottom: "1px solid #e8e8e8" }}>
+        {isOwner
+          ? <ProfileSwitcher className="lg:hidden" />
+          : <Link href="/crew/feed" className="flex items-center gap-2 text-sm font-medium text-gray-800">
+              <IconArrowLeft size={20} color="#111" />
+              Back to boat feed
+            </Link>
+        }
+        <div className="relative" ref={menuRef}>
+          <button onClick={() => setShowMenu(v => !v)} className="p-1.5 rounded-full" style={{ color: "#555" }}>
+            <IconDots size={20} />
+          </button>
+          {showMenu && (
+            <div className="absolute right-0 top-8 bg-white rounded-xl shadow-lg border z-50 min-w-[160px] overflow-hidden" style={{ borderColor: "#e8e8e8" }}>
+              {!isOwner && <>
+                <button onClick={() => { setShowMenu(false); setShowReportDrawer(true); }} className="w-full text-left px-4 py-3 text-sm font-medium" style={{ color: "#e53e3e" }}>Report user</button>
+                <button onClick={() => { setShowMenu(false); setBlocked(true); }} className="w-full text-left px-4 py-3 text-sm font-medium border-t" style={{ color: "#e53e3e", borderColor: "#f0f0f0" }}>{blocked ? "Unblock user" : "Block user"}</button>
+              </>}
+            </div>
+          )}
         </div>
-
-        {/* 3-dot menu — only show when viewing someone else's profile */}
-        {user?.id !== id && (
-          <div className="relative" ref={menuRef}>
-            <button
-              onClick={() => setShowMenu((v) => !v)}
-              className="p-1.5 rounded-full"
-              style={{ color: "#555" }}
-            >
-              <IconDots size={20} />
-            </button>
-            {showMenu && (
-              <div
-                className="absolute right-0 top-8 bg-white rounded-xl shadow-lg border z-50 min-w-[160px] overflow-hidden"
-                style={{ borderColor: "#e8e8e8" }}
-              >
-                <button
-                  onClick={() => { setShowMenu(false); setShowReportDrawer(true); }}
-                  className="w-full text-left px-4 py-3 text-sm font-medium"
-                  style={{ color: "#e53e3e" }}
-                >
-                  Report user
-                </button>
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
       <div className="overflow-y-auto flex-1">
-        {/* Boat photo + info */}
-        <div className="flex gap-3.5 px-4 py-3 items-start">
-          <div
-            className="rounded-xl flex-shrink-0 overflow-hidden flex items-center justify-center"
-            style={{ width: 105, height: 105, backgroundColor: "#e0e0e0" }}
-          >
-            {profile.photo_url ? (
-              <img
-                src={profile.photo_url}
-                alt={profile.boat_name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <IconAnchor size={32} color="#ccc" />
-            )}
-          </div>
-          <div className="flex-1">
-            <p className="text-xl font-bold text-gray-900 mb-0.5">
-              {profile.boat_name}
-            </p>
-            <p className="text-xs text-gray-500 mb-1.5">{profile.home_port}</p>
-            {profile.boat_class && <Tag label={profile.boat_class} />}
-            <div className="flex gap-5 mt-2">
-              <div>
-                <p className="text-base font-semibold text-gray-900">
-                  {regattas.length}
-                </p>
-                <p className="text-[13px] text-gray-500">Regattas</p>
-              </div>
+        <div className="flex flex-col gap-3 px-3 pt-3 max-w-[800px] mx-auto w-full">
+
+        {/* Profile card */}
+        <div className="bg-white rounded-2xl px-4 py-4" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.07)" }}>
+          {/* Boat photo + info */}
+          <div className="flex gap-4 items-start">
+            <div className="rounded-xl flex-shrink-0 overflow-hidden flex items-center justify-center" style={{ width: 90, height: 90, backgroundColor: "#e8e8e8" }}>
+              {profile.photo_url
+                ? <img src={profile.photo_url} alt={profile.boat_name} className="w-full h-full object-cover" />
+                : <IconAnchor size={28} color="#ccc" />}
             </div>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-2 px-4 pb-3">
-          {user?.id !== id && (
-          <Link
-            href={`/crew/messages/${id}`}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-medium text-white"
-            style={{ backgroundColor: "#024BB9" }}
-          >
-            <IconMessage size={13} /> Message
-          </Link>
-          )}
-          <button
-            onClick={handleFavorite}
-            disabled={favoriteLoading}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-medium text-white"
-            style={{ backgroundColor: "#024BB9" }}
-          >
-            <IconStar
-              size={13}
-              color="white"
-              fill={isFavorited ? "white" : "none"}
-            />
-            {isFavorited ? "Unfavorite" : "Favorite"}
-          </button>
-        </div>
-
-        <Divider />
-
-        {/* About */}
-        <div className="px-4 py-3">
-          <p className="text-xs text-gray-400 mb-2">About</p>
-          <p className="text-sm text-gray-600 leading-relaxed mb-2">
-            {profile.about || "No description yet."}
-          </p>
-          {profile.website && (
-            <p className="text-sm mb-1" style={{ color: "#007AFF" }}>
-              {profile.website}
-            </p>
-          )}
-          {profile.instagram && (
-            <p className="text-sm" style={{ color: "#007AFF" }}>
-              {profile.instagram}
-            </p>
-          )}
-        </div>
-
-        <Divider />
-
-        {/* Skipper */}
-        <div className="flex items-center gap-2.5 px-4 py-3">
-          <div
-            className="rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden"
-            style={{ width: 36, height: 36, backgroundColor: "#d8d8d8" }}
-          >
-            {profile.skipper_photo_url ? (
-              <img
-                src={profile.skipper_photo_url}
-                alt={profile.skipper_name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <IconUser size={18} color="#aaa" />
-            )}
-          </div>
-          <p className="text-sm font-medium text-gray-800">
-            {profile.skipper_name}
-          </p>
-          <span className="text-xs text-gray-400 ml-1">· Skipper</span>
-        </div>
-
-        <Divider />
-
-        {/* Upcoming Regattas */}
-        <div className="px-4 py-3 pb-8">
-          <p className="text-xs text-gray-400 mb-3">Upcoming Regattas</p>
-          {regattas.length === 0 && (
-            <p className="text-sm text-gray-400">No upcoming regattas.</p>
-          )}
-          {regattas.map((regatta) => {
-            const allPositions = (regatta.regatta_positions || []).slice().sort((a, b) => a.role.localeCompare(b.role));
-            return (
-              <div key={regatta.id} className="mb-5">
-                <p className="text-sm font-semibold text-gray-900 mb-0.5">
-                  {regatta.name}
-                </p>
-                {(regatta.date || regatta.location) && (
-                  <p className="text-xs text-gray-400 mb-2">
-                    {[regatta.date, regatta.location].filter(Boolean).join(" · ")}
-                  </p>
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] text-gray-400 mb-0.5">{profile.home_port}</p>
+              <div className="flex items-center gap-2 mb-2">
+                <p className="text-[17px] font-bold text-gray-900">{profile.boat_name}</p>
+                {profile.boat_class && (
+                  <span className="text-[13px] px-2.5 py-0.5 rounded-md font-medium flex-shrink-0" style={{ backgroundColor: "#ebebeb", color: "#555" }}>{profile.boat_class}</span>
                 )}
-                <div className="flex flex-col gap-2">
-                  {allPositions.map((pos) => {
-                    const isFilled = pos.status === "filled";
-                    const sailor = filledByPosition[pos.id];
-                    const applied = appliedPositions.has(pos.id);
-                    return (
-                      <div key={pos.id} className="flex items-center gap-2">
-                        <Tag label={pos.role} />
-                        {isFilled ? (
-                          /* Filled: show sailor photo + name */
-                          <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                            <div
-                              className="rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center"
-                              style={{ width: 20, height: 20, backgroundColor: "#d8d8d8" }}
-                            >
-                              {sailor?.avatar_url
-                                ? <img src={sailor.avatar_url} alt="" className="w-full h-full object-cover" />
-                                : <IconUser size={11} color="#aaa" />}
-                            </div>
-                            <span className="text-xs text-gray-500 truncate">{sailor?.name || "—"}</span>
-                          </div>
-                        ) : (
-                          /* Open: show level */
-                          pos.level && (
-                            <span className="text-[13px] text-gray-500 flex-1">{pos.level}</span>
-                          )
-                        )}
-                        {isFilled ? (
-                          <span
-                            className="text-xs font-semibold px-3 py-1 rounded-full text-white flex-shrink-0"
-                            style={{ backgroundColor: "#111" }}
-                          >
-                            Filled
-                          </span>
-                        ) : applied ? (
-                          <span
-                            className="text-xs font-semibold px-3 py-1 rounded-full flex-shrink-0"
-                            style={{ backgroundColor: "#EFF6FF", color: "#0161F0" }}
-                          >
-                            Applied
-                          </span>
-                        ) : (
-                          <button
-                            onClick={() => handleApply(regatta, pos)}
-                            className="text-xs font-semibold px-3 py-1 rounded-full text-white flex-shrink-0"
-                            style={{ backgroundColor: "#0161f0" }}
-                          >
-                            Apply
-                          </button>
-                        )}
-                      </div>
-                    );
-                  })}
+              </div>
+              <div className="flex gap-5">
+                <div>
+                  <p className="text-[15px] font-bold text-gray-900">{regattas.length}</p>
+                  <p className="text-[13px] text-gray-400">Regattas</p>
+                </div>
+                <div>
+                  <p className="text-[15px] font-bold text-gray-900">{openCount}</p>
+                  <p className="text-[13px] text-gray-400">Open positions</p>
                 </div>
               </div>
-            );
-          })}
+            </div>
+            {/* Favorite star */}
+            <button onClick={handleFavorite} disabled={favoriteLoading} className="p-1 flex-shrink-0">
+              <IconStar size={22} color={isFavorited ? "#f5a623" : "#bbb"} fill={isFavorited ? "#f5a623" : "none"} />
+            </button>
+          </div>
+
+          {/* Skipper */}
+          {profile.skipper_name && (
+            <div className="flex items-center gap-2.5 mt-4">
+              <div className="rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden" style={{ width: 40, height: 40, backgroundColor: "#d8d8d8" }}>
+                {profile.skipper_photo_url
+                  ? <img src={profile.skipper_photo_url} alt={profile.skipper_name} className="w-full h-full object-cover" />
+                  : <IconUser size={20} color="#aaa" />}
+              </div>
+              <div>
+                <p className="text-[15px] font-bold text-gray-900">{profile.skipper_name}</p>
+                <p className="text-[13px] text-gray-400">Skipper</p>
+              </div>
+            </div>
+          )}
+
+          {/* About */}
+          {profile.about && (
+            <div className="mt-4 px-3 py-3 rounded-xl" style={{ backgroundColor: "#f5f5f5" }}>
+              <p className="text-[14px] text-gray-700 leading-relaxed">{profile.about}</p>
+            </div>
+          )}
+
+          {/* Message button */}
+          {!isOwner && (
+            <Link href={`/crew/messages/${id}`} className="mt-4 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border" style={{ color: "#0161F0", borderColor: "#0161F0" }}>
+              <IconMessage size={16} /> Message
+            </Link>
+          )}
+        </div>
+
+        {/* Edit Profile button — owner only */}
+        {isOwner && (
+          <Link href="/boat/edit" className="bg-white rounded-2xl px-4 py-3 flex items-center justify-center text-[15px] font-semibold border" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.07)", color: "#0161F0", borderColor: "#0161F0" }}>
+            Edit Profile
+          </Link>
+        )}
+
+        {/* Regatta cards */}
+        {regattas.map((regatta) => {
+          const allPositions = (regatta.regatta_positions || []).slice().sort((a, b) => a.role.localeCompare(b.role));
+          if (allPositions.length === 0) return null;
+          return (
+            <div key={regatta.id} className="bg-white rounded-2xl px-4 py-4" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.07)" }}>
+              {regatta.date && <p className="text-[13px] text-gray-400 mb-1">{formatRegattaDate(regatta.date)}</p>}
+              <p className="text-[20px] font-bold text-gray-900 leading-tight mb-1">{regatta.name}</p>
+              {(regatta.location || regatta.venue) && (
+                <p className="text-[14px] text-gray-400 mb-3">
+                  {[regatta.location, regatta.venue].filter(Boolean).join(" • ")}
+                </p>
+              )}
+              <div className="h-px mb-3" style={{ backgroundColor: "#e8e8e8" }} />
+              <div className="flex flex-col gap-0">
+                {allPositions.map((pos, i) => {
+                  const isFilled = pos.status === "filled";
+                  const sailor = filledByPosition[pos.id];
+                  const applied = appliedPositions.has(pos.id);
+                  const applicantCount = applicantCountByPosition[pos.id] || 0;
+                  return (
+                    <div key={pos.id}>
+                      {i > 0 && <div className="h-px my-2" style={{ backgroundColor: "#f0f0f0" }} />}
+                      <div className="flex items-center gap-2 py-1">
+                        <span className="text-[14px] px-3 py-1 rounded-md font-medium flex-shrink-0" style={{ backgroundColor: "#f0f2f5", color: "#333" }}>{pos.role}</span>
+                        {/* Owner view: show applicant count badge on open positions */}
+                        {isOwner && !isFilled && applicantCount > 0 && (
+                          <div className="flex items-center justify-center rounded-full flex-shrink-0" style={{ width: 22, height: 22, backgroundColor: "#e53e3e" }}>
+                            <span className="text-[11px] font-bold text-white">{applicantCount}</span>
+                          </div>
+                        )}
+                        {isFilled ? (
+                          <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                            <div className="rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center" style={{ width: 26, height: 26, backgroundColor: "#d8d8d8" }}>
+                              {sailor?.avatar_url ? <img src={sailor.avatar_url} alt="" className="w-full h-full object-cover" /> : <IconUser size={13} color="#aaa" />}
+                            </div>
+                            <span className="text-[14px] font-semibold text-gray-800 truncate">{sailor?.name || "—"}</span>
+                          </div>
+                        ) : (
+                          <span className="text-[14px] text-gray-400 flex-1">{pos.level || "All levels"}</span>
+                        )}
+                        {isFilled ? (
+                          <div className="flex items-center justify-center rounded-full flex-shrink-0" style={{ width: 28, height: 28, backgroundColor: "#111" }}>
+                            <IconCheck size={15} color="white" strokeWidth={2.5} />
+                          </div>
+                        ) : isOwner ? (
+                          <span className="text-[13px] font-medium px-3 py-1 rounded-md flex-shrink-0 border" style={{ color: "#888", borderColor: "#d0d0d0" }}>Open</span>
+                        ) : applied ? (
+                          <span className="text-[13px] font-semibold px-3 py-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: "#EFF6FF", color: "#0161F0" }}>Applied</span>
+                        ) : (
+                          <button onClick={() => handleApply(regatta, pos)} className="text-[14px] font-semibold px-4 py-1.5 rounded-full text-white flex-shrink-0" style={{ backgroundColor: "#0161F0" }}>Apply</button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {/* Manage Regatta link — owner only */}
+              {isOwner && (
+                <Link href={`/boat/regattas/${regatta.id}`} className="mt-3 text-[14px] font-semibold" style={{ color: "#0161F0" }}>
+                  Manage Regatta
+                </Link>
+              )}
+            </div>
+          );
+        })}
+
+        {regattas.length === 0 && (
+          <div className="bg-white rounded-2xl px-4 py-8 flex items-center justify-center" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.07)" }}>
+            <p className="text-sm text-gray-400">No regattas posted yet.</p>
+          </div>
+        )}
+
         </div>
       </div>
 
-      <CrewNavFooter />
+      <CrewNavFooter active="Home" />
     </div>
   );
 }

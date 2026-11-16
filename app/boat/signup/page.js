@@ -34,7 +34,7 @@ function Field({ placeholder, type = "text", value, onChange, inputMode }) {
       value={value}
       onChange={(e) => onChange(e.target.value)}
       inputMode={inputMode}
-      className="w-full px-4 py-3 rounded-xl text-sm text-gray-800 outline-none border"
+      className="w-full lg:w-auto px-4 py-3 rounded-xl text-sm text-gray-800 outline-none border"
       style={{ borderColor: "#e5e5e5", backgroundColor: "#fff" }}
     />
   );
@@ -45,7 +45,7 @@ function NextButton({ onClick, label = "NEXT", disabled = false }) {
     <button
       onClick={onClick}
       disabled={disabled}
-      className="w-full flex items-center justify-center px-6 py-3 rounded-full font-medium text-sm mt-6"
+      className="w-full lg:w-auto flex items-center justify-center px-6 py-3 rounded-2xl font-medium text-sm mt-6"
       style={{
         backgroundColor: disabled ? "#ccc" : "#0161f0",
         color: "#f6f6f6",
@@ -100,6 +100,7 @@ export default function BoatSignupPage() {
   const [experienceRequired, setExperienceRequired] = useState("");
   const [skipperPhotoUrl, setSkipperPhotoUrl] = useState("");
 
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
@@ -208,7 +209,7 @@ export default function BoatSignupPage() {
   if (emailSent) {
     return (
       <div className="flex flex-col min-h-screen bg-white px-5 py-5 items-center justify-center gap-5">
-        <Image src="/kroo-logo-blue.svg" alt="Kroo" width={60} height={24} />
+        <Image src="/kroo-finder.svg" alt="Kroo" width={100} height={72} />
         <div className="flex flex-col items-center gap-3 text-center mt-4">
           <div className="flex items-center justify-center rounded-full" style={{ width: 64, height: 64, backgroundColor: "#0161f0" }}>
             <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.8}>
@@ -222,7 +223,7 @@ export default function BoatSignupPage() {
         </div>
         <button
           onClick={() => router.push("/boat/login")}
-          className="mt-4 w-full max-w-[280px] py-3 rounded-full text-sm font-semibold text-white"
+          className="mt-4 w-full lg:w-auto max-w-[280px] py-3 rounded-2xl text-sm font-semibold text-white"
           style={{ backgroundColor: "#0161f0" }}
         >
           Go to Log In
@@ -234,7 +235,7 @@ export default function BoatSignupPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white px-5 py-5">
       <div className="mb-6">
-        <Image src="/kroo-logo-blue.svg" alt="Kroo" width={60} height={24} />
+        <Image src="/kroo-finder.svg" alt="Kroo" width={100} height={72} />
       </div>
 
       <ProgressBar step={progressStep} total={TOTAL_STEPS} />
@@ -251,7 +252,22 @@ export default function BoatSignupPage() {
               <p className="text-xs mt-1.5 ml-1" style={{ color: "#e00" }}>Passwords don't match</p>
             )}
           </div>
-          <NextButton onClick={handleNext} disabled={!email || !passwordsMatch} />
+          <div className="flex items-start gap-2.5 mt-1">
+            <input
+              type="checkbox"
+              id="terms"
+              checked={agreedToTerms}
+              onChange={(e) => setAgreedToTerms(e.target.checked)}
+              className="mt-0.5 flex-shrink-0"
+              style={{ width: 16, height: 16, accentColor: "#0161f0" }}
+            />
+            <label htmlFor="terms" className="text-xs text-gray-500 leading-relaxed">
+              I agree to the{" "}
+              <a href="/terms" target="_blank" className="underline font-medium text-gray-700">Terms of Use</a>
+              {" "}and confirm there is zero tolerance for objectionable content or abusive behavior on Kroo.
+            </label>
+          </div>
+          <NextButton onClick={handleNext} disabled={!email || !passwordsMatch || !agreedToTerms} />
         </div>
       )}
 

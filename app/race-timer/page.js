@@ -47,6 +47,17 @@ export default function RaceTimerPage() {
   const [showHeading, setShowHeading] = useState(true);
   const [showSpeed, setShowSpeed] = useState(true);
   const [showTimer, setShowTimer] = useState(true);
+  const [lightMode, setLightMode] = useState(false);
+
+  useEffect(() => {
+    try { if (localStorage.getItem('kroo-timer-light') === '1') setLightMode(true); } catch {}
+  }, []);
+
+  const setLight = (fn) => {
+    const next = fn(lightMode);
+    setLightMode(next);
+    try { localStorage.setItem('kroo-timer-light', next ? '1' : '0'); } catch {}
+  };
   const [locked, setLocked] = useState(false);
   const [unlockProgress, setUnlockProgress] = useState(0);
 
@@ -215,9 +226,18 @@ export default function RaceTimerPage() {
       if (res === 'granted') {
         setOrientError(null);
         window.addEventListener('deviceorientation', orientListenerRef.current, true);
+      } else {
+        setOrientError('denied');
       }
     } catch {}
   };
+
+  useEffect(() => {
+    if (orientError !== 'needs-permission') return;
+    const onTap = () => requestCompass();
+    document.addEventListener('click', onTap, { once: true });
+    return () => document.removeEventListener('click', onTap);
+  }, [orientError]);
 
   const startUnlockHold = () => {
     let prog = 0;
@@ -244,6 +264,10 @@ export default function RaceTimerPage() {
 
   // Font sizes per state
   const timerHidden = !showTimer;
+  const bg = lightMode ? '#ffffff' : '#000000';
+  const fg = lightMode ? '#000000' : '#ffffff';
+  const lineColor = lightMode ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.2)';
+  const labelColor = lightMode ? '#666666' : '#888888';
 
   const sensorFontSize = isCounting
     ? 'clamp(40px, 12vw, 80px)'    // small while counting
@@ -260,7 +284,7 @@ export default function RaceTimerPage() {
   const controlsFlex = isCounting ? '1' : isPostStart ? '0 0 auto' : '2';
 
   return (
-    <div className="fixed inset-0 bg-black flex flex-col" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div className="fixed inset-0 flex flex-col" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', backgroundColor: bg, color: fg }}>
 
       {/* HEADER */}
       <div className="w-full flex-shrink-0" style={{ backgroundColor: '#02123E' }}>
@@ -285,16 +309,16 @@ export default function RaceTimerPage() {
 
       {/* HEADING */}
       {showHeading && <div
-        className="flex flex-col items-center justify-center border-b border-white/20 px-4 transition-all duration-300 min-h-0 overflow-hidden"
-        style={{ flex: sensorFlex, paddingTop: 0, paddingBottom: 0 }}
+        className="flex flex-col items-center justify-center border-b px-4 transition-all duration-300 min-h-0 overflow-hidden"
+        style={{ flex: sensorFlex, paddingTop: 0, paddingBottom: 0, borderColor: lineColor }}
       >
-        <div className="font-light tracking-widest uppercase" style={{ color: '#888888', fontSize: sensorLabelSize }}>Heading</div>
-        {orientError === 'needs-permission' ? (
-          <button onClick={requestCompass} className="font-bold underline" style={{ color: '#555', fontSize: sensorFontSize }}>
-            {headingDisplay}
+        <div className="font-light tracking-widest uppercase" style={{ color: labelColor, fontSize: sensorLabelSize }}>Heading</div>
+        {orientError === 'needs-permission' || orientError === 'denied' ? (
+          <button onClick={requestCompass} className="font-bold underline" style={{ color: '#39e75f', fontSize: orientError === 'denied' ? 20 : sensorFontSize }}>
+            {orientError === 'denied' ? 'Allow Motion in Settings' : 'TAP'}
           </button>
         ) : (
-          <div className="text-white font-bold leading-none" style={{ fontSize: sensorFontSize }}>
+          <div className="font-bold leading-none" style={{ fontSize: sensorFontSize, color: fg }}>
             {headingDisplay}
           </div>
         )}
@@ -302,11 +326,11 @@ export default function RaceTimerPage() {
 
       {/* SPEED */}
       {showSpeed && <div
-        className="flex flex-col items-center justify-center border-b border-white/20 px-4 transition-all duration-300 min-h-0 overflow-hidden"
-        style={{ flex: sensorFlex, paddingTop: 0, paddingBottom: 0 }}
+        className="flex flex-col items-center justify-center border-b px-4 transition-all duration-300 min-h-0 overflow-hidden"
+        style={{ flex: sensorFlex, paddingTop: 0, paddingBottom: 0, borderColor: lineColor }}
       >
-        <div className="font-light tracking-widest uppercase" style={{ color: '#888888', fontSize: sensorLabelSize }}>Speed</div>
-        <div className="text-white font-bold leading-none" style={{ fontSize: sensorFontSize }}>
+        <div className="font-light tracking-widest uppercase" style={{ color: labelColor, fontSize: sensorLabelSize }}>Speed</div>
+        <div className="font-bold leading-none" style={{ fontSize: sensorFontSize, color: fg }}>
           {speedKnots}
         </div>
       </div>}
@@ -318,11 +342,11 @@ export default function RaceTimerPage() {
       >
         {/* Control row: always visible */}
         <div className="flex items-center justify-between mb-2 px-1">
-          <button onClick={handleReset} className="font-bold text-xl tracking-wide active:opacity-60" style={{ color: '#22c55e' }}>
+          <button onClick={handleReset} className="text-white font-bold text-lg tracking-wide rounded-lg px-4 py-1.5 active:opacity-60" style={{ backgroundColor: '#22c55e' }}>
             Reset
           </button>
-          <span className="text-white font-light text-lg tracking-widest">Count Down</span>
-          <button onClick={handleStop} className="text-red-500 font-bold text-xl tracking-wide active:opacity-60">
+          <span className="font-light text-base tracking-wide whitespace-nowrap" style={{ color: fg }}>Count Down</span>
+          <button onClick={handleStop} className="text-white font-bold text-lg tracking-wide rounded-lg px-4 py-1.5 active:opacity-60" style={{ backgroundColor: '#ef4444' }}>
             Stop
           </button>
         </div>
@@ -335,7 +359,7 @@ export default function RaceTimerPage() {
                 key={n}
                 onClick={() => setDurationMin(n)}
                 className={`text-3xl font-bold w-14 h-14 flex items-center justify-center active:opacity-50
-                  ${durationMin === n ? 'text-kroo-blue' : 'text-white'}`}
+                  ${durationMin === n ? 'text-kroo-blue' : (lightMode ? 'text-black' : 'text-white')}`}
               >
                 {n}
               </button>
@@ -346,13 +370,13 @@ export default function RaceTimerPage() {
         {/* Timer display or flashing START */}
         <div className="flex-1 flex items-center justify-center font-black leading-none">
             {showStart ? (
-              <span style={{ color: flashOn ? '#ffffff' : '#000000', fontSize: 'clamp(80px, 24vw, 180px)' }}>
+              <span style={{ color: flashOn ? fg : bg, fontSize: 'clamp(80px, 24vw, 180px)' }}>
                 START
               </span>
             ) : (
               <span style={{
                 display: 'flex', alignItems: 'center',
-                color: over ? '#22c55e' : '#ffffff',
+                color: over ? '#22c55e' : fg,
                 fontSize: isPostStart
                   ? 'clamp(70px, 20vw, 130px)'
                   : timeLeft <= 59
@@ -425,22 +449,23 @@ export default function RaceTimerPage() {
         <div className="fixed inset-0 z-50 flex items-end" onClick={() => setShowSettings(false)}>
           <div
             className="w-full rounded-t-3xl p-8 pb-12"
-            style={{ backgroundColor: '#111' }}
+            style={{ backgroundColor: lightMode ? '#f2f2f2' : '#111' }}
             onClick={e => e.stopPropagation()}
           >
-            <div className="w-12 h-1 rounded-full bg-white/20 mx-auto mb-6" />
-            <div className="text-white font-bold text-2xl mb-6 tracking-wide">Display Settings</div>
+            <div className="w-12 h-1 rounded-full mx-auto mb-6" style={{ backgroundColor: lineColor }} />
+            <div className="font-bold text-2xl mb-6 tracking-wide" style={{ color: fg }}>Display Settings</div>
             {[
               { label: 'Heading', value: showHeading, set: setShowHeading },
               { label: 'Speed',   value: showSpeed,   set: setShowSpeed   },
               { label: 'Timer',   value: showTimer,   set: setShowTimer   },
+              { label: 'Light Mode', value: lightMode, set: setLight },
             ].map(({ label, value, set }) => (
-              <div key={label} className="flex items-center justify-between py-4 border-b border-white/10">
-                <span className="text-white text-xl">{label}</span>
+              <div key={label} className="flex items-center justify-between py-4 border-b" style={{ borderColor: lineColor }}>
+                <span className="text-xl" style={{ color: fg }}>{label}</span>
                 <button
                   onClick={() => set(v => !v)}
                   className="w-14 h-8 rounded-full transition-colors relative"
-                  style={{ backgroundColor: value ? '#0161f0' : '#333' }}
+                  style={{ backgroundColor: value ? '#0161f0' : (lightMode ? '#cccccc' : '#333') }}
                 >
                   <span
                     className="absolute top-1 w-6 h-6 bg-white rounded-full transition-all"
@@ -451,8 +476,8 @@ export default function RaceTimerPage() {
             ))}
             <button
               onClick={() => setShowSettings(false)}
-              className="mt-8 w-full py-4 rounded-full text-white font-bold text-xl"
-              style={{ backgroundColor: '#222' }}
+              className="mt-8 w-full py-4 rounded-2xl font-bold text-xl"
+              style={{ backgroundColor: lightMode ? '#e5e5e5' : '#222', color: fg }}
             >
               Done
             </button>

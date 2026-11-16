@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: "Kroo",
   webDir: "out",
   server: {
-    url: "https://kroo-weld.vercel.app",
+    url: "https://app.kroofinder.com",
     cleartext: false,
   },
   ios: {

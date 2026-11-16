@@ -8,9 +8,9 @@ import {
   IconAnchor,
   IconUser,
   IconLayoutGrid,
-  IconList,
   IconCalendar,
   IconCheck,
+  IconSailboat,
 } from "@tabler/icons-react";
 import CrewNavFooter from "@/app/components/CrewNavFooter";
 import { supabase } from "@/lib/supabase";
@@ -98,7 +98,7 @@ function ApplyModal({ boatName, onClose }) {
         </p>
         <button
           onClick={onClose}
-          className="mt-1 w-full py-2.5 rounded-full text-sm font-semibold text-white"
+          className="mt-1 w-full py-2.5 rounded-2xl text-sm font-semibold text-white"
           style={{ backgroundColor: "#0161f0" }}
         >
           Got it
@@ -112,192 +112,98 @@ function ApplyModal({ boatName, onClose }) {
 
 function BoatCard({ boat }) {
   return (
-    <Link href={`/boat/${boat.id}`} className="flex flex-col">
-      <div className="flex items-center justify-between px-4 pt-4 pb-2">
-        <div>
-          <p className="font-bold text-lg text-gray-900">{boat.boat_name}</p>
-          <p className="text-xs text-gray-500">{boat.home_port}</p>
-        </div>
-        {boat.boat_class && (
-          <span
-            className="text-xs px-2.5 py-1 rounded-lg font-bold"
-            style={{ backgroundColor: "#E8EDF8", color: "#111" }}
-          >
-            {boat.boat_class}
-          </span>
-        )}
-      </div>
-
+    <Link href={`/boat/${boat.id}`} className="flex items-center gap-4 px-4 py-4">
+      {/* Boat thumbnail */}
       <div
-        className="relative w-full h-48 flex items-center justify-center"
-        style={{ backgroundColor: "#f0f0f0" }}
+        className="rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center"
+        style={{ width: 88, height: 88, backgroundColor: "#e8e8e8" }}
       >
         {boat.photo_url ? (
-          <img
-            src={boat.photo_url}
-            alt={boat.boat_name}
-            className="w-full h-full object-cover"
-          />
+          <img src={boat.photo_url} alt={boat.boat_name} className="w-full h-full object-cover" />
         ) : (
-          <IconAnchor size={40} color="#ccc" />
+          <IconAnchor size={28} color="#ccc" />
         )}
       </div>
 
-      <div className="px-4 py-3 flex items-center justify-between">
-        <div className="flex gap-5">
-          <div>
-            <p className="text-base font-semibold text-gray-900">
-              {(boat.open_positions ?? 0)}
-            </p>
-            <p className="text-[13px] text-gray-500">Open Positions</p>
-          </div>
-        </div>
-        {boat.skipper_name && (
-          <div className="flex items-center gap-2">
-            <div
-              className="rounded-full overflow-hidden flex items-center justify-center flex-shrink-0"
-              style={{ width: 32, height: 32, backgroundColor: "#d8d8d8" }}
-            >
-              {boat.skipper_photo_url ? (
-                <img
-                  src={boat.skipper_photo_url}
-                  alt={boat.skipper_name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <IconUser size={16} color="#aaa" />
-              )}
-            </div>
-            <div>
-              <p className="text-xs font-medium text-gray-900">
-                {boat.skipper_name}
-              </p>
-              <p className="text-[13px] text-gray-400">Skipper</p>
-            </div>
-          </div>
-        )}
-      </div>
-    </Link>
-  );
-}
-
-// ─── Positions view ──────────────────────────────────────────────────────────
-
-function PositionRow({ pos, applied, onApply }) {
-  return (
-    <div className="flex items-center gap-2 py-2">
-      <span
-        className="px-2.5 py-1 rounded-lg text-xs font-bold whitespace-nowrap flex-shrink-0"
-        style={{ backgroundColor: "#E8EDF8", color: "#111" }}
-      >
-        {pos.role}
-      </span>
-      {pos.level && (
-        <span className="text-xs text-gray-500 flex-1 truncate">{pos.level}</span>
-      )}
-      {applied ? (
-        <span
-          className="text-xs font-semibold px-3 py-1.5 rounded-full flex-shrink-0"
-          style={{ backgroundColor: "#EFF6FF", color: "#0161F0" }}
-        >
-          Applied
-        </span>
-      ) : (
-        <button
-          onClick={() => onApply(pos)}
-          className="text-xs font-semibold px-3 py-1.5 rounded-full text-white flex-shrink-0"
-          style={{ backgroundColor: "#0161F0" }}
-        >
-          Apply
-        </button>
-      )}
-    </div>
-  );
-}
-
-function BoatPositionBlock({ regatta, boat, openPositions, appliedPositions, onApply }) {
-  return (
-    <div className="px-4 py-3 border-b" style={{ borderColor: "#f0f0f0" }}>
-      {/* Boat header */}
-      <div className="flex items-center gap-3 mb-2">
-        <Link href={`/boat/${boat.id}`} className="rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center" style={{ width: 52, height: 52, backgroundColor: "#e0e0e0" }}>
-          {boat.photo_url ? (
-            <img src={boat.photo_url} alt={boat.boat_name} className="w-full h-full object-cover" />
-          ) : (
-            <IconAnchor size={20} color="#ccc" />
-          )}
-        </Link>
-        <div className="flex-1 min-w-0">
-          <Link href={`/boat/${boat.id}`}>
-            <p className="text-sm font-bold text-gray-900 truncate">{boat.boat_name}</p>
-          </Link>
+      {/* Info */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-0.5">
+          <p className="text-[17px] font-bold text-gray-900 truncate">{boat.boat_name}</p>
           {boat.boat_class && (
             <span
-              className="inline-block mt-0.5 px-2 py-0.5 rounded text-[13px] font-semibold"
-              style={{ backgroundColor: "#F0F0F0", color: "#555" }}
+              className="text-[13px] px-2.5 py-0.5 rounded-md font-medium flex-shrink-0"
+              style={{ backgroundColor: "#ebebeb", color: "#555" }}
             >
               {boat.boat_class}
             </span>
           )}
         </div>
+        {boat.home_port && (
+          <p className="text-[14px] text-gray-400 mb-1">{boat.home_port}</p>
+        )}
+        {boat.skipper_name && (
+          <div className="flex items-center gap-1.5">
+            <div
+              className="rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center"
+              style={{ width: 22, height: 22, backgroundColor: "#d8d8d8" }}
+            >
+              {boat.skipper_photo_url ? (
+                <img src={boat.skipper_photo_url} alt={boat.skipper_name} className="w-full h-full object-cover" />
+              ) : (
+                <IconUser size={12} color="#aaa" />
+              )}
+            </div>
+            <p className="text-[14px] font-semibold text-gray-700">{boat.skipper_name}</p>
+          </div>
+        )}
       </div>
 
-      {/* Open positions */}
-      <div className="flex flex-col divide-y divide-[#e8e8e8]">
-        {openPositions.map((pos) => (
-          <PositionRow
-            key={pos.id}
-            pos={pos}
-            applied={appliedPositions.has(pos.id)}
-            onApply={(p) => onApply(regatta, boat, p)}
-          />
-        ))}
-      </div>
-    </div>
+      {/* Open positions badge */}
+      {(boat.open_positions ?? 0) > 0 && (
+        <div className="flex-shrink-0 flex flex-col items-center gap-1">
+          <div
+            className="flex items-center justify-center rounded-full"
+            style={{ width: 36, height: 36, backgroundColor: "#dce9ff" }}
+          >
+            <span className="text-[15px] font-bold" style={{ color: "#0161F0" }}>{boat.open_positions}</span>
+          </div>
+          <p className="text-[11px] text-gray-400 text-center leading-tight">Open<br/>Positions</p>
+        </div>
+      )}
+    </Link>
   );
 }
 
-function RegattaBlock({ regatta, appliedPositions, onApply }) {
+
+function RegattaCard({ regatta }) {
   const date = regatta.parsedDate;
   const day = date ? date.getDate().toString().padStart(2, "0") : null;
 
-  // Group open positions by boat
-  const openPositions = (regatta.regatta_positions || []).filter(
-    (p) => p.status === "open"
-  );
+  const openPositions = (regatta.regatta_positions || []).filter((p) => p.status === "open");
   const boat = regatta.boat_profiles;
   if (!boat || openPositions.length === 0) return null;
 
+  const openCount = openPositions.length;
+
   return (
-    <div className="mb-1">
-      {/* Date + regatta header */}
-      <div className="flex items-start gap-3 px-4 pt-4 pb-2">
+    <div className="bg-white rounded-2xl overflow-hidden" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.07)", border: "1px solid #f0f0f0" }}>
+      {/* Regatta header */}
+      <div className="flex items-center gap-3 px-4 pt-4 pb-3">
         {day && (
-          <div
-            className="flex items-center justify-center rounded-xl flex-shrink-0"
-            style={{ width: 44, height: 44, backgroundColor: "#0161F0" }}
-          >
-            <span className="text-white font-bold text-lg leading-none">{day}</span>
+          <div className="flex items-center justify-center rounded-xl flex-shrink-0" style={{ width: 52, height: 52, backgroundColor: "#0161F0" }}>
+            <span className="text-white font-bold text-xl leading-none">{day}</span>
           </div>
         )}
-        <div className="flex-1 min-w-0 pt-0.5">
-          {regatta.location && (
-            <p className="text-xs text-gray-400 mb-0.5">{regatta.location}</p>
-          )}
-          <p className="text-base font-bold text-gray-900 leading-tight">
-            {regatta.name}
-          </p>
+        <div className="flex-1 min-w-0">
+          {regatta.location && <p className="text-[13px] text-gray-400 mb-0.5">{regatta.location}</p>}
+          <p className="text-[17px] font-bold text-gray-900 leading-tight">{regatta.name}</p>
         </div>
       </div>
 
-      {/* Boat + positions */}
-      <BoatPositionBlock
-        regatta={regatta}
-        boat={boat}
-        openPositions={openPositions}
-        appliedPositions={appliedPositions}
-        onApply={onApply}
-      />
+      {/* Boat card — same layout as boats view */}
+      <div className="h-px" style={{ backgroundColor: "#f0f0f0" }} />
+      <BoatCard boat={{ ...boat, open_positions: openCount }} />
+
     </div>
   );
 }
@@ -319,13 +225,9 @@ function EmptyBoats() {
 function EmptyPositions() {
   return (
     <div className="flex flex-col items-center justify-center px-8 py-24">
-      <IconList size={40} color="#e0e0e0" />
-      <p className="text-sm font-medium text-gray-400 text-center mt-4">
-        No open positions
-      </p>
-      <p className="text-xs text-gray-400 text-center mt-1">
-        Open crew positions will appear here when boats post regattas.
-      </p>
+      <IconCalendar size={40} color="#e0e0e0" />
+      <p className="text-sm font-medium text-gray-400 text-center mt-4">No upcoming regattas</p>
+      <p className="text-xs text-gray-400 text-center mt-1">Open crew positions will appear here when boats post regattas.</p>
     </div>
   );
 }
@@ -351,7 +253,7 @@ export default function CrewFeedPage() {
         supabase.from("regattas").select(`
           id, name, date, location, boat_id,
           regatta_positions(id, role, level, status),
-          boat_profiles(id, boat_name, photo_url, boat_class)
+          boat_profiles(id, boat_name, photo_url, boat_class, home_port, skipper_name, skipper_photo_url)
         `),
         fetchAdminIds(),
       ]);
@@ -458,50 +360,61 @@ export default function CrewFeedPage() {
     .filter((g) => g.regattas.length > 0);
 
   return (
-    <div className="flex flex-col min-h-screen bg-white pb-20">
+    <div className="flex flex-col min-h-screen pb-20" style={{ backgroundColor: "#f5f5f5" }}>
       {modalBoat && (
         <ApplyModal boatName={modalBoat.boat_name} onClose={() => setModalBoat(null)} />
       )}
 
-      {/* Header */}
-      <div className="flex items-center gap-2 px-4 pt-3 pb-2 flex-shrink-0">
-        <ProfileSwitcher />
-        <div
-          className="flex-1 min-w-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full"
-          style={{ backgroundColor: "#f0f0f0" }}
-          onClick={() => inputRef.current?.focus()}
-        >
-          <IconSearch size={14} color="#aaa" className="flex-shrink-0" />
-          <input
-            ref={inputRef}
-            value={query}
-            onChange={(e) => { setQuery(e.target.value); }}
-            placeholder={view === "positions" ? "Event, location or position…" : "Boat name, location or class…"}
-            className="flex-1 bg-transparent text-xs text-gray-700 outline-none placeholder-gray-400 min-w-0"
-          />
-          {query && (
-            <button onClick={() => setQuery("")} className="flex-shrink-0">
-              <IconX size={13} color="#aaa" />
-            </button>
-          )}
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-20 bg-white flex-shrink-0" style={{ borderBottom: "1px solid #e8e8e8" }}>
+        {/* Row 1: Logo + toggle */}
+        <div className="flex items-center justify-between px-4 pt-3 pb-2">
+          <ProfileSwitcher className="lg:hidden" />
+          <button
+            onClick={() => { setView((v) => (v === "boats" ? "positions" : "boats")); setQuery(""); }}
+            className="flex items-center gap-1.5"
+          >
+            {view === "boats" ? (
+              <>
+                <span className="text-[15px] font-semibold" style={{ color: "#0161F0" }}>Calendar View</span>
+                <IconCalendar size={18} color="#0161F0" />
+              </>
+            ) : (
+              <>
+                <span className="text-[15px] font-semibold" style={{ color: "#0161F0" }}>Boats View</span>
+                <IconSailboat size={18} color="#0161F0" />
+              </>
+            )}
+          </button>
         </div>
-        {/* Toggle view */}
-        <button
-          onClick={() => { setView((v) => (v === "boats" ? "positions" : "boats")); setQuery(""); }}
-          className="flex-none flex items-center justify-center rounded-full"
-          style={{ width: 34, height: 34, backgroundColor: view === "positions" ? "#111" : "#f0f0f0" }}
-        >
-          {view === "boats" ? (
-            <IconCalendar size={18} color="#555" />
-          ) : (
-            <IconLayoutGrid size={18} color="#fff" />
-          )}
-        </button>
+        {/* Row 2: Search */}
+        <div className="px-4 pb-3">
+          <div
+            className="flex items-center gap-1.5 px-3 py-2 rounded-2xl"
+            style={{ backgroundColor: "#f0f0f0" }}
+            onClick={() => inputRef.current?.focus()}
+          >
+            <IconSearch size={14} color="#aaa" className="flex-shrink-0" />
+            <input
+              ref={inputRef}
+              value={query}
+              onChange={(e) => { setQuery(e.target.value); }}
+              placeholder={view === "positions" ? "Event, location or position…" : "Boat name, location or class…"}
+              className="flex-1 bg-transparent text-xs text-gray-700 outline-none placeholder-gray-400 min-w-0"
+            />
+            {query && (
+              <button onClick={() => setQuery("")} className="flex-shrink-0">
+                <IconX size={13} color="#aaa" />
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* ── Boats view ── */}
       {view === "boats" && (
         <main className="flex-1 overflow-y-auto">
+          <div className="max-w-[800px] mx-auto w-full">
           {loading ? (
             <div className="flex items-center justify-center py-24">
               <p className="text-sm text-gray-400">Loading…</p>
@@ -518,19 +431,18 @@ export default function CrewFeedPage() {
             )
           ) : (
             <>
-              {filteredBoats.slice(0, visibleBoats).map((boat, i) => (
-                <div key={boat.id}>
+              <div className="flex flex-col gap-2 px-3 pt-2">
+              {filteredBoats.slice(0, visibleBoats).map((boat) => (
+                <div key={boat.id} className="bg-white rounded-2xl overflow-hidden" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.07)", border: "1px solid #f0f0f0" }}>
                   <BoatCard boat={boat} />
-                  {i < Math.min(visibleBoats, filteredBoats.length) - 1 && (
-                    <div className="h-2" style={{ backgroundColor: "#F6F6F6" }} />
-                  )}
                 </div>
               ))}
+              </div>
               {filteredBoats.length > visibleBoats && (
                 <div className="flex justify-center py-6">
                   <button
                     onClick={() => setVisibleBoats((c) => c + 25)}
-                    className="px-6 py-2.5 rounded-full text-sm font-semibold border"
+                    className="px-6 py-2.5 rounded-2xl text-sm font-semibold border"
                     style={{ color: "#111", borderColor: "#d0d0d0" }}
                   >
                     Load more
@@ -539,12 +451,14 @@ export default function CrewFeedPage() {
               )}
             </>
           )}
+          </div>
         </main>
       )}
 
       {/* ── Positions view ── */}
       {view === "positions" && (
         <main className="flex-1 overflow-y-auto">
+          <div className="max-w-[800px] mx-auto w-full">
           {loading ? (
             <div className="flex items-center justify-center py-24">
               <p className="text-sm text-gray-400">Loading…</p>
@@ -561,27 +475,29 @@ export default function CrewFeedPage() {
             )
           ) : (
             <>
-              {visibleMonthGroups.map((group) => (
-                <div key={group.label}>
-                  <div className="px-4 py-2.5 sticky top-0 z-10 flex items-center justify-between" style={{ backgroundColor: "#F6F6F6" }}>
-                    <p className="text-base font-bold text-gray-900">{group.label}</p>
-                    {group.year && <p className="text-base font-bold text-gray-900">{group.year}</p>}
+              <div className="flex flex-col px-3 pt-2 pb-4 gap-4">
+                {visibleMonthGroups.map((group) => (
+                  <div key={group.label}>
+                    <div className="flex items-baseline justify-between px-1 mb-3">
+                      <p className="text-[22px] font-bold text-gray-900">{group.label}</p>
+                      {group.year && <p className="text-[15px] font-semibold text-gray-400">{group.year}</p>}
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      {group.regattas.map((reg) => (
+                        <RegattaCard
+                          key={reg.id}
+                          regatta={reg}
+                        />
+                      ))}
+                    </div>
                   </div>
-                  {group.regattas.map((reg) => (
-                    <RegattaBlock
-                      key={reg.id}
-                      regatta={reg}
-                      appliedPositions={appliedPositions}
-                      onApply={handleApply}
-                    />
-                  ))}
-                </div>
-              ))}
+                ))}
+              </div>
               {allFilteredRegattas.length > visibleRegattas && (
                 <div className="flex justify-center py-6">
                   <button
                     onClick={() => setVisibleRegattas((c) => c + 25)}
-                    className="px-6 py-2.5 rounded-full text-sm font-semibold border"
+                    className="px-6 py-2.5 rounded-2xl text-sm font-semibold border"
                     style={{ color: "#111", borderColor: "#d0d0d0" }}
                   >
                     Load more
@@ -590,6 +506,7 @@ export default function CrewFeedPage() {
               )}
             </>
           )}
+          </div>
         </main>
       )}
 

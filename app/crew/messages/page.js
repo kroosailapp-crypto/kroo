@@ -44,14 +44,14 @@ function DeleteModal({ name, onConfirm, onClose }) {
         <div className="flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 py-2.5 rounded-full text-sm font-semibold border"
+            className="flex-1 py-2.5 rounded-2xl text-sm font-semibold border"
             style={{ color: "#111", borderColor: "#d0d0d0" }}
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 py-2.5 rounded-full text-sm font-semibold text-white"
+            className="flex-1 py-2.5 rounded-2xl text-sm font-semibold text-white"
             style={{ backgroundColor: "#e00" }}
           >
             Delete
@@ -99,9 +99,6 @@ function ConversationRow({ conversation, userId, onDelete }) {
           >
             {preview}
           </p>
-          {otherProfile?.skipper_name && (
-            <p className="text-[13px] text-gray-400 mt-0.5">{otherProfile.skipper_name} · Skipper</p>
-          )}
         </div>
       </Link>
       <button
@@ -136,6 +133,8 @@ export default function CrewMessages() {
 
   useEffect(() => {
     if (!user) return;
+    // Clear any orphaned unread messages (e.g. from deleted conversations)
+    supabase.from("messages").update({ read_at: new Date().toISOString() }).eq("receiver_id", user.id).is("read_at", null);
     loadConversations();
   }, [user]);
 
@@ -188,8 +187,11 @@ export default function CrewMessages() {
       }
     }
 
+    // Filter out threads where the other user no longer has a profile (deleted account)
+    const validThreads = threads.filter((t) => profileMap[t.otherId]);
+
     setConversations(
-      threads.map((t) => ({ ...t, otherProfile: profileMap[t.otherId] || null }))
+      validThreads.map((t) => ({ ...t, otherProfile: profileMap[t.otherId] }))
     );
     setLoading(false);
   }
@@ -198,29 +200,15 @@ export default function CrewMessages() {
     if (!deleteTarget) return;
     const otherId = deleteTarget.otherId;
 
-    await supabase
-      .from("hidden_conversations")
-      .upsert({ user_id: user.id, other_user_id: otherId, hidden_at: new Date().toISOString() });
-
-    // Check if the other user has also deleted this conversation
-    const { data: otherHidden } = await supabase
-      .from("hidden_conversations")
-      .select("user_id")
-      .eq("user_id", otherId)
-      .eq("other_user_id", user.id)
-      .maybeSingle();
-
-    if (otherHidden) {
-      // Both sides deleted — permanently remove messages and hidden records
-      await Promise.all([
-        supabase.from("messages").delete().or(
-          `and(sender_id.eq.${user.id},receiver_id.eq.${otherId}),and(sender_id.eq.${otherId},receiver_id.eq.${user.id})`
-        ),
-        supabase.from("hidden_conversations").delete().or(
-          `and(user_id.eq.${user.id},other_user_id.eq.${otherId}),and(user_id.eq.${otherId},other_user_id.eq.${user.id})`
-        ),
-      ]);
-    }
+    // Always permanently delete messages — simpler and works even when other account is deleted
+    await Promise.all([
+      supabase.from("messages").delete().or(
+        `and(sender_id.eq.${user.id},receiver_id.eq.${otherId}),and(sender_id.eq.${otherId},receiver_id.eq.${user.id})`
+      ),
+      supabase.from("hidden_conversations").delete().or(
+        `and(user_id.eq.${user.id},other_user_id.eq.${otherId}),and(user_id.eq.${otherId},other_user_id.eq.${user.id})`
+      ),
+    ]);
 
     setConversations((prev) => prev.filter((c) => c.otherId !== otherId));
     setDeleteTarget(null);
@@ -236,8 +224,8 @@ export default function CrewMessages() {
         />
       )}
 
-      <div className="flex items-center gap-2 px-4 pt-3 pb-2 flex-shrink-0">
-        <ProfileSwitcher />
+      <div className="sticky top-0 z-20 bg-white flex items-center gap-2 px-4 pt-3 pb-2 border-b flex-shrink-0" style={{ borderColor: "#e8e8e8" }}>
+        <ProfileSwitcher className="lg:hidden" />
         <div
           className="flex-1 flex items-center gap-1.5 px-3 py-1.5 rounded-full"
           style={{ backgroundColor: "#f0f0f0" }}
@@ -260,6 +248,7 @@ export default function CrewMessages() {
       </div>
 
       <main className="flex-1 overflow-y-auto">
+        <div className="max-w-[800px] mx-auto w-full">
         {(() => {
           const q = query.toLowerCase().trim();
           const filtered = q
@@ -284,6 +273,7 @@ export default function CrewMessages() {
             </div>
           ));
         })()}
+        </div>
       </main>
 
       <CrewNavFooter active="Message" />

@@ -43,14 +43,14 @@ export default function DeleteAccountPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-3.5 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400"
+              className="w-full lg:w-auto px-4 py-3.5 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400"
               style={{ borderColor: "#e0e0e0" }}
             />
             {error && <p className="text-xs" style={{ color: "#e00" }}>{error}</p>}
             <button
               type="submit"
               disabled={!email.trim()}
-              className="w-full py-3.5 rounded-full text-sm font-semibold text-white"
+              className="w-full lg:w-auto py-3.5 rounded-2xl text-sm font-semibold text-white"
               style={{ backgroundColor: email.trim() ? "#e00" : "#ccc" }}
             >
               Request Account Deletion

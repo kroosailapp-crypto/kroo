@@ -72,7 +72,7 @@ function LoginModal({ onClose }) {
         <button
           onClick={handleLogin}
           disabled={!email || !password || loading}
-          className="w-full py-3 rounded-full text-sm font-semibold text-white"
+          className="w-full py-3 rounded-2xl text-sm font-semibold text-white"
           style={{ backgroundColor: !email || !password || loading ? "#ccc" : "#0161f0" }}
         >
           {loading ? "Signing in…" : "Sign In"}
@@ -93,47 +93,74 @@ export default function WelcomePage() {
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
 
       {/* Logo & Headline */}
-      <div className="flex flex-col items-center gap-12 w-full mb-8">
-        <p className="text-white text-2xl font-normal text-center">Welcome to</p>
+      <div className="flex flex-col items-center gap-4 w-full mb-6">
+        <p className="text-[20px] font-normal text-center" style={{ color: "#7a9cc4" }}>Welcome to</p>
         <Image
-          src="/kroo-logo-white.svg"
+          src="/kroo-finder-white.svg"
           alt="Kroo"
-          width={260}
-          height={93}
+          width={208}
+          height={74}
           priority
-          className="w-full max-w-[260px]"
+          className="w-full max-w-[208px]"
         />
-        <p className="text-white text-2xl font-normal text-center">Are you looking for</p>
       </div>
 
-      {/* Boat owner looking for crew */}
-      <Link
-        href="/boat/signup"
-        className="w-full flex items-center justify-center px-4 py-2 rounded-full mb-6 font-medium text-sm tracking-wide"
-        style={{ backgroundColor: "#0161f0", color: "#f6f6f6" }}
-      >
-        CREW MEMBER
-      </Link>
+      {/* Login button */}
+      <div className="w-full flex justify-center mb-3">
+        <button
+          onClick={() => setShowLogin(true)}
+          className="w-full lg:w-1/2 flex items-center justify-center px-4 py-2.5 rounded-2xl font-medium text-[20px]"
+          style={{ backgroundColor: "#4caf50", color: "#fff" }}
+        >
+          Log in
+        </button>
+      </div>
 
-      <p className="text-white text-2xl font-normal text-center mb-6">Or</p>
+      <p className="text-white text-[18px] font-normal text-center mb-3">or create an account</p>
+
+      {/* Boat owner looking for crew */}
+      <div className="w-full flex justify-center mb-4">
+        <Link
+          href="/boat/signup"
+          className="w-full lg:w-1/2 flex items-center justify-center px-4 py-2.5 rounded-2xl font-medium text-[20px]"
+          style={{ backgroundColor: "#3b6fd4", color: "#fff" }}
+        >
+          Looking for Crew
+        </Link>
+      </div>
+
+      <p className="text-white text-[20px] font-normal text-center mb-4">or</p>
 
       {/* Sailor looking for a boat */}
-      <Link
-        href="/crew/signup"
-        className="w-full flex items-center justify-center px-4 py-2 rounded-full font-medium text-sm tracking-wide"
-        style={{ backgroundColor: "#0161f0", color: "#f6f6f6" }}
-      >
-        A BOAT TO SAIL
-      </Link>
+      <div className="w-full flex justify-center mb-6">
+        <Link
+          href="/crew/signup"
+          className="w-full lg:w-1/2 flex items-center justify-center px-4 py-2.5 rounded-2xl font-medium text-[20px]"
+          style={{ backgroundColor: "#3b6fd4", color: "#fff" }}
+        >
+          Looking for a Boat to Sail
+        </Link>
+      </div>
 
-      {/* Login link */}
-      <button
-        onClick={() => setShowLogin(true)}
-        className="mt-10 text-sm font-medium"
-        style={{ color: "rgba(255,255,255,0.6)" }}
+      {/* Dual account info */}
+      <div
+        className="w-full lg:w-1/2 rounded-2xl px-4 py-4 flex flex-col gap-3"
+        style={{ backgroundColor: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)" }}
       >
-        Already have an account? <span style={{ color: "#fff" }}>Log in</span>
-      </button>
+        <p className="text-[18px] font-semibold text-white">You can have both account types.</p>
+        <div className="flex flex-col gap-0.5">
+          <p className="text-[18px] font-bold text-white">1. Create one first account</p>
+          <p className="text-[18px] leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>Choose either Crew Member or Boat to Sail to get started.</p>
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <p className="text-[18px] font-bold text-white">2. Once logged in</p>
+          <p className="text-[18px] leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>Tap on the Kroo logo to create the other account.</p>
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <p className="text-[18px] font-bold text-white">3. Switching accounts</p>
+          <p className="text-[18px] leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>Just tap the logo to switch between accounts.</p>
+        </div>
+      </div>
     </div>
   );
 }

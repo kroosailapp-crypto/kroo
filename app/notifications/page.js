@@ -131,7 +131,7 @@ function NotificationsInner() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <div
-        className="flex items-center gap-3 px-4 pt-4 pb-3 border-b flex-shrink-0"
+        className="sticky top-0 z-20 bg-white flex items-center gap-3 px-4 pt-4 pb-3 border-b flex-shrink-0"
         style={{ borderColor: "#e8e8e8" }}
       >
         <button onClick={() => router.back()}>
@@ -141,6 +141,7 @@ function NotificationsInner() {
       </div>
 
       <div className="flex-1 overflow-y-auto">
+        <div className="max-w-[800px] mx-auto w-full">
         <p className="px-4 pt-5 pb-3 text-xs text-gray-400">Email Notifications</p>
         <Divider />
 
@@ -163,6 +164,7 @@ function NotificationsInner() {
         <p className="px-4 pt-4 text-xs text-gray-400 leading-relaxed">
           Notifications are sent to the email address associated with your account.
         </p>
+        </div>
       </div>
     </div>
   );

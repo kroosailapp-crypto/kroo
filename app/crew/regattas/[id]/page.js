@@ -46,7 +46,7 @@ function ApplyModal({ boatName, onClose }) {
         </p>
         <button
           onClick={onClose}
-          className="mt-1 w-full py-2.5 rounded-full text-sm font-semibold text-white"
+          className="mt-1 w-full py-2.5 rounded-2xl text-sm font-semibold text-white"
           style={{ backgroundColor: "#0161f0" }}
         >
           Got it
@@ -125,7 +125,7 @@ export default function CrewRegattaDetail({ params }) {
   if (!regatta) {
     return (
       <div className="flex flex-col min-h-screen bg-white pb-20">
-        <div className="flex items-center gap-3 px-4 pt-4 pb-3">
+        <div className="sticky top-0 z-20 bg-white flex items-center gap-3 px-4 pt-4 pb-3 border-b flex-shrink-0" style={{ borderColor: "#e8e8e8" }}>
           <Link href="/crew/regattas">
             <IconArrowLeft size={22} color="#111" />
           </Link>
@@ -133,7 +133,7 @@ export default function CrewRegattaDetail({ params }) {
         <div className="flex-1 flex items-center justify-center">
           <p className="text-sm text-gray-400">Regatta not found.</p>
         </div>
-        <CrewNavFooter active="Regattas" />
+        <CrewNavFooter active="My Regattas" />
       </div>
     );
   }
@@ -150,7 +150,7 @@ export default function CrewRegattaDetail({ params }) {
       )}
 
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 pt-4 pb-3">
+      <div className="sticky top-0 z-20 bg-white flex items-center gap-3 px-4 pt-4 pb-3 border-b flex-shrink-0" style={{ borderColor: "#e8e8e8" }}>
         <Link href="/crew/regattas">
           <IconArrowLeft size={22} color="#111" />
         </Link>
@@ -158,6 +158,7 @@ export default function CrewRegattaDetail({ params }) {
       </div>
 
       <div className="overflow-y-auto flex-1">
+        <div className="max-w-[800px] mx-auto w-full">
         {/* Regatta info */}
         <div className="px-4 pt-2 pb-4">
           {(regatta.date || regatta.location) && (
@@ -221,9 +222,10 @@ export default function CrewRegattaDetail({ params }) {
             <Divider />
           </div>
         ))}
+        </div>
       </div>
 
-      <CrewNavFooter active="Regattas" />
+      <CrewNavFooter active="My Regattas" />
     </div>
   );
 }

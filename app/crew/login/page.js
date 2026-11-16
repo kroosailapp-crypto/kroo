@@ -28,7 +28,7 @@ export default function CrewLoginPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white px-5 py-5">
       <div className="mb-8">
-        <Image src="/kroo-logo-blue.svg" alt="Kroo" width={60} height={24} />
+        <Image src="/kroo-finder.svg" alt="Kroo" width={100} height={72} />
       </div>
 
       <div className="flex flex-col gap-4">
@@ -65,7 +65,7 @@ export default function CrewLoginPage() {
         <button
           onClick={handleLogin}
           disabled={!email || !password || loading}
-          className="flex items-center justify-center px-6 py-3 rounded-full font-medium text-sm mt-2"
+          className="flex items-center justify-center px-6 py-3 rounded-2xl font-medium text-sm mt-2"
           style={{
             backgroundColor: !email || !password || loading ? "#ccc" : "#0161f0",
             color: "#fff",

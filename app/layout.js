@@ -4,6 +4,7 @@ import Script from "next/script";
 import { AuthProvider } from "@/lib/auth-context";
 import InstallBanner from "@/app/components/InstallBanner";
 import PWASetup from "@/app/components/PWASetup";
+import SidebarPadding from "@/app/components/SidebarPadding";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -42,6 +43,7 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           {/* Registers the service worker via useEffect — guaranteed to run */}
           <PWASetup />
+          <SidebarPadding />
           <InstallBanner />
           <div id="app-root">
             {children}

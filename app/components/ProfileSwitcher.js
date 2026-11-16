@@ -4,10 +4,10 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { IconChevronDown, IconUser, IconAnchor, IconPlus, IconCheck } from "@tabler/icons-react";
+import { IconUser, IconAnchor, IconPlus, IconCheck } from "@tabler/icons-react";
 import { useAuth } from "@/lib/auth-context";
 
-export default function ProfileSwitcher() {
+export default function ProfileSwitcher({ className = "" }) {
   const { crewProfile, boatProfile, profilesLoaded } = useAuth();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -25,17 +25,13 @@ export default function ProfileSwitcher() {
   }, []);
 
   return (
-    <div ref={ref} className="relative flex-shrink-0">
+    <div ref={ref} className={`relative flex-shrink-0 ${className}`}>
       <button
         onClick={() => setOpen(!open)}
         className="flex items-center gap-0.5"
       >
-        <Image src="/kroo-logo-blue.svg" alt="Kroo" width={52} height={20} />
-        <IconChevronDown
-          size={14}
-          color="#0161f0"
-          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.15s" }}
-        />
+        <Image src="/kroo-finder.svg" alt="Kroo" width={80} height={57} />
+        <IconPlus size={14} color="#0161f0" />
       </button>
 
       {open && (

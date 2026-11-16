@@ -60,11 +60,11 @@ function UserRow({ user, token, onUpdate }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <p className="text-sm font-semibold text-gray-900 truncate">{name || "—"}</p>
-          <span className="text-[11px] px-1.5 py-0.5 rounded-full flex-shrink-0"
+          <span className="text-[11px] px-1.5 py-0.5 rounded-md flex-shrink-0"
             style={{ backgroundColor: user.type === "crew" ? "#EEF4FF" : "#E8EDF8", color: "#0161F0" }}>
             {user.type}
           </span>
-          {user.banned && <span className="text-[11px] px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ backgroundColor: "#FFF0F0", color: "#e00" }}>suspended</span>}
+          {user.banned && <span className="text-[11px] px-1.5 py-0.5 rounded-md flex-shrink-0" style={{ backgroundColor: "#FFF0F0", color: "#e00" }}>suspended</span>}
         </div>
         <p className="text-xs text-gray-400 truncate">{user.email}</p>
         {sub && <p className="text-xs text-gray-400 truncate">{sub}</p>}

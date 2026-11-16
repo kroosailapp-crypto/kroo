@@ -6,7 +6,6 @@ import BoatNavFooter from "@/app/components/BoatNavFooter";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
 import { notify } from "@/lib/notify";
-import { fetchAdminIds } from "@/lib/fetch-admin-ids";
 
 function formatTime(ts) {
   const d = new Date(ts);
@@ -27,14 +26,8 @@ export default function BoatChat({ params }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
   const bottomRef = useRef(null);
   const messagesRef = useRef([]);
-
-  // Check if other user is admin
-  useEffect(() => {
-    fetchAdminIds().then((ids) => setIsAdmin(ids.includes(id)));
-  }, [id]);
 
   // Load crew profile for header
   useEffect(() => {
@@ -164,16 +157,14 @@ export default function BoatChat({ params }) {
     <div className="flex flex-col min-h-screen bg-white">
       {/* Header */}
       <div
-        className="flex items-center gap-3 px-4 pt-4 pb-3 border-b flex-shrink-0"
+        className="sticky top-0 z-20 bg-white flex items-center gap-3 px-4 pt-4 pb-3 border-b flex-shrink-0"
         style={{ borderColor: "#e8e8e8" }}
       >
         <Link href="/boat/messages">
           <IconArrowLeft size={22} color="#111" />
         </Link>
         <div className="rounded-full overflow-hidden flex items-center justify-center flex-shrink-0" style={{ width: 36, height: 36, backgroundColor: "#d8d8d8" }}>
-          {isAdmin ? (
-            <img src="/kroo-logo-blue.svg" alt="Kroo" className="w-5 h-5 object-contain" />
-          ) : otherProfile?.avatar_url ? (
+          {otherProfile?.avatar_url ? (
             <img src={otherProfile.avatar_url} alt="" className="w-full h-full object-cover" />
           ) : (
             <IconUser size={16} color="#aaa" />
@@ -181,17 +172,18 @@ export default function BoatChat({ params }) {
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-gray-900 truncate">
-            {isAdmin ? "Kroo" : otherProfile?.name || "Sailor"}
+            {otherProfile?.name || "Sailor"}
           </p>
-          {isAdmin
-            ? <p className="text-xs text-gray-400">Official message</p>
-            : otherProfile?.positions?.[0] && <p className="text-xs text-gray-400">{otherProfile.positions[0]}</p>
-          }
+          {otherProfile?.positions?.[0] && <p className="text-xs text-gray-400">{otherProfile.positions[0]}</p>}
         </div>
+        <Link href={`/crew/${id}`} className="flex-shrink-0 text-[13px] font-semibold" style={{ color: "#0161F0" }}>
+          View Profile
+        </Link>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 pb-32 flex flex-col gap-3">
+      <div className="flex-1 overflow-y-auto">
+        <div className="px-4 py-4 pb-32 flex flex-col gap-3 max-w-[800px] mx-auto w-full">
         {loading ? (
           <div className="flex-1 flex items-center justify-center">
             <p className="text-sm text-gray-400">Loading…</p>
@@ -228,16 +220,14 @@ export default function BoatChat({ params }) {
           })
         )}
         <div ref={bottomRef} />
+        </div>
       </div>
 
       {/* Input bar */}
       <div
-        className="fixed left-1/2 -translate-x-1/2 w-full max-w-[430px] px-4 py-3 border-t"
+        className="fixed left-1/2 -translate-x-1/2 w-full max-w-[800px] px-4 py-3 border-t"
         style={{ bottom: "56px", backgroundColor: "#fff", borderColor: "#e8e8e8" }}
       >
-        {isAdmin ? (
-          <p className="text-xs text-gray-400 text-center py-1">This is an official message from Kroo. Replies are not available.</p>
-        ) : (
         <div className="flex items-center gap-2">
           <input
             value={input}
@@ -256,7 +246,6 @@ export default function BoatChat({ params }) {
             <IconSend size={16} color="white" />
           </button>
         </div>
-        )}
       </div>
 
       <BoatNavFooter active="Message" />

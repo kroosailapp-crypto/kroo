@@ -28,14 +28,14 @@ function ConfirmModal({ title, message, confirmLabel, confirmColor, onConfirm, o
         <div className="flex gap-3 w-full mt-1">
           <button
             onClick={onCancel}
-            className="flex-1 py-2.5 rounded-full text-sm font-semibold border"
+            className="flex-1 py-2.5 rounded-2xl text-sm font-semibold border"
             style={{ color: "#555", borderColor: "#e0e0e0" }}
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 py-2.5 rounded-full text-sm font-semibold text-white"
+            className="flex-1 py-2.5 rounded-2xl text-sm font-semibold text-white"
             style={{ backgroundColor: confirmColor }}
           >
             {confirmLabel}
@@ -67,11 +67,11 @@ function UserRow({ user, token, onUpdate, onConfirm }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5">
           <p className="text-sm font-semibold text-gray-900 truncate">{name || "—"}</p>
-          <span className="text-[11px] px-1.5 py-0.5 rounded-full flex-shrink-0"
+          <span className="text-[11px] px-1.5 py-0.5 rounded-md flex-shrink-0"
             style={{ backgroundColor: user.type === "crew" ? "#EEF4FF" : "#E8EDF8", color: "#0161F0" }}>
             {user.type}
           </span>
-          {user.banned && <span className="text-[11px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: "#FFF0F0", color: "#e00" }}>suspended</span>}
+          {user.banned && <span className="text-[11px] px-1.5 py-0.5 rounded-md" style={{ backgroundColor: "#FFF0F0", color: "#e00" }}>suspended</span>}
         </div>
         <p className="text-xs text-gray-400 truncate">{user.email}</p>
         {sub && <p className="text-xs text-gray-400 truncate">{sub}</p>}
@@ -205,7 +205,7 @@ export default function AdminUsersPage() {
         />
       )}
 
-      <div className="flex items-center gap-3 px-4 pt-4 pb-3 border-b flex-shrink-0" style={{ borderColor: "#e8e8e8" }}>
+      <div className="sticky top-0 z-20 bg-white flex items-center gap-3 px-4 pt-4 pb-3 border-b flex-shrink-0" style={{ borderColor: "#e8e8e8" }}>
         <Link href="/admin"><IconArrowLeft size={22} color="#111" /></Link>
         <p className="text-sm font-semibold text-gray-900 flex-1">All Users</p>
       </div>

@@ -39,7 +39,7 @@ const POSITIONS = [
 const LEVELS = [
   "All levels",
   "Entry Level",
-  "Mid Level – 2–5 years",
+  "Mid Level",
   "Advanced",
 ];
 
@@ -117,7 +117,7 @@ function AddPositionModal({ onAdd, onClose }) {
         <button
           onClick={handleAdd}
           disabled={!role}
-          className="w-full py-3.5 rounded-full text-sm font-semibold text-white mt-1"
+          className="w-full lg:w-auto py-3.5 rounded-2xl text-sm font-semibold text-white mt-1"
           style={{ backgroundColor: role ? "#0161F0" : "#c0c0c0" }}
         >
           Add position
@@ -199,20 +199,21 @@ export default function CreateRegatta() {
       )}
 
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 pt-4 pb-3 border-b flex-shrink-0" style={{ borderColor: "#e8e8e8" }}>
+      <div className="sticky top-0 z-20 bg-white flex items-center gap-3 px-4 pt-4 pb-3 border-b flex-shrink-0" style={{ borderColor: "#e8e8e8" }}>
         <Link href="/boat/regattas"><IconArrowLeft size={22} color="#111" /></Link>
         <p className="flex-1 text-sm font-semibold text-gray-900">New Regatta</p>
       </div>
 
       {/* Form */}
-      <div className="flex-1 overflow-y-auto px-4 pt-3 pb-28 flex flex-col gap-3">
+      <div className="flex-1 overflow-y-auto">
+        <div className="px-4 pt-3 pb-28 flex flex-col gap-3 max-w-[800px] mx-auto w-full">
 
         {/* Regatta Name */}
         <RegattaNameInput
           value={name}
           onChange={setName}
           placeholder="Regatta name *"
-          className="w-full px-4 py-3.5 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400"
+          className="w-full lg:w-auto px-4 py-3.5 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400"
           style={{ borderColor: "#e0e0e0" }}
         />
 
@@ -221,7 +222,7 @@ export default function CreateRegatta() {
           value={location}
           onChange={setLocation}
           placeholder="Location *"
-          className="w-full px-4 py-3.5 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400"
+          className="w-full lg:w-auto px-4 py-3.5 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400"
           style={{ borderColor: "#e0e0e0" }}
         />
 
@@ -230,7 +231,7 @@ export default function CreateRegatta() {
           value={yachtClub}
           onChange={setYachtClub}
           placeholder="Yacht Club"
-          className="w-full px-4 py-3.5 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400"
+          className="w-full lg:w-auto px-4 py-3.5 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400"
           style={{ borderColor: "#e0e0e0" }}
         />
 
@@ -283,7 +284,7 @@ export default function CreateRegatta() {
           onChange={(e) => setWebsite(e.target.value)}
           placeholder="Website"
           inputMode="url"
-          className="w-full px-4 py-3.5 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400"
+          className="w-full lg:w-auto px-4 py-3.5 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400"
           style={{ borderColor: "#e0e0e0" }}
         />
 
@@ -327,14 +328,15 @@ export default function CreateRegatta() {
         <button
           onClick={handleSave}
           disabled={!isValid || saving}
-          className="w-full py-3.5 rounded-full text-sm font-semibold text-white"
+          className="w-full lg:w-auto py-3.5 rounded-2xl text-sm font-semibold text-white"
           style={{ backgroundColor: isValid && !saving ? "#0161F0" : "#c0c0c0" }}
         >
           {saving ? "Saving…" : "Save Regatta"}
         </button>
+        </div>
       </div>
 
-      <BoatNavFooter active="Regattas" />
+      <BoatNavFooter active="My Regattas" />
     </div>
   );
 }

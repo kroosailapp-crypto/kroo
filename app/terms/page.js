@@ -44,7 +44,7 @@ export default function TermsPage() {
     <div className="flex flex-col min-h-screen bg-white">
       {/* Header */}
       <div
-        className="flex items-center gap-3 px-4 pt-4 pb-3 border-b flex-shrink-0"
+        className="sticky top-0 z-20 bg-white flex items-center gap-3 px-4 pt-4 pb-3 border-b flex-shrink-0"
         style={{ borderColor: "#e8e8e8" }}
       >
         <button onClick={() => router.back()}>
