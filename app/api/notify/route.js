@@ -1,4 +1,3 @@
-import nodemailer from "nodemailer";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { createSign } from "crypto";
 
@@ -39,8 +38,7 @@ async function sendPush(userId, title, body) {
     if (!jwt) return;
 
     const bundleId = process.env.APNS_BUNDLE_ID || "app.kroo.sail";
-    const host = "https://api.push.apple.com";
-    const url = `${host}/3/device/${row.token}`;
+    const url = `https://api.push.apple.com/3/device/${row.token}`;
 
     await fetch(url, {
       method: "POST",
@@ -54,30 +52,72 @@ async function sendPush(userId, title, body) {
       body: JSON.stringify({ aps: { alert: { title, body }, sound: "default", badge: 1 } }),
     });
   } catch {
-    // Push failure is non-fatal — email still goes out
+    // Push failure is non-fatal
   }
 }
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
-  },
-});
-
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://app.kroofinder.com";
 
-function emailHtml(title, body) {
-  return `
-    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
-      <img src="${APP_URL}/kroo-finder.svg" alt="Kroo" style="height:24px;margin-bottom:24px;" />
-      <h2 style="color:#111;font-size:18px;margin-bottom:8px;">${title}</h2>
-      <div style="color:#444;font-size:15px;line-height:1.6;">${body}</div>
-      <hr style="border:none;border-top:1px solid #e8e8e8;margin:24px 0;" />
-      <p style="color:#aaa;font-size:12px;">You're receiving this because you have notifications enabled in Kroo. <a href="${APP_URL}/notifications" style="color:#0161F0;">Manage notifications</a></p>
-    </div>
-  `;
+function emailHtml({ label, heading, body, ctaText, ctaUrl }) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${heading}</title>
+</head>
+<body style="margin:0;padding:0;background:#F4F7FA;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F4F7FA;padding:32px 0">
+  <tr><td align="center">
+  <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#FFFFFF;border-radius:12px;overflow:hidden">
+
+    <!-- Header -->
+    <tr><td style="background:#123251 url('https://www.kroosail.com/patterns/windmap-hero.svg') repeat;background-size:1100px auto;padding:32px 40px">
+      <img src="https://www.kroosail.com/logos/kroo-finder-white.png" alt="Kroo Finder" height="32" style="display:block">
+      <div style="margin-top:16px;font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#45B589">${label}</div>
+    </td></tr>
+
+    <!-- Body -->
+    <tr><td style="padding:40px 40px 48px">
+      <h2 style="margin:0 0 16px;font-size:22px;font-weight:800;line-height:1.2;color:#123251">${heading}</h2>
+      <div style="font-size:15px;line-height:1.65;color:#3A424D">${body}</div>
+      ${ctaText ? `<a href="${ctaUrl}" style="display:inline-block;margin-top:24px;padding:12px 24px;border-radius:10px;background:#14764F;color:#FFFFFF;font-size:15px;font-weight:700;text-decoration:none">${ctaText}</a>` : ""}
+    </td></tr>
+
+    <!-- Footer -->
+    <tr><td style="background:#F4F7FA;padding:24px 40px 32px">
+      <p style="margin:0;font-size:13px;line-height:1.6;color:#565E69">
+        You're receiving this because you have notifications enabled in Kroo Finder.
+        <a href="${APP_URL}/notifications" style="color:#14764F;text-decoration:none">Manage notifications</a>
+      </p>
+      <p style="margin:8px 0 0;font-size:13px;color:#565E69">Kroo Finder · kroosail.com</p>
+    </td></tr>
+
+  </table>
+  </td></tr>
+</table>
+</body>
+</html>`;
+}
+
+async function sendEmail(to, subject, templateArgs) {
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: "Kroo Finder <hello@updates.kroosail.com>",
+      to: [to],
+      subject,
+      html: emailHtml(templateArgs),
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Resend error: ${err}`);
+  }
 }
 
 async function getEmail(userId) {
@@ -108,7 +148,6 @@ export async function POST(request) {
 
     if (!email) return Response.json({ ok: false, error: "No email found" });
 
-    // Check if this notification type is enabled (default true if not set)
     const prefKey = {
       new_message: "new_message",
       new_invite: "new_invite",
@@ -138,76 +177,72 @@ export async function POST(request) {
       .from("notification_cooldowns")
       .upsert({ recipient_id, event, last_sent_at: new Date().toISOString() });
 
-    let subject, html;
-
     switch (event) {
       case "new_message":
-        subject = `New message from ${data.sender_name}`;
-        html = emailHtml(
-          `💬 New message from ${data.sender_name}`,
-          `<p>${data.sender_name} sent you a message:</p>
-           <blockquote style="border-left:3px solid #0161F0;padding-left:12px;color:#555;margin:12px 0;">${data.message_preview}</blockquote>
-           <a href="${APP_URL}" style="display:inline-block;margin-top:12px;padding:10px 20px;background:#0161F0;color:#fff;border-radius:20px;text-decoration:none;font-size:14px;">Reply</a>`
-        );
+        await sendEmail(email, `New message from ${data.sender_name}`, {
+          label: "New Message",
+          heading: `${data.sender_name} sent you a message`,
+          body: `<blockquote style="border-left:3px solid #14764F;padding-left:16px;color:#565E69;margin:0 0 16px;font-style:italic">${data.message_preview}</blockquote>`,
+          ctaText: "Reply",
+          ctaUrl: APP_URL,
+        });
         sendPush(recipient_id, `New message from ${data.sender_name}`, data.message_preview);
         break;
 
       case "new_invite":
-        subject = `You've been invited to race on ${data.boat_name}`;
-        html = emailHtml(
-          `⛵ New Regatta Invite`,
-          `<p><strong>${data.boat_name}</strong> has invited you to sail as <strong>${data.position_role}</strong> at <strong>${data.regatta_name}</strong>.</p>
-           <a href="${APP_URL}/crew/regattas" style="display:inline-block;margin-top:12px;padding:10px 20px;background:#0161F0;color:#fff;border-radius:20px;text-decoration:none;font-size:14px;">View Invite</a>`
-        );
+        await sendEmail(email, `You've been invited to race on ${data.boat_name}`, {
+          label: "Regatta Invite",
+          heading: `Invite to sail on ${data.boat_name}`,
+          body: `<p style="margin:0"><strong>${data.boat_name}</strong> has invited you to sail as <strong>${data.position_role}</strong> at <strong>${data.regatta_name}</strong>.</p>`,
+          ctaText: "View Invite",
+          ctaUrl: `${APP_URL}/crew/regattas`,
+        });
         sendPush(recipient_id, `Sail Invite from ${data.boat_name}`, `You've been invited to sail at ${data.regatta_name}`);
         break;
 
       case "regatta_confirmation":
-        subject = `You've been confirmed for ${data.regatta_name}!`;
-        html = emailHtml(
-          `✅ Regatta Confirmed`,
-          `<p>Congratulations! <strong>${data.boat_name}</strong> has confirmed you as <strong>${data.position_role}</strong> for <strong>${data.regatta_name}</strong>.</p>
-           <a href="${APP_URL}/crew/regattas" style="display:inline-block;margin-top:12px;padding:10px 20px;background:#0161F0;color:#fff;border-radius:20px;text-decoration:none;font-size:14px;">View Details</a>`
-        );
+        await sendEmail(email, `You've been confirmed for ${data.regatta_name}!`, {
+          label: "Confirmed",
+          heading: `You're on the crew for ${data.regatta_name}`,
+          body: `<p style="margin:0"><strong>${data.boat_name}</strong> has confirmed you as <strong>${data.position_role}</strong> for <strong>${data.regatta_name}</strong>. Fair winds!</p>`,
+          ctaText: "View Details",
+          ctaUrl: `${APP_URL}/crew/regattas`,
+        });
         break;
 
       case "regatta_cancelled":
-        subject = `${data.regatta_name} has been cancelled`;
-        html = emailHtml(
-          `❌ Regatta Cancelled`,
-          `<p>Unfortunately, <strong>${data.regatta_name}</strong> hosted by <strong>${data.boat_name}</strong> has been cancelled.</p>
-           <a href="${APP_URL}/crew/feed" style="display:inline-block;margin-top:12px;padding:10px 20px;background:#0161F0;color:#fff;border-radius:20px;text-decoration:none;font-size:14px;">Browse Other Boats</a>`
-        );
+        await sendEmail(email, `${data.regatta_name} has been cancelled`, {
+          label: "Regatta Cancelled",
+          heading: `${data.regatta_name} has been cancelled`,
+          body: `<p style="margin:0">Unfortunately, <strong>${data.regatta_name}</strong> hosted by <strong>${data.boat_name}</strong> has been cancelled.</p>`,
+          ctaText: "Browse Other Boats",
+          ctaUrl: `${APP_URL}/crew/feed`,
+        });
         break;
 
       case "new_application":
-        subject = `New application from ${data.sailor_name}`;
-        html = emailHtml(
-          `🙋 New Crew Application`,
-          `<p><strong>${data.sailor_name}</strong> has applied for the <strong>${data.position_role}</strong> position on <strong>${data.regatta_name}</strong>.</p>
-           <a href="${APP_URL}/boat/regattas" style="display:inline-block;margin-top:12px;padding:10px 20px;background:#0161F0;color:#fff;border-radius:20px;text-decoration:none;font-size:14px;">Review Application</a>`
-        );
+        await sendEmail(email, `New application from ${data.sailor_name}`, {
+          label: "New Application",
+          heading: `${data.sailor_name} applied for ${data.position_role}`,
+          body: `<p style="margin:0"><strong>${data.sailor_name}</strong> has applied for the <strong>${data.position_role}</strong> position on <strong>${data.regatta_name}</strong>.</p>`,
+          ctaText: "Review Application",
+          ctaUrl: `${APP_URL}/boat/regattas`,
+        });
         break;
 
       case "crew_cancelled":
-        subject = `${data.sailor_name} cancelled their spot on ${data.regatta_name}`;
-        html = emailHtml(
-          `⚠️ Crew Cancelled`,
-          `<p><strong>${data.sailor_name}</strong> has cancelled their confirmed <strong>${data.position_role}</strong> spot on <strong>${data.regatta_name}</strong>. The position is now open again.</p>
-           <a href="${APP_URL}/boat/regattas" style="display:inline-block;margin-top:12px;padding:10px 20px;background:#0161F0;color:#fff;border-radius:20px;text-decoration:none;font-size:14px;">View Regatta</a>`
-        );
+        await sendEmail(email, `${data.sailor_name} cancelled their spot on ${data.regatta_name}`, {
+          label: "Crew Cancelled",
+          heading: `${data.sailor_name} cancelled their spot`,
+          body: `<p style="margin:0"><strong>${data.sailor_name}</strong> has cancelled their confirmed <strong>${data.position_role}</strong> spot on <strong>${data.regatta_name}</strong>. The position is now open again.</p>`,
+          ctaText: "View Regatta",
+          ctaUrl: `${APP_URL}/boat/regattas`,
+        });
         break;
 
       default:
         return Response.json({ ok: false, error: "Unknown event" }, { status: 400 });
     }
-
-    await transporter.sendMail({
-      from: `"Kroo" <${process.env.GMAIL_USER}>`,
-      to: email,
-      subject,
-      html,
-    });
 
     return Response.json({ ok: true });
   } catch (err) {

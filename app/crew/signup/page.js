@@ -76,6 +76,8 @@ function Tag({ label, selected, onToggle }) {
   );
 }
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://app.kroofinder.com";
+
 export default function CrewSignupPage() {
   const router = useRouter();
   const { user, boatProfile, refreshProfiles } = useAuth();
@@ -154,7 +156,13 @@ export default function CrewSignupPage() {
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { user_type: "crew" } },
+          options: {
+            data: {
+              user_type: "crew",
+              pending_profile: { kind: "crew", name, location, experience_level: experience, positions, avatar_url: avatarUrl || "" },
+            },
+            emailRedirectTo: APP_URL,
+          },
         });
         if (signUpError) throw signUpError;
 
@@ -231,7 +239,7 @@ export default function CrewSignupPage() {
         </div>
         <button
           onClick={() => router.push("/crew/login")}
-          className="mt-4 w-full lg:w-auto max-w-[280px] py-3 rounded-2xl text-sm font-semibold text-white"
+          className="mt-4 w-full lg:w-auto max-w-[280px] px-6 py-3 rounded-2xl text-sm font-semibold text-white"
           style={{ backgroundColor: "#0161f0" }}
         >
           Go to Log In

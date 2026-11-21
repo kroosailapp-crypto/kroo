@@ -16,6 +16,7 @@ export default function InviteAcceptPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -40,8 +41,16 @@ export default function InviteAcceptPage() {
       userId = existingUser.id;
     } else {
       // Create new account
-      const { data, error: authErr } = await supabase.auth.signUp({ email: invite.email, password });
+      const { data, error: authErr } = await supabase.auth.signUp({
+        email: invite.email,
+        password,
+        options: {
+          data: { pending_profile: { kind: "pro_invite", token, team_id: invite.team_id, role: invite.role, name: name || null, email: invite.email } },
+          emailRedirectTo: process.env.NEXT_PUBLIC_APP_URL || "https://app.kroofinder.com",
+        },
+      });
       if (authErr) { setError(authErr.message); setSubmitting(false); return; }
+      if (!data.session) { setEmailSent(true); setSubmitting(false); return; }
       userId = data.user.id;
     }
 
@@ -75,6 +84,17 @@ export default function InviteAcceptPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-6" style={{ backgroundColor: "#f6f6f6" }}>
         <p className="text-gray-500 text-center">This invitation is invalid or has already been used.</p>
+      </div>
+    );
+  }
+
+  if (emailSent) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center gap-3" style={{ backgroundColor: "#02123e" }}>
+        <p className="text-lg font-bold text-white">Check your email</p>
+        <p className="text-sm max-w-[300px] leading-relaxed" style={{ color: "#c9d3e6" }}>
+          We sent a confirmation link to <strong>{invite.email}</strong>. Click it to verify your account and join {team?.name}.
+        </p>
       </div>
     );
   }

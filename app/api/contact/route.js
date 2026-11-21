@@ -1,5 +1,6 @@
-import nodemailer from "nodemailer";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://app.kroofinder.com";
 
 export async function POST(request) {
   const token = request.headers.get("Authorization")?.replace("Bearer ", "");
@@ -29,40 +30,71 @@ export async function POST(request) {
     return Response.json({ error: "Subject and message are required." }, { status: 400 });
   }
 
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.GMAIL_USER,
-      pass: process.env.GMAIL_APP_PASSWORD,
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contact: ${subject}</title>
+</head>
+<body style="margin:0;padding:0;background:#F4F7FA;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F4F7FA;padding:32px 0">
+  <tr><td align="center">
+  <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#FFFFFF;border-radius:12px;overflow:hidden">
+
+    <!-- Header -->
+    <tr><td style="background:#123251 url('https://www.kroosail.com/patterns/windmap-hero.svg') repeat;background-size:1100px auto;padding:32px 40px">
+      <img src="https://www.kroosail.com/logos/kroo-finder-white.png" alt="Kroo Finder" height="32" style="display:block">
+      <div style="margin-top:16px;font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#45B589">Contact Form</div>
+    </td></tr>
+
+    <!-- Body -->
+    <tr><td style="padding:40px 40px 48px">
+      <h2 style="margin:0 0 24px;font-size:20px;font-weight:800;color:#123251">${subject}</h2>
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px">
+        <tr>
+          <td style="padding:10px 0;border-bottom:1px solid #DBE1E8;font-size:13px;font-weight:700;color:#565E69;width:80px">From</td>
+          <td style="padding:10px 0;border-bottom:1px solid #DBE1E8;font-size:14px;color:#3A424D">${name || "—"}</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 0;border-bottom:1px solid #DBE1E8;font-size:13px;font-weight:700;color:#565E69">Email</td>
+          <td style="padding:10px 0;border-bottom:1px solid #DBE1E8;font-size:14px;color:#3A424D">${email || "—"}</td>
+        </tr>
+      </table>
+      <div style="font-size:15px;line-height:1.65;color:#3A424D;white-space:pre-wrap">${message}</div>
+    </td></tr>
+
+    <!-- Footer -->
+    <tr><td style="background:#F4F7FA;padding:24px 40px 32px">
+      <p style="margin:0;font-size:13px;color:#565E69">Kroo Finder · kroosail.com</p>
+    </td></tr>
+
+  </table>
+  </td></tr>
+</table>
+</body>
+</html>`;
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      "Content-Type": "application/json",
     },
+    body: JSON.stringify({
+      from: "Kroo Finder <hello@updates.kroosail.com>",
+      to: ["kroosailapp@gmail.com"],
+      reply_to: email || undefined,
+      subject: `[Contact] ${subject}`,
+      html,
+    }),
   });
 
-  await transporter.sendMail({
-    from: `"Kroo App" <${process.env.GMAIL_USER}>`,
-    to: "kroosailapp@gmail.com",
-    subject: `[Kroo Contact] ${subject}`,
-    html: `
-      <div style="font-family: sans-serif; max-width: 600px;">
-        <h2 style="color: #0161F0;">New Contact Message</h2>
-        <table style="width:100%; border-collapse: collapse;">
-          <tr>
-            <td style="padding: 8px 0; color: #888; width: 100px;">Name</td>
-            <td style="padding: 8px 0; font-weight: 600;">${name || "—"}</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px 0; color: #888;">Email</td>
-            <td style="padding: 8px 0;">${email || "—"}</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px 0; color: #888;">Subject</td>
-            <td style="padding: 8px 0; font-weight: 600;">${subject}</td>
-          </tr>
-        </table>
-        <hr style="border: none; border-top: 1px solid #e8e8e8; margin: 16px 0;" />
-        <p style="color: #333; white-space: pre-wrap; line-height: 1.6;">${message}</p>
-      </div>
-    `,
-  });
+  if (!res.ok) {
+    const err = await res.text();
+    console.error("Resend error:", err);
+    return Response.json({ error: "Failed to send message." }, { status: 500 });
+  }
 
   return Response.json({ ok: true });
 }

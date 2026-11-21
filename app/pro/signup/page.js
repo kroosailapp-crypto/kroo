@@ -55,6 +55,7 @@ export default function ProSignupPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   const [error, setError] = useState("");
 
   // Account
@@ -87,8 +88,26 @@ export default function ProSignupPage() {
     setLoading(true);
     try {
       // 1. Create auth user
-      const { data: authData, error: authErr } = await supabase.auth.signUp({ email, password });
+      const { data: authData, error: authErr } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            pending_profile: {
+              kind: "pro_team", name: teamName, website: teamWebsite || null,
+              contact_name: contactName, contact_email: contactEmail, contact_phone: contactPhone || null,
+            },
+          },
+          emailRedirectTo: process.env.NEXT_PUBLIC_APP_URL || "https://app.kroofinder.com",
+        },
+      });
       if (authErr) throw authErr;
+      if (!authData.session) {
+        // Email confirmation required — team is created after the user confirms
+        setEmailSent(true);
+        setLoading(false);
+        return;
+      }
       const userId = authData.user.id;
 
       // 2. Upload photo if provided
@@ -140,6 +159,20 @@ export default function ProSignupPage() {
       setError(err.message);
       setLoading(false);
     }
+  }
+
+  if (emailSent) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center gap-3" style={{ backgroundColor: "#f6f6f6" }}>
+        <p className="text-lg font-bold" style={{ color: "#02123e" }}>Check your email</p>
+        <p className="text-sm text-gray-500 max-w-[300px] leading-relaxed">
+          We sent a confirmation link to <span className="font-semibold text-gray-800">{email}</span>. Click it to verify your account and finish creating your team.
+        </p>
+        <button onClick={() => router.push("/pro")} className="mt-3 px-6 py-3 rounded-2xl text-sm font-semibold text-white" style={{ backgroundColor: "#0161f0" }}>
+          Go to Log In
+        </button>
+      </div>
+    );
   }
 
   return (
