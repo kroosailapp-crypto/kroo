@@ -46,6 +46,7 @@ export async function POST(request) {
       },
       body: JSON.stringify({
         from: "Kroo Finder <hello@updates.kroosail.com>",
+        to: ["hello@updates.kroosail.com"], // Resend requires a "to"
         bcc: emails,
         subject: `${team.name}: ${title}`,
         html,
