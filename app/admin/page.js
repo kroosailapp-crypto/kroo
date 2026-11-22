@@ -66,7 +66,10 @@ function UserRow({ user, token, onUpdate }) {
           </span>
           {user.banned && <span className="text-[11px] px-1.5 py-0.5 rounded-md flex-shrink-0" style={{ backgroundColor: "#FFF0F0", color: "#e00" }}>suspended</span>}
         </div>
-        <p className="text-xs text-gray-400 truncate">{user.email}</p>
+        <div className="flex items-center gap-1.5 min-w-0">
+          <p className="text-xs text-gray-400 truncate">{user.email}</p>
+          {user.pro && <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md flex-shrink-0" style={{ backgroundColor: "#39e75f", color: "#02123e" }}>Pro</span>}
+        </div>
         {sub && <p className="text-xs text-gray-400 truncate">{sub}</p>}
       </div>
       <div className="flex gap-2 flex-shrink-0">
