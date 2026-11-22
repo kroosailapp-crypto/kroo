@@ -46,3 +46,8 @@ ios/App/App.xcworkspace/
 android/.gradle/
 android/app/build/
 android/build/
+
+# Android signing keys — never commit
+android/key.properties
+*.jks
+*.keystore
