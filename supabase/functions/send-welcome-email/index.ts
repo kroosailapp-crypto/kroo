@@ -126,9 +126,18 @@ serve(async (req) => {
       return new Response("Skipped demo account", { status: 200 });
     }
 
-    const firstName = user.user_metadata?.full_name?.split(" ")[0]
-      ?? user.user_metadata?.name?.split(" ")[0]
-      ?? "";
+    // The DB trigger sends the raw row, so metadata arrives as raw_user_meta_data.
+    const meta = user.raw_user_meta_data ?? user.user_metadata ?? {};
+
+    // Only Kroo Finder signups (crew/boat) get this email. Kroo Pro accounts
+    // are created without a user_type and must not receive the Finder welcome.
+    if (meta.user_type !== "crew" && meta.user_type !== "boat") {
+      return new Response("Skipped non-Finder account", { status: 200 });
+    }
+
+    const fullName = meta.full_name ?? meta.name
+      ?? meta.pending_profile?.name ?? meta.pending_profile?.skipper_name ?? "";
+    const firstName = String(fullName).split(" ")[0];
 
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
