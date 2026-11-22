@@ -18,7 +18,7 @@ function buildEmailHtml(firstName: string): string {
 
     <!-- Header -->
     <tr><td style="background:#123251 url('https://www.kroosail.com/patterns/windmap-hero.svg') repeat;background-size:1100px auto;padding:40px 48px">
-      <img src="https://www.kroosail.com/logos/kroo-finder-white.png" alt="Kroo Finder" height="40" style="display:block">
+      <img src="https://www.kroosail.com/logos/kroo-logo-white.png" alt="Kroo" height="44" style="display:block">
       <div style="margin-top:20px;font-size:13px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#45B589">Welcome aboard</div>
     </td></tr>
 

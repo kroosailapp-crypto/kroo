@@ -44,7 +44,7 @@ export async function POST(request) {
 
     <!-- Header -->
     <tr><td style="background:#123251 url('https://www.kroosail.com/patterns/windmap-hero.svg') repeat;background-size:1100px auto;padding:32px 40px">
-      <img src="https://www.kroosail.com/logos/kroo-finder-white.png" alt="Kroo Finder" height="32" style="display:block">
+      <img src="https://www.kroosail.com/logos/kroo-logo-white.png" alt="Kroo" height="36" style="display:block">
       <div style="margin-top:16px;font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#45B589">Contact Form</div>
     </td></tr>
 

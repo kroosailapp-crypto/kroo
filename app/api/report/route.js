@@ -23,7 +23,7 @@ export async function POST(request) {
   <tr><td align="center">
   <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#FFFFFF;border-radius:12px;overflow:hidden">
     <tr><td style="background:#7B1D1D;padding:32px 40px">
-      <img src="https://www.kroosail.com/logos/kroo-finder-white.png" alt="Kroo Finder" height="32" style="display:block">
+      <img src="https://www.kroosail.com/logos/kroo-logo-white.png" alt="Kroo" height="36" style="display:block">
       <div style="margin-top:16px;font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#FCA5A5">User Report</div>
     </td></tr>
     <tr><td style="padding:40px 40px 48px">
