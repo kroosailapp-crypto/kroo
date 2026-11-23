@@ -37,11 +37,12 @@ async function getPublicBoat(id) {
   const { data: owner } = await supabaseAdmin.auth.admin.getUserById(id);
   if (owner?.user?.banned_until && new Date(owner.user.banned_until) > new Date()) return null;
 
-  const { data: regs } = await supabaseAdmin
+  const { data: regs, error: regsError } = await supabaseAdmin
     .from("regattas")
-    .select("id, name, date, location, venue, regatta_positions(role, level, status)")
+    .select("id, name, date, location, regatta_positions(role, level, status)")
     .eq("boat_id", id)
     .order("created_at");
+  if (regsError) console.error("Share page: could not load regattas", regsError);
 
   const now = new Date();
   now.setHours(0, 0, 0, 0);
@@ -51,7 +52,6 @@ async function getPublicBoat(id) {
       name: r.name,
       date: r.date,
       location: r.location,
-      venue: r.venue,
       open: (r.regatta_positions || [])
         .filter((p) => p.status === "open")
         .map((p) => ({ role: p.role, level: p.level }))
@@ -194,10 +194,8 @@ export default async function SharedBoatPage({ params }) {
           <div key={regatta.id} className="bg-white rounded-2xl px-4 py-4" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.07)" }}>
             {regatta.date && <p className="text-[13px] text-gray-400 mb-1">{formatDate(regatta.date)}</p>}
             <p className="text-[20px] font-bold text-gray-900 leading-tight mb-1">{regatta.name}</p>
-            {(regatta.location || regatta.venue) && (
-              <p className="text-[14px] text-gray-400 mb-3">
-                {[regatta.location, regatta.venue].filter(Boolean).join(" • ")}
-              </p>
+            {regatta.location && (
+              <p className="text-[14px] text-gray-400 mb-3">{regatta.location}</p>
             )}
             <div className="h-px mb-3" style={{ backgroundColor: "#e8e8e8" }} />
             {regatta.open.map((pos, i) => (
