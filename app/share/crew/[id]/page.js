@@ -37,11 +37,11 @@ export async function generateMetadata({ params }) {
 
   if (!sailor) return { metadataBase, robots, title: "Kroo - Find Your Crew" };
 
-  const title = `${sailor.name} is a sailor on Kroo`;
+  const title = `${sailor.name} is a sailor on Kroo Finder`;
   const description =
     [sailor.experience_level, sailor.location, (sailor.positions || []).slice(0, 3).join(", ")]
       .filter(Boolean)
-      .join(" · ") || "Join Kroo to connect with racing sailboats and crew.";
+      .join(" · ") || "Join Kroo Finder to connect with racing sailboats and crew.";
   const images = [sailor.avatar_url || `${APP_URL}/kroo-finder-logo.png`];
 
   return {
@@ -49,7 +49,7 @@ export async function generateMetadata({ params }) {
     robots,
     title,
     description,
-    openGraph: { title, description, images, type: "website", siteName: "Kroo" },
+    openGraph: { title, description, images, type: "website", siteName: "Kroo Finder" },
     twitter: { card: "summary", title, description, images },
   };
 }
@@ -63,14 +63,14 @@ export default async function SharedSailorPage({ params }) {
     return (
       <div className="flex flex-col min-h-screen bg-white px-5 py-5 items-center justify-center gap-5">
         <RedirectIfSignedIn to={next} />
-        <Image src="/kroo-finder.svg" alt="Kroo" width={100} height={72} />
+        <Image src="/kroo-finder.svg" alt="Kroo Finder" width={100} height={72} />
         <div className="flex flex-col items-center gap-3 text-center max-w-[300px]">
           <div className="flex items-center justify-center rounded-full" style={{ width: 56, height: 56, backgroundColor: "#f0f2f5" }}>
             <IconLock size={26} color="#888" />
           </div>
           <p className="text-lg font-bold text-gray-900">This profile is private</p>
           <p className="text-sm text-gray-500 leading-relaxed">
-            The owner isn&apos;t sharing this profile publicly. Create a free Kroo account to find boats and crew.
+            The owner isn&apos;t sharing this profile publicly. Create a free Kroo Finder account to find boats and crew.
           </p>
         </div>
         <GateButton
@@ -94,7 +94,7 @@ export default async function SharedSailorPage({ params }) {
 
       {/* Header */}
       <div className="bg-white flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid #e8e8e8" }}>
-        <Image src="/kroo-finder.svg" alt="Kroo" width={72} height={52} />
+        <Image src="/kroo-finder.svg" alt="Kroo Finder" width={72} height={52} />
         <GateButton
           next={next}
           href="/boat/login"
@@ -156,7 +156,7 @@ export default async function SharedSailorPage({ params }) {
 
         {/* Sign-up call to action */}
         <div className="rounded-2xl px-5 py-6 flex flex-col items-center gap-3 text-center" style={{ backgroundColor: "#02123e" }}>
-          <p className="text-base font-semibold text-white">Join Kroo to connect with {sailor.name}</p>
+          <p className="text-base font-semibold text-white">Join Kroo Finder to connect with {sailor.name}</p>
           <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.65)" }}>
             Create a free account to message sailors and find crew for your boat.
           </p>

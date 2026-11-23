@@ -26,7 +26,7 @@ export function ShareConfirmModal({ kind, name, busy, onConfirm, onClose }) {
       >
         <p className="text-base font-semibold text-gray-900">Share &ldquo;{name}&rdquo; publicly?</p>
         <p className="text-sm text-gray-600 leading-relaxed">
-          <span className="font-semibold text-gray-800">Anyone with the link can view your {kind === "boat" ? "boat " : ""}profile</span>, including people who aren&apos;t on Kroo, and anyone they forward the link to.
+          <span className="font-semibold text-gray-800">Anyone with the link can view your {kind === "boat" ? "boat " : ""}profile</span>, including people who aren&apos;t on Kroo Finder, and anyone they forward the link to.
         </p>
         <div className="rounded-xl px-3.5 py-3 text-[13px] leading-relaxed" style={{ backgroundColor: "#f5f5f5", color: "#555" }}>
           <p><span className="font-semibold text-gray-800">Visible:</span> {copy.visible}</p>
