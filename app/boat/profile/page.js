@@ -7,8 +7,10 @@ import { IconUser, IconDotsVertical, IconAnchor, IconCheck } from "@tabler/icons
 import BoatNavFooter from "@/app/components/BoatNavFooter";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
+import { useProfileSharing } from "@/lib/use-profile-sharing";
+import { ShareProfileUI, ShareProfileButton, PublicProfileToggle } from "@/app/components/ShareProfileUI";
 
-function ProfileMenu({ onDelete }) {
+function ProfileMenu({ onDelete, isPublic, onTogglePublic }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -26,7 +28,9 @@ function ProfileMenu({ onDelete }) {
         <IconDotsVertical size={20} color="#111" />
       </button>
       {open && (
-        <div className="absolute right-0 top-8 bg-white rounded-2xl shadow-lg border py-1 z-50 min-w-[160px]" style={{ borderColor: "#e8e8e8" }}>
+        <div className="absolute right-0 top-8 bg-white rounded-2xl shadow-lg border py-1 z-50 min-w-[200px]" style={{ borderColor: "#e8e8e8" }}>
+          <PublicProfileToggle isPublic={isPublic} onClick={() => { setOpen(false); onTogglePublic(); }} />
+          <div className="h-px mx-4" style={{ backgroundColor: "#e8e8e8" }} />
           <Link href="/notifications?from=boat" onClick={() => setOpen(false)} className="block px-4 py-3 text-sm text-gray-800 hover:bg-gray-50">
             Notifications
           </Link>
@@ -88,6 +92,13 @@ export default function BoatProfilePage() {
   const [applicantCountByPosition, setApplicantCountByPosition] = useState({});
   const [loading, setLoading] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const sharing = useProfileSharing({
+    kind: "boat",
+    id: user?.id,
+    name: profile?.boat_name,
+    isPublic: !!profile?.is_public,
+    onPublicChange: (v) => setProfile((p) => ({ ...p, is_public: v })),
+  });
 
   useEffect(() => {
     if (user === undefined) return;
@@ -167,11 +178,12 @@ export default function BoatProfilePage() {
   return (
     <div className="flex flex-col min-h-screen pb-20" style={{ backgroundColor: "#f5f5f5" }}>
       {showDeleteModal && <DeleteProfileModal onConfirm={handleDeleteProfile} onClose={() => setShowDeleteModal(false)} />}
+      <ShareProfileUI sharing={sharing} kind="boat" name={profile?.boat_name} />
 
       {/* Header */}
       <div className="sticky top-0 z-20 bg-white flex items-center gap-2 px-4 pt-3 pb-2 flex-shrink-0" style={{ borderBottom: "1px solid #e8e8e8" }}>
         <ProfileSwitcher className="lg:hidden" />
-        <ProfileMenu onDelete={() => setShowDeleteModal(true)} />
+        <ProfileMenu onDelete={() => setShowDeleteModal(true)} isPublic={!!profile?.is_public} onTogglePublic={sharing.toggle} />
       </div>
 
       <div className="overflow-y-auto flex-1">
@@ -243,6 +255,9 @@ export default function BoatProfilePage() {
           >
             Edit Profile
           </Link>
+
+          {/* Share profile */}
+          <ShareProfileButton onClick={sharing.share} className="mt-2 w-full py-2.5 rounded-xl" />
         </div>
 
         {/* Add Regatta */}
