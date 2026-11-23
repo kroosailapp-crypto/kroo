@@ -7,8 +7,8 @@ const COPY = {
     hidden: 'your "About" text and messaging. Visitors must sign up to apply or message you.',
   },
   crew: {
-    visible: "your photo, name, location, experience level and positions.",
-    hidden: 'your "About" text, links and messaging. Visitors must sign up to message you.',
+    visible: "your photo, name, location, experience level, positions and boat classes sailed.",
+    hidden: 'your "About" text, weight, links and messaging. Visitors must sign up to message you.',
   },
 };
 
