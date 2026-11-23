@@ -249,7 +249,7 @@ export default function CrewSignupPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-white px-5 py-5">
+    <div className="flex flex-col min-h-screen bg-white px-5 py-5 w-full max-w-[800px] mx-auto">
       <div className="mb-6">
         <Image src="/kroo-finder.svg" alt="Kroo" width={100} height={72} />
       </div>
