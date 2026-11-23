@@ -10,6 +10,7 @@ import {
   IconCheck,
   IconDots,
   IconX,
+  IconShare,
 } from "@tabler/icons-react";
 import CrewNavFooter from "@/app/components/CrewNavFooter";
 import ProfileSwitcher from "@/app/components/ProfileSwitcher";
@@ -137,6 +138,46 @@ function ReportConfirmModal({ onClose }) {
   );
 }
 
+function ShareConfirmModal({ boatName, busy, onConfirm, onClose }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center px-6"
+      style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl px-6 py-6 w-full max-w-[360px] flex flex-col gap-3"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <p className="text-base font-semibold text-gray-900">Share "{boatName}" publicly?</p>
+        <p className="text-sm text-gray-600 leading-relaxed">
+          <span className="font-semibold text-gray-800">Anyone with the link can view your boat profile</span>, including people who aren't on Kroo, and anyone they forward the link to.
+        </p>
+        <div className="rounded-xl px-3.5 py-3 text-[13px] leading-relaxed" style={{ backgroundColor: "#f5f5f5", color: "#555" }}>
+          <p><span className="font-semibold text-gray-800">Visible:</span> boat photo, name, class and home port, skipper name and photo, and your upcoming regattas with open positions.</p>
+          <p className="mt-1.5"><span className="font-semibold text-gray-800">Hidden:</span> your "About" text and messaging. Visitors must sign up to apply or message you.</p>
+        </div>
+        <p className="text-[13px] text-gray-500 leading-relaxed">
+          You can turn this off anytime from the <span className="font-semibold">⋯</span> menu on your profile. Previews already saved by apps like WhatsApp may stay visible.
+        </p>
+        <div className="flex flex-col gap-2 mt-1">
+          <button
+            onClick={onConfirm}
+            disabled={busy}
+            className="w-full py-3 rounded-2xl text-sm font-semibold text-white"
+            style={{ backgroundColor: busy ? "#c0c0c0" : "#0161F0" }}
+          >
+            {busy ? "Please wait…" : "Make public & share"}
+          </button>
+          <button onClick={onClose} className="w-full py-2.5 text-sm font-medium text-gray-500">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function BoatPublicProfile({ params }) {
   const { id } = use(params);
   const { user } = useAuth();
@@ -153,6 +194,9 @@ export default function BoatPublicProfile({ params }) {
   const [showReportDrawer, setShowReportDrawer] = useState(false);
   const [reportConfirm, setReportConfirm] = useState(false);
   const [blocked, setBlocked] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [sharingBusy, setSharingBusy] = useState(false);
+  const [notice, setNotice] = useState("");
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -277,6 +321,64 @@ export default function BoatPublicProfile({ params }) {
     setReportConfirm(true);
   }
 
+  function showNotice(msg) {
+    setNotice(msg);
+    setTimeout(() => setNotice(""), 2500);
+  }
+
+  async function setPublic(value) {
+    const { error } = await supabase.from("boat_profiles").update({ is_public: value }).eq("id", id);
+    if (error) {
+      showNotice("Couldn't update sharing. Please try again.");
+      return false;
+    }
+    setProfile((p) => ({ ...p, is_public: value }));
+    return true;
+  }
+
+  async function shareLink() {
+    const url = `${window.location.origin}/share/boat/${id}`;
+    const title = `${profile.boat_name} on Kroo`;
+    const text = `${profile.boat_name} is looking for crew on Kroo.`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, text, url });
+        return;
+      } catch (e) {
+        if (e?.name === "AbortError") return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      showNotice("Link copied");
+    } catch {
+      window.prompt("Copy this link", url);
+    }
+  }
+
+  async function handleShareClick() {
+    if (profile?.is_public) await shareLink();
+    else setShowShareModal(true);
+  }
+
+  async function confirmShare() {
+    setSharingBusy(true);
+    const ok = await setPublic(true);
+    setSharingBusy(false);
+    if (!ok) return;
+    setShowShareModal(false);
+    await shareLink();
+  }
+
+  async function togglePublic() {
+    setShowMenu(false);
+    if (profile?.is_public) {
+      if (await setPublic(false)) showNotice("Public profile turned off");
+    } else {
+      setShowShareModal(true);
+    }
+  }
+
   async function handleFavorite() {
     if (!user || favoriteLoading) return;
     setFavoriteLoading(true);
@@ -372,6 +474,12 @@ export default function BoatPublicProfile({ params }) {
       {showModal && <ApplyModal boatName={profile.boat_name} onClose={() => setShowModal(false)} />}
       {showReportDrawer && <ReportDrawer name={profile.boat_name} onSubmit={handleReport} onClose={() => setShowReportDrawer(false)} />}
       {reportConfirm && <ReportConfirmModal onClose={() => setReportConfirm(false)} />}
+      {showShareModal && <ShareConfirmModal boatName={profile.boat_name} busy={sharingBusy} onConfirm={confirmShare} onClose={() => setShowShareModal(false)} />}
+      {notice && (
+        <div className="fixed left-1/2 -translate-x-1/2 bottom-24 z-50 px-4 py-2.5 rounded-full text-sm font-medium text-white" style={{ backgroundColor: "#111" }}>
+          {notice}
+        </div>
+      )}
 
       {/* Header */}
       <div className="sticky top-0 z-20 bg-white flex items-center justify-between px-4 pt-4 pb-3 flex-shrink-0" style={{ borderBottom: "1px solid #e8e8e8" }}>
@@ -392,6 +500,14 @@ export default function BoatPublicProfile({ params }) {
                 <button onClick={() => { setShowMenu(false); setShowReportDrawer(true); }} className="w-full text-left px-4 py-3 text-sm font-medium" style={{ color: "#e53e3e" }}>Report user</button>
                 <button onClick={() => { setShowMenu(false); setBlocked(true); }} className="w-full text-left px-4 py-3 text-sm font-medium border-t" style={{ color: "#e53e3e", borderColor: "#f0f0f0" }}>{blocked ? "Unblock user" : "Block user"}</button>
               </>}
+              {isOwner && (
+                <button onClick={togglePublic} className="w-full flex items-center justify-between gap-4 px-4 py-3 text-sm font-medium text-gray-800">
+                  Public profile
+                  <span className="relative inline-block rounded-full flex-shrink-0" style={{ width: 36, height: 20, backgroundColor: profile.is_public ? "#0161F0" : "#d0d0d0", transition: "background-color .15s" }}>
+                    <span className="absolute top-0.5 rounded-full bg-white" style={{ width: 16, height: 16, left: profile.is_public ? 18 : 2, transition: "left .15s" }} />
+                  </span>
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -469,6 +585,13 @@ export default function BoatPublicProfile({ params }) {
           <Link href="/boat/edit" className="bg-white rounded-2xl px-4 py-3 flex items-center justify-center text-[15px] font-semibold border" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.07)", color: "#0161F0", borderColor: "#0161F0" }}>
             Edit Profile
           </Link>
+        )}
+
+        {/* Share profile button — owner only */}
+        {isOwner && (
+          <button onClick={handleShareClick} className="bg-white rounded-2xl px-4 py-3 flex items-center justify-center gap-2 text-[15px] font-semibold border" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.07)", color: "#0161F0", borderColor: "#0161F0" }}>
+            <IconShare size={18} /> Share profile
+          </button>
         )}
 
         {/* Regatta cards */}
