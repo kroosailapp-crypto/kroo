@@ -281,7 +281,7 @@ export default function CrewSignupPage() {
             <label htmlFor="terms" className="text-xs text-gray-500 leading-relaxed">
               I agree to the{" "}
               <a href="/terms" target="_blank" className="underline font-medium text-gray-700">Terms of Use</a>
-              {" "}and confirm there is zero tolerance for objectionable content or abusive behavior on Kroo.
+              {" "}and confirm there is zero tolerance for objectionable content or abusive behavior on Kroo Finder.
             </label>
           </div>
           <NextButton onClick={handleNext} disabled={!name || !email || !passwordsMatch || !agreedToTerms} />
