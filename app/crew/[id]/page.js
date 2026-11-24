@@ -17,7 +17,7 @@ import { useAuth } from "@/lib/auth-context";
 import { notify } from "@/lib/notify";
 
 
-function InviteDrawer({ sailorName, regattas, onInvite, onClose }) {
+function InviteDrawer({ sailorName, regattas, invitedRegattaIds = [], onInvite, onClose }) {
   const [selectedRegatta, setSelectedRegatta] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const canSend = selectedRegatta && selectedPosition;
@@ -54,20 +54,21 @@ function InviteDrawer({ sailorName, regattas, onInvite, onClose }) {
           <>
             <div>
               <p className="text-xs text-gray-400 mb-2">Select regatta</p>
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 max-h-[40vh] overflow-y-auto overscroll-contain">
                 {regattas.map((r) => {
                   const selected = selectedRegatta?.id === r.id;
+                  const alreadyInvited = invitedRegattaIds.includes(r.id);
                   return (
                     <button
                       key={r.id}
                       onClick={() => { setSelectedRegatta(r); setSelectedPosition(null); }}
                       className="flex items-center justify-between px-4 py-3 rounded-2xl border text-left"
                       style={{
-                        borderColor: selected ? "#111" : "#e0e0e0",
-                        backgroundColor: selected ? "#111" : "#fff",
+                        borderColor: selected ? "#111" : alreadyInvited ? "#e0e0e0" : "#e0e0e0",
+                        backgroundColor: selected ? "#111" : alreadyInvited ? "#f7f7f7" : "#fff",
                       }}
                     >
-                      <div>
+                      <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold" style={{ color: selected ? "#fff" : "#111" }}>
                           {r.name}
                         </p>
@@ -77,7 +78,14 @@ function InviteDrawer({ sailorName, regattas, onInvite, onClose }) {
                           </p>
                         )}
                       </div>
-                      {selected && <IconCheck size={16} color="white" strokeWidth={2.5} />}
+                      <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                        {alreadyInvited && !selected && (
+                          <span className="text-[11px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: "#e8e8e8", color: "#888" }}>
+                            Invited
+                          </span>
+                        )}
+                        {selected && <IconCheck size={16} color="white" strokeWidth={2.5} />}
+                      </div>
                     </button>
                   );
                 })}
@@ -120,7 +128,7 @@ function InviteDrawer({ sailorName, regattas, onInvite, onClose }) {
         <button
           onClick={handleSend}
           disabled={!canSend}
-          className="w-full lg:w-auto py-3.5 rounded-2xl text-sm font-semibold text-white"
+          className="w-full lg:w-auto px-6 py-3.5 rounded-2xl text-sm font-semibold text-white"
           style={{ backgroundColor: canSend ? "#0161F0" : "#c0c0c0" }}
         >
           Send Invite
@@ -158,7 +166,7 @@ function InviteConfirmModal({ sailorName, regattaName, position, onClose }) {
         </p>
         <button
           onClick={onClose}
-          className="w-full lg:w-auto py-2.5 rounded-2xl text-sm font-semibold text-white"
+          className="w-full lg:w-auto px-6 py-2.5 rounded-2xl text-sm font-semibold text-white"
           style={{ backgroundColor: "#0161F0" }}
         >
           Got it
@@ -207,7 +215,7 @@ function ReportDrawer({ name, onSubmit, onClose }) {
         <button
           onClick={handleSubmit}
           disabled={!reason.trim() || submitting}
-          className="w-full lg:w-auto py-3.5 rounded-2xl text-sm font-semibold text-white"
+          className="w-full lg:w-auto px-6 py-3.5 rounded-2xl text-sm font-semibold text-white"
           style={{ backgroundColor: !reason.trim() || submitting ? "#c0c0c0" : "#e53e3e" }}
         >
           {submitting ? "Sending…" : "Submit Report"}
@@ -240,7 +248,7 @@ function ReportConfirmModal({ onClose }) {
         </p>
         <button
           onClick={onClose}
-          className="w-full lg:w-auto py-2.5 rounded-2xl text-sm font-semibold text-white"
+          className="w-full lg:w-auto px-6 py-2.5 rounded-2xl text-sm font-semibold text-white"
           style={{ backgroundColor: "#0161F0" }}
         >
           Got it
@@ -255,6 +263,7 @@ export default function CrewPublicProfile({ params }) {
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
   const [myRegattas, setMyRegattas] = useState([]);
+  const [existingInviteRegattaIds, setExistingInviteRegattaIds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isFavorited, setIsFavorited] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
@@ -308,12 +317,23 @@ export default function CrewPublicProfile({ params }) {
   useEffect(() => {
     if (!user) return;
     async function loadRegattas() {
-      const { data } = await supabase
-        .from("regattas")
-        .select("*, regatta_positions(*)")
-        .eq("boat_id", user.id)
-        .order("created_at");
-      setMyRegattas(data || []);
+      const [{ data }, { data: invData }] = await Promise.all([
+        supabase.from("regattas").select("*, regatta_positions(*)").eq("boat_id", user.id),
+        supabase.from("invitations").select("regatta_id").eq("crew_id", id),
+      ]);
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      const future = (data || []).filter((r) => {
+        if (!r.date) return true;
+        const [m, d, y] = r.date.split("/");
+        if (!m || !d || !y) return true;
+        return new Date(`${y}-${m.padStart(2,"0")}-${d.padStart(2,"0")}`) >= now;
+      }).sort((a, b) => {
+        const parse = (s) => { if (!s) return 0; const [m,d,y] = s.split("/"); return new Date(`${y}-${m.padStart(2,"0")}-${d.padStart(2,"0")}`); };
+        return parse(a.date) - parse(b.date);
+      });
+      setMyRegattas(future);
+      setExistingInviteRegattaIds((invData || []).map((i) => i.regatta_id));
     }
     loadRegattas();
   }, [user]);
@@ -407,6 +427,7 @@ export default function CrewPublicProfile({ params }) {
         <InviteDrawer
           sailorName={profile.name}
           regattas={myRegattas}
+          invitedRegattaIds={existingInviteRegattaIds}
           onInvite={handleInvite}
           onClose={() => setShowInviteDrawer(false)}
         />
