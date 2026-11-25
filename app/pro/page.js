@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { loginErrorMessage } from "@/lib/login-error";
 
 function LoginModal({ onClose }) {
   const router = useRouter();
@@ -17,7 +18,7 @@ function LoginModal({ onClose }) {
     setError("");
     setLoading(true);
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) { setError(error.message); setLoading(false); return; }
+    if (error) { setError(loginErrorMessage(error)); setLoading(false); return; }
 
     const { data: membership } = await supabase
       .from("pro_team_members")

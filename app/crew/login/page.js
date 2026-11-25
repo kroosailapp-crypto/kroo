@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { loginErrorMessage } from "@/lib/login-error";
 
 export default function CrewLoginPage() {
   const router = useRouter();
@@ -19,7 +20,7 @@ export default function CrewLoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
-      setError(error.message);
+      setError(loginErrorMessage(error));
     } else {
       router.push("/crew/profile");
     }

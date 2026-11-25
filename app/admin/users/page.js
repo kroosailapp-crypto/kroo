@@ -71,7 +71,7 @@ function UserRow({ user, token, onUpdate, onConfirm }) {
             style={{ backgroundColor: user.type === "crew" ? "#EEF4FF" : "#E8EDF8", color: "#0161F0" }}>
             {user.type}
           </span>
-          {user.banned && <span className="text-[11px] px-1.5 py-0.5 rounded-md" style={{ backgroundColor: "#FFF0F0", color: "#e00" }}>suspended</span>}
+          {user.restriction && <span className="text-[11px] px-1.5 py-0.5 rounded-md" style={user.restriction === "banned" ? { backgroundColor: "#e00", color: "#fff" } : { backgroundColor: "#FFF4E5", color: "#d97706" }}>{user.restriction}</span>}
         </div>
         <div className="flex items-center gap-1.5 min-w-0">
           <p className="text-xs text-gray-400 truncate">{user.email}</p>
@@ -80,14 +80,35 @@ function UserRow({ user, token, onUpdate, onConfirm }) {
         {sub && <p className="text-xs text-gray-400 truncate">{sub}</p>}
       </div>
       <div className="flex flex-col gap-1.5 flex-shrink-0">
-        <button
-          onClick={() => onConfirm(user, user.banned ? "unsuspend" : "suspend")}
-          disabled={loading}
-          className="text-xs font-medium px-2.5 py-1.5 rounded-full border"
-          style={{ color: user.banned ? "#0161F0" : "#f59e0b", borderColor: user.banned ? "#0161F0" : "#f59e0b" }}
-        >
-          {user.banned ? "Unsuspend" : "Suspend"}
-        </button>
+        {user.restriction ? (
+          <button
+            onClick={() => onConfirm(user, "restore")}
+            disabled={loading}
+            className="text-xs font-medium px-2.5 py-1.5 rounded-full border"
+            style={{ color: "#0161F0", borderColor: "#0161F0" }}
+          >
+            {user.restriction === "banned" ? "Unban" : "Unsuspend"}
+          </button>
+        ) : (
+          <button
+            onClick={() => onConfirm(user, "suspend")}
+            disabled={loading}
+            className="text-xs font-medium px-2.5 py-1.5 rounded-full border"
+            style={{ color: "#f59e0b", borderColor: "#f59e0b" }}
+          >
+            Suspend
+          </button>
+        )}
+        {user.restriction !== "banned" && (
+          <button
+            onClick={() => onConfirm(user, "ban")}
+            disabled={loading}
+            className="text-xs font-medium px-2.5 py-1.5 rounded-full border"
+            style={{ color: "#b91c1c", borderColor: "#fca5a5" }}
+          >
+            Ban
+          </button>
+        )}
         <button
           onClick={() => onConfirm(user, "remove")}
           disabled={loading}
@@ -111,7 +132,7 @@ export default function AdminUsersPage() {
   const [boats, setBoats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("crew");
-  const [suspendedOnly, setSuspendedOnly] = useState(false);
+  const [filter, setFilter] = useState("all"); // all | suspended | banned
   const [pending, setPending] = useState(null); // { user, action }
   const [actionLoading, setActionLoading] = useState(false);
   const inputRef = useRef(null);
@@ -164,7 +185,7 @@ export default function AdminUsersPage() {
       await fetch("/api/admin/suspend", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ userId: target.id, suspend: action === "suspend" }),
+        body: JSON.stringify({ userId: target.id, action }),
       });
     }
     fetchUsers(token, query);
@@ -173,9 +194,10 @@ export default function AdminUsersPage() {
 
   if (!authorized) return <div className="flex items-center justify-center min-h-screen"><p className="text-sm text-gray-400">Loading…</p></div>;
 
-  const visibleCrew = suspendedOnly ? crew.filter((u) => u.banned) : crew;
-  const visibleBoats = suspendedOnly ? boats.filter((u) => u.banned) : boats;
-  const suspendedCount = crew.filter((u) => u.banned).length + boats.filter((u) => u.banned).length;
+  const matches = (u) => filter === "all" || u.restriction === filter;
+  const visibleCrew = crew.filter(matches);
+  const visibleBoats = boats.filter(matches);
+  const countOf = (r) => crew.filter((u) => u.restriction === r).length + boats.filter((u) => u.restriction === r).length;
   const list = tab === "crew" ? visibleCrew : visibleBoats;
   const pendingName = pending ? (pending.user.type === "crew" ? pending.user.name : pending.user.boat_name) : "";
 
@@ -184,18 +206,28 @@ export default function AdminUsersPage() {
       {pending?.action === "suspend" && (
         <ConfirmModal
           title={`Suspend ${pendingName}?`}
-          message="Their profile will be hidden from other users. They can still log in, but will only see a suspension notice."
+          message="Their profile will be hidden from other users. They can still log in, but will only see their profile with a suspension notice."
           confirmLabel="Suspend"
           confirmColor="#f59e0b"
           onConfirm={executeAction}
           onCancel={() => setPending(null)}
         />
       )}
-      {pending?.action === "unsuspend" && (
+      {pending?.action === "ban" && (
         <ConfirmModal
-          title={`Unsuspend ${pendingName}?`}
-          message="This user will regain full access to their account."
-          confirmLabel="Unsuspend"
+          title={`Ban ${pendingName}?`}
+          message="They won't be able to log in at all. They'll see 'This account has been banned' and have no way to contact us from the app. Their profile is hidden from other users."
+          confirmLabel="Ban"
+          confirmColor="#b91c1c"
+          onConfirm={executeAction}
+          onCancel={() => setPending(null)}
+        />
+      )}
+      {pending?.action === "restore" && (
+        <ConfirmModal
+          title={`${pending.user.restriction === "banned" ? "Unban" : "Unsuspend"} ${pendingName}?`}
+          message="Their account goes back to normal and their profile becomes visible again."
+          confirmLabel="Restore access"
           confirmColor="#0161F0"
           onConfirm={executeAction}
           onCancel={() => setPending(null)}
@@ -217,30 +249,28 @@ export default function AdminUsersPage() {
         <p className="text-sm font-semibold text-gray-900 flex-1">All Users</p>
       </div>
 
-      {/* Suspended-only toggle */}
+      {/* Filter: all / suspended / banned */}
       <div className="px-4 pt-3">
-        <button
-          type="button"
-          role="switch"
-          aria-checked={suspendedOnly}
-          onClick={() => setSuspendedOnly((v) => !v)}
-          className="w-full flex items-center justify-between gap-3 px-4 py-2.5 rounded-2xl"
-          style={{ backgroundColor: suspendedOnly ? "#FFF4E5" : "#f6f6f6" }}
-        >
-          <span className="text-sm font-medium text-gray-800">
-            Show suspended accounts only
-            <span className="ml-2 text-xs text-gray-400">({suspendedCount})</span>
-          </span>
-          <span
-            className="relative flex-shrink-0 rounded-full transition-colors"
-            style={{ width: 40, height: 24, backgroundColor: suspendedOnly ? "#f59e0b" : "#d4d4d4" }}
-          >
-            <span
-              className="absolute top-0.5 rounded-full bg-white transition-all"
-              style={{ width: 20, height: 20, left: suspendedOnly ? 18 : 2, boxShadow: "0 1px 3px rgba(0,0,0,0.25)" }}
-            />
-          </span>
-        </button>
+        <div className="flex p-1 rounded-2xl gap-1" style={{ backgroundColor: "#f0f0f0" }}>
+          {[
+            ["all", "All"],
+            ["suspended", `Suspended (${countOf("suspended")})`],
+            ["banned", `Banned (${countOf("banned")})`],
+          ].map(([key, label]) => (
+            <button
+              key={key}
+              onClick={() => setFilter(key)}
+              className="flex-1 py-1.5 rounded-xl text-[13px] font-semibold"
+              style={{
+                backgroundColor: filter === key ? "#fff" : "transparent",
+                color: filter === key ? (key === "banned" ? "#b91c1c" : key === "suspended" ? "#d97706" : "#111") : "#888",
+                boxShadow: filter === key ? "0 1px 3px rgba(0,0,0,0.12)" : "none",
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Search */}
@@ -276,7 +306,7 @@ export default function AdminUsersPage() {
         {loading ? (
           <p className="text-sm text-gray-400 py-8 text-center">Loading…</p>
         ) : list.length === 0 ? (
-          <p className="text-sm text-gray-400 py-8 text-center">{suspendedOnly ? "No suspended accounts." : "No users found."}</p>
+          <p className="text-sm text-gray-400 py-8 text-center">{filter === "all" ? "No users found." : `No ${filter} accounts.`}</p>
         ) : (
           list.map((u) => <UserRow key={u.id} user={u} token={token} onUpdate={() => fetchUsers(token, query)} onConfirm={(target, action) => setPending({ user: target, action })} />)
         )}

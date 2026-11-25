@@ -23,7 +23,7 @@ function UserRow({ user, token, onUpdate }) {
     await fetch("/api/admin/suspend", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ userId: user.id, suspend: !user.banned }),
+      body: JSON.stringify({ userId: user.id, action: user.restriction ? "restore" : "suspend" }),
     });
     onUpdate();
     setLoading(false);
@@ -64,7 +64,7 @@ function UserRow({ user, token, onUpdate }) {
             style={{ backgroundColor: user.type === "crew" ? "#EEF4FF" : "#E8EDF8", color: "#0161F0" }}>
             {user.type}
           </span>
-          {user.banned && <span className="text-[11px] px-1.5 py-0.5 rounded-md flex-shrink-0" style={{ backgroundColor: "#FFF0F0", color: "#e00" }}>suspended</span>}
+          {user.restriction && <span className="text-[11px] px-1.5 py-0.5 rounded-md flex-shrink-0" style={user.restriction === "banned" ? { backgroundColor: "#e00", color: "#fff" } : { backgroundColor: "#FFF4E5", color: "#d97706" }}>{user.restriction}</span>}
         </div>
         <div className="flex items-center gap-1.5 min-w-0">
           <p className="text-xs text-gray-400 truncate">{user.email}</p>
@@ -77,9 +77,9 @@ function UserRow({ user, token, onUpdate }) {
           onClick={handleSuspend}
           disabled={loading}
           className="text-xs font-medium px-2.5 py-1.5 rounded-full border"
-          style={{ color: user.banned ? "#0161F0" : "#f59e0b", borderColor: user.banned ? "#0161F0" : "#f59e0b" }}
+          style={{ color: user.restriction ? "#0161F0" : "#f59e0b", borderColor: user.restriction ? "#0161F0" : "#f59e0b" }}
         >
-          {user.banned ? "Unsuspend" : "Suspend"}
+          {user.restriction === "banned" ? "Unban" : user.restriction ? "Unsuspend" : "Suspend"}
         </button>
         <button
           onClick={handleRemove}
