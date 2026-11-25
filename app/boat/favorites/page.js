@@ -7,6 +7,7 @@ import BoatNavFooter from "@/app/components/BoatNavFooter";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
 import { notify } from "@/lib/notify";
+import { MessageLink, MessageHint } from "@/app/components/MessageLink";
 
 function formatRegattaDate(str) {
   if (!str) return "";
@@ -165,17 +166,18 @@ function CrewCard({ member, onUnfavorite, onInvite }) {
       </div>
 
       <div className="flex gap-2">
-        <Link href={`/boat/messages/${member.id}`}
+        <MessageLink toId={member.id} href={`/boat/messages/${member.id}`}
           className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[15px] font-semibold border"
           style={{ color: "#0161F0", borderColor: "#0161F0" }}>
           Message
-        </Link>
+        </MessageLink>
         <button onClick={() => onInvite(member)}
           className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[15px] font-semibold text-white"
           style={{ backgroundColor: "#0161F0" }}>
           <IconSend size={16} color="white" /> Race Invite
         </button>
       </div>
+      <MessageHint toId={member.id} className="mt-2 text-center">You can message {member.name?.split(" ")[0] || "this sailor"} once they apply to one of your regattas.</MessageHint>
     </div>
   );
 }
@@ -211,7 +213,15 @@ export default function BoatFavoritesPage() {
       supabase.from("regattas").select("*, regatta_positions(*)").eq("boat_id", user.id),
     ]);
     setCrew((favs || []).map((r) => r.crew_profiles).filter(Boolean));
-    setRegattas(regs || []);
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const future = (regs || []).filter((r) => {
+      if (!r.date) return true;
+      const [m, d, y] = r.date.split("/");
+      if (!m || !d || !y) return true;
+      return new Date(`${y}-${m.padStart(2,"0")}-${d.padStart(2,"0")}`) >= now;
+    });
+    setRegattas(future);
     setLoading(false);
   }
 

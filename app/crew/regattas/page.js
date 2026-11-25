@@ -9,6 +9,7 @@ import CrewNavFooter from "@/app/components/CrewNavFooter";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
 import { notify } from "@/lib/notify";
+import { MessageLink } from "@/app/components/MessageLink";
 
 function parseDate(str) {
   if (!str) return null;
@@ -145,6 +146,7 @@ function InvitationCard({ invitation, onApply, onDecline, onWithdraw, onDismiss 
         <div className="flex gap-2">
           <button onClick={() => onApply(invitation.id)} className="flex-1 py-2.5 rounded-2xl text-[15px] font-semibold text-white" style={{ backgroundColor: "#0161F0" }}>Apply</button>
           <button onClick={() => onDecline(invitation.id)} className="flex-1 py-2.5 rounded-2xl text-[15px] font-semibold border" style={{ color: "#666", borderColor: "#e0e0e0" }}>Decline</button>
+          <MessageLink toId={regatta?.boat_id} href={`/crew/messages/${regatta?.boat_id}`} className="flex-1 flex items-center justify-center py-2.5 rounded-2xl text-[15px] font-semibold border" style={{ color: "#0161F0", borderColor: "#0161F0" }}>Message</MessageLink>
         </div>
       )}
 

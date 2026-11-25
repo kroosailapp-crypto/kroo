@@ -6,6 +6,8 @@ import CrewNavFooter from "@/app/components/CrewNavFooter";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
 import { notify } from "@/lib/notify";
+import { useMessageable } from "@/lib/use-messageable";
+import MessagingLockedBar from "@/app/components/MessagingLocked";
 
 function formatTime(ts) {
   const d = new Date(ts);
@@ -28,6 +30,8 @@ export default function CrewChat({ params }) {
   const [loading, setLoading] = useState(true);
   const bottomRef = useRef(null);
   const messagesRef = useRef([]);
+  const { canMessage, loaded: permLoaded } = useMessageable();
+  const [sendError, setSendError] = useState("");
 
   // Load boat profile for header
   useEffect(() => {
@@ -123,11 +127,26 @@ export default function CrewChat({ params }) {
       return updated;
     });
 
-    const { data } = await supabase
+    setSendError("");
+    const { data, error } = await supabase
       .from("messages")
       .insert({ sender_id: user.id, receiver_id: id, content: text })
       .select()
       .single();
+
+    if (error) {
+      // Rejected by the messaging rules (or a network problem): undo the optimistic bubble
+      setMessages((prev) => {
+        const updated = prev.filter((m) => m.id !== optimistic.id);
+        messagesRef.current = updated;
+        return updated;
+      });
+      setInput(text);
+      setSendError(error.hint === "messaging_not_allowed"
+        ? "You can message this boat once it invites you to a regatta or selects you for a position."
+        : "Couldn't send your message. Please try again.");
+      return;
+    }
 
     if (data) {
       setMessages((prev) => {
@@ -193,7 +212,7 @@ export default function CrewChat({ params }) {
         ) : messages.length === 0 ? (
           <div className="flex-1 flex items-center justify-center">
             <p className="text-sm text-gray-400">
-              Start the conversation with {otherProfile?.boat_name || "this boat"}.
+              {permLoaded && !canMessage(id) ? "No messages yet." : <>Start the conversation with {otherProfile?.boat_name || "this boat"}.</>}
             </p>
           </div>
         ) : (
@@ -225,30 +244,37 @@ export default function CrewChat({ params }) {
         </div>
       </div>
 
-      {/* Input bar */}
-      <div
-        className="fixed left-1/2 -translate-x-1/2 w-full max-w-[800px] px-4 py-3 border-t"
-        style={{ bottom: "56px", backgroundColor: "#fff", borderColor: "#e8e8e8" }}
-      >
-        <div className="flex items-center gap-2">
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKey}
-            placeholder="Message…"
-            className="flex-1 px-4 py-2.5 rounded-full text-sm outline-none"
-            style={{ backgroundColor: "#f0f0f0", color: "#111" }}
-          />
-          <button
-            onClick={sendMessage}
-            disabled={!input.trim()}
-            className="flex items-center justify-center rounded-full flex-shrink-0"
-            style={{ width: 38, height: 38, backgroundColor: input.trim() ? "#0161F0" : "#e0e0e0" }}
-          >
-            <IconSend size={16} color="white" />
-          </button>
+      {/* Input bar — only when the messaging rules allow this conversation */}
+      {permLoaded && !canMessage(id) ? (
+        <MessagingLockedBar>
+          You can message this boat once it invites you to a regatta or selects you for a position.
+        </MessagingLockedBar>
+      ) : permLoaded ? (
+        <div
+          className="fixed left-1/2 -translate-x-1/2 w-full max-w-[800px] px-4 py-3 border-t"
+          style={{ bottom: "56px", backgroundColor: "#fff", borderColor: "#e8e8e8" }}
+        >
+          {sendError && <p className="text-[12px] mb-2 px-1" style={{ color: "#e53e3e" }}>{sendError}</p>}
+          <div className="flex items-center gap-2">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKey}
+              placeholder="Message…"
+              className="flex-1 px-4 py-2.5 rounded-full text-sm outline-none"
+              style={{ backgroundColor: "#f0f0f0", color: "#111" }}
+            />
+            <button
+              onClick={sendMessage}
+              disabled={!input.trim()}
+              className="flex items-center justify-center rounded-full flex-shrink-0"
+              style={{ width: 38, height: 38, backgroundColor: input.trim() ? "#0161F0" : "#e0e0e0" }}
+            >
+              <IconSend size={16} color="white" />
+            </button>
+          </div>
         </div>
-      </div>
+      ) : null}
 
       <CrewNavFooter active="Message" />
     </div>

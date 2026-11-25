@@ -18,6 +18,7 @@ import RegattaNameInput from "@/app/components/RegattaNameInput";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
 import { notify } from "@/lib/notify";
+import { MessageLink } from "@/app/components/MessageLink";
 
 const POSITIONS = [
   "Helm", "Tactician", "Navigator", "Mainsail Trimmer",
@@ -158,10 +159,10 @@ function CrewCard({ invite, onSelect, isFavorited, onToggleFavorite, isFilled })
               </button>
             )}
             {!onSelect && (
-              <Link href={`/boat/messages/${invite.crew_id}`} onClick={(e) => e.stopPropagation()} className="ml-auto flex items-center gap-1.5 text-[14px] font-semibold"
+              <MessageLink toId={invite.crew_id} href={`/boat/messages/${invite.crew_id}`} onClick={(e) => e.stopPropagation()} className="ml-auto flex items-center gap-1.5 text-[14px] font-semibold"
                 style={{ color: "#0161F0" }}>
-                <IconMessage size={16} color="#0161F0" /> Message
-              </Link>
+                <IconMessage size={16} /> Message
+              </MessageLink>
             )}
           </div>
         </div>

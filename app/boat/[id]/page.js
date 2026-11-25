@@ -16,6 +16,7 @@ import ProfileSwitcher from "@/app/components/ProfileSwitcher";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
 import { notify } from "@/lib/notify";
+import { MessageLink, MessageHint } from "@/app/components/MessageLink";
 import { useProfileSharing } from "@/lib/use-profile-sharing";
 import { ShareProfileUI, ShareProfileButton, PublicProfileToggle } from "@/app/components/ShareProfileUI";
 
@@ -47,7 +48,7 @@ function ApplyModal({ boatName, onClose }) {
         </p>
         <button
           onClick={onClose}
-          className="mt-1 w-full lg:w-auto py-2.5 rounded-2xl text-sm font-semibold text-white"
+          className="mt-1 w-full lg:w-auto px-6 py-2.5 rounded-2xl text-sm font-semibold text-white"
           style={{ backgroundColor: "#0161f0" }}
         >
           Got it
@@ -96,7 +97,7 @@ function ReportDrawer({ name, onSubmit, onClose }) {
         <button
           onClick={handleSubmit}
           disabled={!reason.trim() || submitting}
-          className="w-full lg:w-auto py-3.5 rounded-2xl text-sm font-semibold text-white"
+          className="w-full lg:w-auto px-6 py-3.5 rounded-2xl text-sm font-semibold text-white"
           style={{ backgroundColor: !reason.trim() || submitting ? "#c0c0c0" : "#e53e3e" }}
         >
           {submitting ? "Sending…" : "Submit Report"}
@@ -129,7 +130,7 @@ function ReportConfirmModal({ onClose }) {
         </p>
         <button
           onClick={onClose}
-          className="w-full lg:w-auto py-2.5 rounded-2xl text-sm font-semibold text-white"
+          className="w-full lg:w-auto px-6 py-2.5 rounded-2xl text-sm font-semibold text-white"
           style={{ backgroundColor: "#0161F0" }}
         >
           Got it
@@ -469,9 +470,12 @@ export default function BoatPublicProfile({ params }) {
 
           {/* Message button */}
           {!isOwner && (
-            <Link href={`/crew/messages/${id}`} className="mt-4 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border" style={{ color: "#0161F0", borderColor: "#0161F0" }}>
-              <IconMessage size={16} /> Message
-            </Link>
+            <>
+              <MessageLink toId={id} href={`/crew/messages/${id}`} className="mt-4 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border" style={{ color: "#0161F0", borderColor: "#0161F0" }}>
+                <IconMessage size={16} /> Message
+              </MessageLink>
+              <MessageHint toId={id} className="mt-2 text-center">You can message this boat once it invites you to a regatta or selects you for a position.</MessageHint>
+            </>
           )}
         </div>
 

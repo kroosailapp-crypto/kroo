@@ -15,6 +15,7 @@ import BoatNavFooter from "@/app/components/BoatNavFooter";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
 import { notify } from "@/lib/notify";
+import { MessageLink, MessageHint } from "@/app/components/MessageLink";
 
 
 function InviteDrawer({ sailorName, regattas, invitedRegattaIds = [], onInvite, onClose }) {
@@ -520,13 +521,14 @@ export default function CrewPublicProfile({ params }) {
           {/* Action buttons */}
           {user?.id !== id && (
             <div className="flex gap-2 mt-4">
-              <Link
+              <MessageLink
+                toId={id}
                 href={`/boat/messages/${id}`}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border"
                 style={{ color: "#0161F0", borderColor: "#0161F0" }}
               >
                 <IconMessage size={16} /> Message
-              </Link>
+              </MessageLink>
               <button
                 onClick={() => !isInvited && setShowInviteDrawer(true)}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white"
@@ -537,6 +539,9 @@ export default function CrewPublicProfile({ params }) {
                   : <><IconFlag size={16} /> Race Invite</>}
               </button>
             </div>
+          )}
+          {user?.id !== id && (
+            <MessageHint toId={id} className="mt-2 text-center">You can message {profile.name?.split(" ")[0] || "this sailor"} once they apply to one of your regattas.</MessageHint>
           )}
         </div>
 
