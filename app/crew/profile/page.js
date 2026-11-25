@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
 import { useProfileSharing } from "@/lib/use-profile-sharing";
 import { ShareProfileUI, ShareProfileButton, PublicProfileToggle } from "@/app/components/ShareProfileUI";
+import ZoomableImage from "@/app/components/ZoomableImage";
 
 function ProfileMenu({ onDelete, isPublic, onTogglePublic }) {
   const [open, setOpen] = useState(false);
@@ -92,7 +93,7 @@ function AddClassModal({ existing, onAdd, onClose }) {
           <input value={custom} onChange={(e) => { setCustom(e.target.value); setSelected(null); }} placeholder="e.g. Transpac 52"
             className="w-full px-4 py-3 rounded-2xl text-sm text-gray-900 border outline-none placeholder-gray-400" style={{ borderColor: "#e0e0e0" }} />
         </div>
-        <button onClick={() => toAdd && onAdd(toAdd)} disabled={!toAdd} className="w-full lg:w-auto py-3.5 rounded-2xl text-sm font-semibold text-white"
+        <button onClick={() => toAdd && onAdd(toAdd)} disabled={!toAdd} className="w-full lg:w-auto px-6 py-3.5 rounded-2xl text-sm font-semibold text-white"
           style={{ backgroundColor: toAdd ? "#0161F0" : "#c0c0c0" }}>
           Add Class
         </button>
@@ -208,7 +209,7 @@ export default function CrewProfilePage() {
           <div className="flex gap-4 items-start">
             <div className="rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center" style={{ width: 90, height: 90, backgroundColor: "#d8d8d8" }}>
               {profile?.avatar_url
-                ? <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                ? <ZoomableImage src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
                 : <IconUser size={32} color="#aaa" />}
             </div>
             <div className="flex-1 min-w-0">

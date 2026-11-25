@@ -16,6 +16,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
 import { notify } from "@/lib/notify";
 import { MessageLink, MessageHint } from "@/app/components/MessageLink";
+import ZoomableImage from "@/app/components/ZoomableImage";
 
 
 function InviteDrawer({ sailorName, regattas, invitedRegattaIds = [], onInvite, onClose }) {
@@ -489,7 +490,7 @@ export default function CrewPublicProfile({ params }) {
           <div className="flex gap-4 items-start">
             <div className="rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden" style={{ width: 90, height: 90, backgroundColor: "#d8d8d8" }}>
               {profile.avatar_url
-                ? <img src={profile.avatar_url} alt={profile.name} className="w-full h-full object-cover" />
+                ? <ZoomableImage src={profile.avatar_url} alt={profile.name} className="w-full h-full object-cover" />
                 : <IconUser size={32} color="#aaa" />}
             </div>
             <div className="flex-1 min-w-0">

@@ -2,6 +2,7 @@ import Image from "next/image";
 import { IconUser, IconLock } from "@tabler/icons-react";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { RedirectIfSignedIn, GateButton } from "../../ShareActions";
+import ZoomableImage from "@/app/components/ZoomableImage";
 
 // Never cache: turning "public profile" off must take effect immediately.
 export const dynamic = "force-dynamic";
@@ -111,7 +112,7 @@ export default async function SharedSailorPage({ params }) {
           <div className="flex gap-4 items-start">
             <div className="rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center" style={{ width: 90, height: 90, backgroundColor: "#d8d8d8" }}>
               {sailor.avatar_url
-                ? <img src={sailor.avatar_url} alt={sailor.name} className="w-full h-full object-cover" />
+                ? <ZoomableImage src={sailor.avatar_url} alt={sailor.name} className="w-full h-full object-cover" />
                 : <IconUser size={32} color="#aaa" />}
             </div>
             <div className="flex-1 min-w-0">

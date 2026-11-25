@@ -19,6 +19,7 @@ import { notify } from "@/lib/notify";
 import { MessageLink, MessageHint } from "@/app/components/MessageLink";
 import { useProfileSharing } from "@/lib/use-profile-sharing";
 import { ShareProfileUI, ShareProfileButton, PublicProfileToggle } from "@/app/components/ShareProfileUI";
+import ZoomableImage from "@/app/components/ZoomableImage";
 
 
 function ApplyModal({ boatName, onClose }) {
@@ -418,7 +419,7 @@ export default function BoatPublicProfile({ params }) {
           <div className="flex gap-4 items-start">
             <div className="rounded-xl flex-shrink-0 overflow-hidden flex items-center justify-center" style={{ width: 90, height: 90, backgroundColor: "#e8e8e8" }}>
               {profile.photo_url
-                ? <img src={profile.photo_url} alt={profile.boat_name} className="w-full h-full object-cover" />
+                ? <ZoomableImage src={profile.photo_url} alt={profile.boat_name} className="w-full h-full object-cover" />
                 : <IconAnchor size={28} color="#ccc" />}
             </div>
             <div className="flex-1 min-w-0">
@@ -451,7 +452,7 @@ export default function BoatPublicProfile({ params }) {
             <div className="flex items-center gap-2.5 mt-4">
               <div className="rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden" style={{ width: 40, height: 40, backgroundColor: "#d8d8d8" }}>
                 {profile.skipper_photo_url
-                  ? <img src={profile.skipper_photo_url} alt={profile.skipper_name} className="w-full h-full object-cover" />
+                  ? <ZoomableImage src={profile.skipper_photo_url} alt={profile.skipper_name} className="w-full h-full object-cover" />
                   : <IconUser size={20} color="#aaa" />}
               </div>
               <div>

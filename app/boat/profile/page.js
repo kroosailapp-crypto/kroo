@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
 import { useProfileSharing } from "@/lib/use-profile-sharing";
 import { ShareProfileUI, ShareProfileButton, PublicProfileToggle } from "@/app/components/ShareProfileUI";
+import ZoomableImage from "@/app/components/ZoomableImage";
 
 function ProfileMenu({ onDelete, isPublic, onTogglePublic }) {
   const [open, setOpen] = useState(false);
@@ -196,7 +197,7 @@ export default function BoatProfilePage() {
               style={{ width: 90, height: 90, backgroundColor: "#e8e8e8" }}
             >
               {profile?.photo_url
-                ? <img src={profile.photo_url} alt="Boat" className="w-full h-full object-cover" />
+                ? <ZoomableImage src={profile.photo_url} alt="Boat" className="w-full h-full object-cover" />
                 : <IconAnchor size={28} color="#ccc" />}
             </div>
             <div className="flex-1 min-w-0">
@@ -230,7 +231,7 @@ export default function BoatProfilePage() {
                 style={{ width: 40, height: 40, backgroundColor: "#d8d8d8" }}
               >
                 {profile.skipper_photo_url
-                  ? <img src={profile.skipper_photo_url} alt="Skipper" className="w-full h-full object-cover" />
+                  ? <ZoomableImage src={profile.skipper_photo_url} alt="Skipper" className="w-full h-full object-cover" />
                   : <IconUser size={20} color="#aaa" />}
               </div>
               <div>

@@ -2,6 +2,7 @@ import Image from "next/image";
 import { IconAnchor, IconUser, IconLock } from "@tabler/icons-react";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { RedirectIfSignedIn, GateButton } from "../../ShareActions";
+import ZoomableImage from "@/app/components/ZoomableImage";
 
 // Never cache: turning "public profile" off must take effect immediately.
 export const dynamic = "force-dynamic";
@@ -152,7 +153,7 @@ export default async function SharedBoatPage({ params }) {
           <div className="flex gap-4 items-start">
             <div className="rounded-xl flex-shrink-0 overflow-hidden flex items-center justify-center" style={{ width: 90, height: 90, backgroundColor: "#e8e8e8" }}>
               {boat.photo_url
-                ? <img src={boat.photo_url} alt={boat.boat_name} className="w-full h-full object-cover" />
+                ? <ZoomableImage src={boat.photo_url} alt={boat.boat_name} className="w-full h-full object-cover" />
                 : <IconAnchor size={28} color="#ccc" />}
             </div>
             <div className="flex-1 min-w-0">
@@ -170,7 +171,7 @@ export default async function SharedBoatPage({ params }) {
             <div className="flex items-center gap-2.5 mt-4">
               <div className="rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden" style={{ width: 40, height: 40, backgroundColor: "#d8d8d8" }}>
                 {boat.skipper_photo_url
-                  ? <img src={boat.skipper_photo_url} alt={boat.skipper_name} className="w-full h-full object-cover" />
+                  ? <ZoomableImage src={boat.skipper_photo_url} alt={boat.skipper_name} className="w-full h-full object-cover" />
                   : <IconUser size={20} color="#aaa" />}
               </div>
               <div>
