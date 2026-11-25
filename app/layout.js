@@ -6,6 +6,7 @@ import InstallBanner from "@/app/components/InstallBanner";
 import PWASetup from "@/app/components/PWASetup";
 import SidebarPadding from "@/app/components/SidebarPadding";
 import PendingNextRedirect from "@/app/components/PendingNextRedirect";
+import SuspensionGuard from "@/app/components/SuspensionGuard";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -46,6 +47,7 @@ export default function RootLayout({ children }) {
           <PWASetup />
           <SidebarPadding />
           <PendingNextRedirect />
+          <SuspensionGuard />
           <InstallBanner />
           <div id="app-root">
             {children}

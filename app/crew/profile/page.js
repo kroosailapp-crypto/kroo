@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase";
 import { useProfileSharing } from "@/lib/use-profile-sharing";
 import { ShareProfileUI, ShareProfileButton, PublicProfileToggle } from "@/app/components/ShareProfileUI";
 import ZoomableImage from "@/app/components/ZoomableImage";
+import SuspendedBanner from "@/app/components/SuspendedBanner";
 
 function ProfileMenu({ onDelete, isPublic, onTogglePublic }) {
   const [open, setOpen] = useState(false);
@@ -191,6 +192,7 @@ export default function CrewProfilePage() {
 
   return (
     <div className="flex flex-col min-h-screen pb-20" style={{ backgroundColor: "#f5f5f5" }}>
+      <SuspendedBanner />
       {showDeleteModal && <DeleteProfileModal onConfirm={handleDeleteProfile} onClose={() => setShowDeleteModal(false)} />}
       <ShareProfileUI sharing={sharing} kind="crew" name={profile?.name} />
       {showClassModal && <AddClassModal existing={classes} onAdd={addClass} onClose={() => setShowClassModal(false)} />}

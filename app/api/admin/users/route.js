@@ -8,13 +8,15 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q")?.toLowerCase().trim() || "";
 
-  const [{ data: crew }, { data: boats }, { data: authUsers }, { data: proMembers }, { data: proTeams }] = await Promise.all([
+  const [{ data: crew }, { data: boats }, { data: authUsers }, { data: proMembers }, { data: proTeams }, { data: suspensions }] = await Promise.all([
     supabaseAdmin.from("crew_profiles").select("id, name, location, experience_level, avatar_url"),
     supabaseAdmin.from("boat_profiles").select("id, boat_name, home_port, skipper_name, photo_url"),
     supabaseAdmin.auth.admin.listUsers({ perPage: 1000 }),
     supabaseAdmin.from("pro_team_members").select("user_id"),
     supabaseAdmin.from("pro_teams").select("owner_id"),
+    supabaseAdmin.from("user_suspensions").select("user_id"),
   ]);
+  const suspendedIds = new Set((suspensions || []).map((s) => s.user_id));
 
   // Users who also have a Kroo Pro account (team member or team owner)
   const proIds = new Set([
@@ -26,7 +28,7 @@ export async function GET(request) {
   const bannedMap = {};
   for (const u of authUsers?.users || []) {
     emailMap[u.id] = u.email;
-    bannedMap[u.id] = !!u.banned_until;
+    bannedMap[u.id] = suspendedIds.has(u.id);
   }
 
   const crewResults = (crew || [])

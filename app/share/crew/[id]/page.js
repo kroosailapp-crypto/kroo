@@ -26,6 +26,8 @@ async function getPublicSailor(id) {
   // Hide banned owners
   const { data: owner } = await supabaseAdmin.auth.admin.getUserById(id);
   if (owner?.user?.banned_until && new Date(owner.user.banned_until) > new Date()) return null;
+  const { data: suspension } = await supabaseAdmin.from("user_suspensions").select("user_id").eq("user_id", id).maybeSingle();
+  if (suspension) return null;
 
   return sailor;
 }

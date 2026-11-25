@@ -221,7 +221,8 @@ export default function CrewRegattas() {
       .select(`*, regattas(id, name, date, location, yacht_club, boat_id, boat_profiles(boat_name, photo_url, boat_class, home_port, skipper_name, skipper_photo_url), regatta_positions(id, level))`)
       .eq("crew_id", user.id)
       .in("status", ["pending", "applied", "accepted", "declined", "cancelled"]);
-    setInvitations(sortByRegattaDate(data || []));
+    // Regattas of suspended boats are hidden, so drop their invitations too
+    setInvitations(sortByRegattaDate((data || []).filter((i) => i.regattas)));
     setLoading(false);
   }
 
