@@ -4,7 +4,8 @@ import { verifyAdmin } from "@/lib/admin-auth";
 // action:
 //   "suspend" - user can still log in but only sees their profile with a banner;
 //               hidden from everyone else (see supabase/suspension.sql)
-//   "ban"     - user can't log in at all, and is hidden from everyone else
+//   "ban"     - user is hidden from everyone else and, once they sign in with the
+//               right password, is signed straight back out with a "banned" message
 //   "restore" - lift a suspension or ban
 export async function POST(request) {
   const admin = await verifyAdmin(request);
@@ -31,8 +32,9 @@ export async function POST(request) {
     if (error) return Response.json({ error: error.message }, { status: 500 });
   }
 
-  // Only a ban blocks login
-  await supabaseAdmin.auth.admin.updateUserById(userId, { ban_duration: action === "ban" ? "876000h" : "none" });
+  // Never use Supabase's own ban: it answers "banned" even for a wrong password,
+  // which would reveal which emails are banned. Clear any left over from before.
+  await supabaseAdmin.auth.admin.updateUserById(userId, { ban_duration: "none" });
 
   return Response.json({ ok: true });
 }
