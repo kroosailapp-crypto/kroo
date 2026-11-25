@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { signInChecked, loginErrorMessage } from "@/lib/login-error";
+import { loginErrorMessage } from "@/lib/login-error";
 
 function LoginModal({ onClose }) {
   const router = useRouter();
@@ -16,7 +16,7 @@ function LoginModal({ onClose }) {
   async function handleLogin() {
     setError("");
     setLoading(true);
-    const { data, error } = await signInChecked(supabase, email, password);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) { setError(loginErrorMessage(error)); setLoading(false); return; }
 
     // Check which profiles exist and redirect accordingly

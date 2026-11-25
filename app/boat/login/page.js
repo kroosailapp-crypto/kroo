@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { signInChecked, loginErrorMessage } from "@/lib/login-error";
+import { loginErrorMessage } from "@/lib/login-error";
 
 export default function BoatLoginPage() {
   const router = useRouter();
@@ -17,7 +17,7 @@ export default function BoatLoginPage() {
   async function handleLogin() {
     setError("");
     setLoading(true);
-    const { error } = await signInChecked(supabase, email, password);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
       setError(loginErrorMessage(error));
