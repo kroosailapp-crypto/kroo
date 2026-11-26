@@ -159,8 +159,6 @@ export default function CrewChat({ params }) {
         event: "new_message",
         recipient_id: id,
         profile_type: "boat",
-        sender_name: otherProfile?.skipper_name || "A sailor",
-        message_preview: text.slice(0, 200),
       });
     }
   }

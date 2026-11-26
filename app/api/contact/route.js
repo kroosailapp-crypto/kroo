@@ -1,5 +1,9 @@
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
+// Contact-form fields are typed by users: escape them before they go into HTML
+const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+const CONTACT_INBOX = "contact@kroosail.com";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://app.kroofinder.com";
 
 export async function POST(request) {
@@ -35,7 +39,7 @@ export async function POST(request) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Contact: ${subject}</title>
+<title>Contact: ${esc(subject)}</title>
 </head>
 <body style="margin:0;padding:0;background:#F4F7FA;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#F4F7FA;padding:32px 0">
@@ -50,18 +54,18 @@ export async function POST(request) {
 
     <!-- Body -->
     <tr><td style="padding:40px 40px 48px">
-      <h2 style="margin:0 0 24px;font-size:20px;font-weight:800;color:#123251">${subject}</h2>
+      <h2 style="margin:0 0 24px;font-size:20px;font-weight:800;color:#123251">${esc(subject)}</h2>
       <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px">
         <tr>
           <td style="padding:10px 0;border-bottom:1px solid #DBE1E8;font-size:13px;font-weight:700;color:#565E69;width:80px">From</td>
-          <td style="padding:10px 0;border-bottom:1px solid #DBE1E8;font-size:14px;color:#3A424D">${name || "—"}</td>
+          <td style="padding:10px 0;border-bottom:1px solid #DBE1E8;font-size:14px;color:#3A424D">${esc(name) || "—"}</td>
         </tr>
         <tr>
           <td style="padding:10px 0;border-bottom:1px solid #DBE1E8;font-size:13px;font-weight:700;color:#565E69">Email</td>
-          <td style="padding:10px 0;border-bottom:1px solid #DBE1E8;font-size:14px;color:#3A424D">${email || "—"}</td>
+          <td style="padding:10px 0;border-bottom:1px solid #DBE1E8;font-size:14px;color:#3A424D">${esc(email) || "—"}</td>
         </tr>
       </table>
-      <div style="font-size:15px;line-height:1.65;color:#3A424D;white-space:pre-wrap">${message}</div>
+      <div style="font-size:15px;line-height:1.65;color:#3A424D;white-space:pre-wrap">${esc(message)}</div>
     </td></tr>
 
     <!-- Footer -->
@@ -83,9 +87,9 @@ export async function POST(request) {
     },
     body: JSON.stringify({
       from: "Kroo Finder <hello@updates.kroosail.com>",
-      to: ["kroosailapp@gmail.com"],
+      to: [CONTACT_INBOX],
       reply_to: email || undefined,
-      subject: `[Contact] ${subject}`,
+      subject: `[Contact] ${String(subject).replace(/[\r\n]+/g, " ").slice(0, 150)}`,
       html,
     }),
   });

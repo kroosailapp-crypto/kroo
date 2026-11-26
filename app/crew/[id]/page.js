@@ -393,9 +393,7 @@ export default function CrewPublicProfile({ params }) {
       event: "new_invite",
       recipient_id: id,
       profile_type: "crew",
-      boat_name: profile?.boat_name || "A boat",
-      regatta_name: regatta.name,
-      position_role: position.role,
+      position_id: position.id,
     });
   }
 

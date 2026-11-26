@@ -241,9 +241,7 @@ export default function CrewRegattas() {
     if (wasAccepted) {
       await supabase.from("invitations").update({ status: "cancelled" }).eq("id", inv.id);
       setInvitations((prev) => prev.map((i) => (i.id === inv.id ? { ...i, status: "cancelled" } : i)));
-      const regatta = inv.regattas;
-      const { data: crewProf } = await supabase.from("crew_profiles").select("name").eq("id", user.id).maybeSingle();
-      notify({ event: "crew_cancelled", recipient_id: regatta?.boat_id, profile_type: "boat", sailor_name: crewProf?.name || "A sailor", regatta_name: regatta?.name || "the regatta", position_role: inv.role });
+      notify({ event: "crew_cancelled", invitation_id: inv.id });
     } else {
       await supabase.from("invitations").delete().eq("id", inv.id);
       setInvitations((prev) => prev.filter((i) => i.id !== inv.id));

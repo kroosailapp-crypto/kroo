@@ -159,8 +159,6 @@ export default function BoatChat({ params }) {
         event: "new_message",
         recipient_id: id,
         profile_type: "crew",
-        sender_name: otherProfile?.name || "A boat",
-        message_preview: text.slice(0, 200),
       });
     }
   }

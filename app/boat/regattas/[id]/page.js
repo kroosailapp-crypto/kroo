@@ -264,23 +264,14 @@ export default function RegattaDetail({ params }) {
     setInvitations((prev) => prev.map((inv) => (inv.id === invitationId ? { ...inv, status: "accepted" } : inv)));
     const inv = invitations.find((i) => i.id === invitationId);
     if (inv) {
-      notify({
-        event: "regatta_confirmation",
-        recipient_id: inv.crew_id,
-        profile_type: "crew",
-        boat_name: "The boat",
-        regatta_name: regatta?.name || "the regatta",
-        position_role: inv.role,
-      });
+      notify({ event: "regatta_confirmation", invitation_id: invitationId });
     }
   }
 
   async function handleCancelRegatta() {
-    const { data: accepted } = await supabase.from("invitations").select("crew_id, role").eq("regatta_id", id).eq("status", "accepted");
+    // Notify the confirmed crew first: the server looks them up before the regatta is deleted
+    await notify({ event: "regatta_cancelled", regatta_id: id });
     await supabase.from("regattas").delete().eq("id", id);
-    for (const inv of accepted || []) {
-      notify({ event: "regatta_cancelled", recipient_id: inv.crew_id, profile_type: "crew", boat_name: "The boat", regatta_name: regatta?.name || "the regatta" });
-    }
     window.location.href = "/boat/regattas";
   }
 

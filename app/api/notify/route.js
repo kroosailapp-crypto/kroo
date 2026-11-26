@@ -120,6 +120,14 @@ async function sendEmail(to, subject, templateArgs) {
   }
 }
 
+// Everything that goes into an email is escaped: names and message text are
+// written by users.
+function esc(v) {
+  return String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+// Subjects are plain text; just keep them on one line.
+const oneLine = (v) => String(v ?? "").replace(/[\r\n]+/g, " ").slice(0, 150);
+
 async function getEmail(userId) {
   const { data: { user } } = await supabaseAdmin.auth.admin.getUserById(userId);
   return user?.email || null;
@@ -131,121 +139,252 @@ async function getPrefs(userId, profileType) {
   return data?.notification_prefs || {};
 }
 
+async function isRestricted(userId) {
+  const { data } = await supabaseAdmin.from("user_suspensions").select("user_id").eq("user_id", userId).maybeSingle();
+  return !!data;
+}
+
+async function boatName(id) {
+  const { data } = await supabaseAdmin.from("boat_profiles").select("boat_name, skipper_name").eq("id", id).maybeSingle();
+  return data ? data.boat_name || data.skipper_name || "A boat" : null;
+}
+
+async function crewName(id) {
+  const { data } = await supabaseAdmin.from("crew_profiles").select("name").eq("id", id).maybeSingle();
+  return data ? data.name || "A sailor" : null;
+}
+
+class Reject extends Error {
+  constructor(message, status = 400) { super(message); this.status = status; }
+}
+
+const HOUR = 60 * 60 * 1000;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const need = (v) => {
+  if (typeof v !== "string" || !UUID.test(v)) throw new Reject("Invalid id");
+  return v;
+};
+
+// Work out WHO gets WHICH email from the database, never from the request.
+// The request only says what happened (and points at the row); we verify that
+// the caller really did it, so nobody can use this endpoint to email people
+// arbitrary text. Returns a list of jobs: {recipientId, profileType, prefKey,
+// key (de-duplication), subject, mail, push}.
+async function resolveJobs(event, caller, body) {
+  switch (event) {
+    case "new_message": {
+      const recipientId = need(body.recipient_id);
+      const profileType = body.profile_type === "boat" ? "boat" : "crew";
+      if (recipientId === caller.id) throw new Reject("Invalid recipient");
+      // The sender must have just written to the recipient. The preview is
+      // taken from that stored message.
+      const { data: msg } = await supabaseAdmin
+        .from("messages")
+        .select("content, created_at")
+        .eq("sender_id", caller.id)
+        .eq("receiver_id", recipientId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!msg || Date.now() - new Date(msg.created_at).getTime() > 5 * 60 * 1000) throw new Reject("No recent message");
+      // A boat writes to a sailor and a sailor writes to a boat
+      const sender = profileType === "crew" ? await boatName(caller.id) : await crewName(caller.id);
+      if (!sender) throw new Reject("No sender profile");
+      const preview = msg.content.slice(0, 200);
+      return [{
+        recipientId, profileType, prefKey: "new_message",
+        key: `new_message:${caller.id}`, // one email per sender per hour
+        subject: `New message from ${oneLine(sender)}`,
+        mail: {
+          label: "New Message",
+          heading: `${esc(sender)} sent you a message`,
+          body: `<blockquote style="border-left:3px solid #14764F;padding-left:16px;color:#565E69;margin:0 0 16px;font-style:italic">${esc(preview)}</blockquote>`,
+          ctaText: "Reply", ctaUrl: APP_URL,
+        },
+        push: [`New message from ${sender}`, preview],
+      }];
+    }
+
+    case "new_invite":
+    case "race_invite": { // "race_invite" was the old name used by the Favorites page
+      const recipientId = need(body.recipient_id);
+      const position_id = need(body.position_id);
+      const { data: inv } = await supabaseAdmin
+        .from("invitations")
+        .select("id, role, regattas(name, boat_id)")
+        .eq("position_id", position_id)
+        .eq("crew_id", recipientId)
+        .eq("initiated_by", "boat")
+        .eq("status", "pending")
+        .maybeSingle();
+      if (!inv || inv.regattas?.boat_id !== caller.id) throw new Reject("No such invitation");
+      const boat = (await boatName(caller.id)) || "A boat";
+      return [{
+        recipientId, profileType: "crew", prefKey: "new_invite",
+        key: `new_invite:${position_id}`,
+        subject: `You've been invited to race on ${oneLine(boat)}`,
+        mail: {
+          label: "Regatta Invite",
+          heading: `Invite to sail on ${esc(boat)}`,
+          body: `<p style="margin:0"><strong>${esc(boat)}</strong> has invited you to sail as <strong>${esc(inv.role)}</strong> at <strong>${esc(inv.regattas.name)}</strong>.</p>`,
+          ctaText: "View Invite", ctaUrl: `${APP_URL}/crew/regattas`,
+        },
+        push: [`Sail Invite from ${boat}`, `You've been invited to sail at ${inv.regattas.name}`],
+      }];
+    }
+
+    case "regatta_confirmation": {
+      const { data: inv } = await supabaseAdmin
+        .from("invitations")
+        .select("id, crew_id, role, status, regattas(name, boat_id)")
+        .eq("id", need(body.invitation_id))
+        .maybeSingle();
+      if (!inv || inv.status !== "accepted" || inv.regattas?.boat_id !== caller.id) throw new Reject("No such confirmation");
+      const boat = (await boatName(caller.id)) || "The boat";
+      return [{
+        recipientId: inv.crew_id, profileType: "crew", prefKey: "regatta_confirmation",
+        key: `regatta_confirmation:${inv.id}`,
+        subject: `You've been confirmed for ${oneLine(inv.regattas.name)}!`,
+        mail: {
+          label: "Confirmed",
+          heading: `You're on the crew for ${esc(inv.regattas.name)}`,
+          body: `<p style="margin:0"><strong>${esc(boat)}</strong> has confirmed you as <strong>${esc(inv.role)}</strong> for <strong>${esc(inv.regattas.name)}</strong>. Fair winds!</p>`,
+          ctaText: "View Details", ctaUrl: `${APP_URL}/crew/regattas`,
+        },
+      }];
+    }
+
+    case "regatta_cancelled": {
+      // Called just BEFORE the regatta is deleted, so the confirmed crew can
+      // still be looked up here.
+      const { data: regatta } = await supabaseAdmin
+        .from("regattas")
+        .select("id, name, boat_id, invitations(crew_id, status)")
+        .eq("id", need(body.regatta_id))
+        .maybeSingle();
+      if (!regatta || regatta.boat_id !== caller.id) throw new Reject("No such regatta");
+      const boat = (await boatName(caller.id)) || "The boat";
+      return (regatta.invitations || [])
+        .filter((i) => i.status === "accepted")
+        .map((i) => ({
+          recipientId: i.crew_id, profileType: "crew", prefKey: "regatta_cancelled",
+          key: `regatta_cancelled:${regatta.id}`,
+          subject: `${oneLine(regatta.name)} has been cancelled`,
+          mail: {
+            label: "Regatta Cancelled",
+            heading: `${esc(regatta.name)} has been cancelled`,
+            body: `<p style="margin:0">Unfortunately, <strong>${esc(regatta.name)}</strong> hosted by <strong>${esc(boat)}</strong> has been cancelled.</p>`,
+            ctaText: "Browse Other Boats", ctaUrl: `${APP_URL}/crew/feed`,
+          },
+        }));
+    }
+
+    case "new_application": {
+      const { data: inv } = await supabaseAdmin
+        .from("invitations")
+        .select("id, role, status, regattas(name, boat_id)")
+        .eq("position_id", need(body.position_id))
+        .eq("crew_id", caller.id)
+        .maybeSingle();
+      if (!inv || !["applied", "accepted"].includes(inv.status) || !inv.regattas) throw new Reject("No such application");
+      const sailor = (await crewName(caller.id)) || "A sailor";
+      return [{
+        recipientId: inv.regattas.boat_id, profileType: "boat", prefKey: "new_application",
+        key: `new_application:${body.position_id}:${caller.id}`,
+        subject: `New application from ${oneLine(sailor)}`,
+        mail: {
+          label: "New Application",
+          heading: `${esc(sailor)} applied for ${esc(inv.role)}`,
+          body: `<p style="margin:0"><strong>${esc(sailor)}</strong> has applied for the <strong>${esc(inv.role)}</strong> position on <strong>${esc(inv.regattas.name)}</strong>.</p>`,
+          ctaText: "Review Application", ctaUrl: `${APP_URL}/boat/regattas`,
+        },
+      }];
+    }
+
+    case "crew_cancelled": {
+      const { data: inv } = await supabaseAdmin
+        .from("invitations")
+        .select("id, role, status, crew_id, regattas(name, boat_id)")
+        .eq("id", need(body.invitation_id))
+        .maybeSingle();
+      if (!inv || inv.crew_id !== caller.id || inv.status !== "cancelled" || !inv.regattas) throw new Reject("No such cancellation");
+      const sailor = (await crewName(caller.id)) || "A sailor";
+      return [{
+        recipientId: inv.regattas.boat_id, profileType: "boat", prefKey: "crew_cancelled",
+        key: `crew_cancelled:${inv.id}`,
+        subject: `${oneLine(sailor)} cancelled their spot on ${oneLine(inv.regattas.name)}`,
+        mail: {
+          label: "Crew Cancelled",
+          heading: `${esc(sailor)} cancelled their spot`,
+          body: `<p style="margin:0"><strong>${esc(sailor)}</strong> has cancelled their confirmed <strong>${esc(inv.role)}</strong> spot on <strong>${esc(inv.regattas.name)}</strong>. The position is now open again.</p>`,
+          ctaText: "View Regatta", ctaUrl: `${APP_URL}/boat/regattas`,
+        },
+      }];
+    }
+
+    default:
+      throw new Reject("Unknown event");
+  }
+}
+
+// Returns "sent" | "skipped" for one recipient.
+async function deliver(job) {
+  const { recipientId, profileType, prefKey, key } = job;
+  if (!recipientId || (await isRestricted(recipientId))) return "skipped";
+
+  const prefs = await getPrefs(recipientId, profileType);
+  if (prefs[prefKey] === false) return "skipped";
+
+  const email = await getEmail(recipientId);
+  if (!email) return "skipped";
+
+  // De-duplicate: the same thing (same sender / invitation / position) is only
+  // emailed once an hour. The slot is claimed first so double-clicks can't send
+  // two, and released again if the send fails so it isn't used up for nothing.
+  const { data: cooldown } = await supabaseAdmin
+    .from("notification_cooldowns")
+    .select("last_sent_at")
+    .eq("recipient_id", recipientId)
+    .eq("event", key)
+    .maybeSingle();
+  if (cooldown && Date.now() - new Date(cooldown.last_sent_at).getTime() < HOUR) return "skipped";
+  await supabaseAdmin.from("notification_cooldowns").upsert({ recipient_id: recipientId, event: key, last_sent_at: new Date().toISOString() });
+
+  try {
+    await sendEmail(email, job.subject, job.mail);
+  } catch (err) {
+    await supabaseAdmin.from("notification_cooldowns").delete().eq("recipient_id", recipientId).eq("event", key);
+    throw err;
+  }
+  if (job.push) sendPush(recipientId, job.push[0], job.push[1]);
+  return "sent";
+}
+
 export async function POST(request) {
   try {
     const token = request.headers.get("Authorization")?.replace("Bearer ", "");
     if (!token) return Response.json({ error: "Unauthorized" }, { status: 401 });
     const { data: { user: caller } } = await supabaseAdmin.auth.getUser(token);
     if (!caller) return Response.json({ error: "Unauthorized" }, { status: 401 });
+    // Suspended and banned accounts can't trigger emails to anyone
+    if (await isRestricted(caller.id)) return Response.json({ error: "Account restricted" }, { status: 403 });
 
     const body = await request.json();
-    const { event, recipient_id, profile_type = "crew", ...data } = body;
+    const jobs = await resolveJobs(body.event, caller, body);
 
-    const [email, prefs] = await Promise.all([
-      getEmail(recipient_id),
-      getPrefs(recipient_id, profile_type),
-    ]);
-
-    if (!email) return Response.json({ ok: false, error: "No email found" });
-
-    const prefKey = {
-      new_message: "new_message",
-      new_invite: "new_invite",
-      regatta_confirmation: "regatta_confirmation",
-      regatta_cancelled: "regatta_cancelled",
-      new_application: "new_application",
-      crew_cancelled: "crew_cancelled",
-    }[event];
-
-    if (prefs[prefKey] === false) {
-      return Response.json({ ok: true, skipped: true });
+    let sent = 0;
+    let failed = 0;
+    for (const job of jobs) {
+      try {
+        if ((await deliver(job)) === "sent") sent++;
+      } catch (err) {
+        failed++;
+        console.error("Notify send error:", err);
+      }
     }
-
-    // Cooldown: max 1 notification per event per recipient per hour
-    const { data: cooldown } = await supabaseAdmin
-      .from("notification_cooldowns")
-      .select("last_sent_at")
-      .eq("recipient_id", recipient_id)
-      .eq("event", event)
-      .maybeSingle();
-
-    if (cooldown && (Date.now() - new Date(cooldown.last_sent_at).getTime()) < 60 * 60 * 1000) {
-      return Response.json({ ok: true, skipped: true, reason: "cooldown" });
-    }
-
-    await supabaseAdmin
-      .from("notification_cooldowns")
-      .upsert({ recipient_id, event, last_sent_at: new Date().toISOString() });
-
-    switch (event) {
-      case "new_message":
-        await sendEmail(email, `New message from ${data.sender_name}`, {
-          label: "New Message",
-          heading: `${data.sender_name} sent you a message`,
-          body: `<blockquote style="border-left:3px solid #14764F;padding-left:16px;color:#565E69;margin:0 0 16px;font-style:italic">${data.message_preview}</blockquote>`,
-          ctaText: "Reply",
-          ctaUrl: APP_URL,
-        });
-        sendPush(recipient_id, `New message from ${data.sender_name}`, data.message_preview);
-        break;
-
-      case "new_invite":
-        await sendEmail(email, `You've been invited to race on ${data.boat_name}`, {
-          label: "Regatta Invite",
-          heading: `Invite to sail on ${data.boat_name}`,
-          body: `<p style="margin:0"><strong>${data.boat_name}</strong> has invited you to sail as <strong>${data.position_role}</strong> at <strong>${data.regatta_name}</strong>.</p>`,
-          ctaText: "View Invite",
-          ctaUrl: `${APP_URL}/crew/regattas`,
-        });
-        sendPush(recipient_id, `Sail Invite from ${data.boat_name}`, `You've been invited to sail at ${data.regatta_name}`);
-        break;
-
-      case "regatta_confirmation":
-        await sendEmail(email, `You've been confirmed for ${data.regatta_name}!`, {
-          label: "Confirmed",
-          heading: `You're on the crew for ${data.regatta_name}`,
-          body: `<p style="margin:0"><strong>${data.boat_name}</strong> has confirmed you as <strong>${data.position_role}</strong> for <strong>${data.regatta_name}</strong>. Fair winds!</p>`,
-          ctaText: "View Details",
-          ctaUrl: `${APP_URL}/crew/regattas`,
-        });
-        break;
-
-      case "regatta_cancelled":
-        await sendEmail(email, `${data.regatta_name} has been cancelled`, {
-          label: "Regatta Cancelled",
-          heading: `${data.regatta_name} has been cancelled`,
-          body: `<p style="margin:0">Unfortunately, <strong>${data.regatta_name}</strong> hosted by <strong>${data.boat_name}</strong> has been cancelled.</p>`,
-          ctaText: "Browse Other Boats",
-          ctaUrl: `${APP_URL}/crew/feed`,
-        });
-        break;
-
-      case "new_application":
-        await sendEmail(email, `New application from ${data.sailor_name}`, {
-          label: "New Application",
-          heading: `${data.sailor_name} applied for ${data.position_role}`,
-          body: `<p style="margin:0"><strong>${data.sailor_name}</strong> has applied for the <strong>${data.position_role}</strong> position on <strong>${data.regatta_name}</strong>.</p>`,
-          ctaText: "Review Application",
-          ctaUrl: `${APP_URL}/boat/regattas`,
-        });
-        break;
-
-      case "crew_cancelled":
-        await sendEmail(email, `${data.sailor_name} cancelled their spot on ${data.regatta_name}`, {
-          label: "Crew Cancelled",
-          heading: `${data.sailor_name} cancelled their spot`,
-          body: `<p style="margin:0"><strong>${data.sailor_name}</strong> has cancelled their confirmed <strong>${data.position_role}</strong> spot on <strong>${data.regatta_name}</strong>. The position is now open again.</p>`,
-          ctaText: "View Regatta",
-          ctaUrl: `${APP_URL}/boat/regattas`,
-        });
-        break;
-
-      default:
-        return Response.json({ ok: false, error: "Unknown event" }, { status: 400 });
-    }
-
-    return Response.json({ ok: true });
+    return Response.json({ ok: failed === 0, sent, skipped: jobs.length - sent - failed });
   } catch (err) {
+    if (err instanceof Reject) return Response.json({ ok: false, error: err.message }, { status: err.status });
     console.error("Notify error:", err);
     return Response.json({ ok: false, error: err.message }, { status: 500 });
   }

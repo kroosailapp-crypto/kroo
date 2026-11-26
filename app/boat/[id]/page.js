@@ -326,20 +326,8 @@ export default function BoatPublicProfile({ params }) {
       { onConflict: "position_id,crew_id", ignoreDuplicates: false }
     );
 
-    // Get crew profile name then notify the boat owner
-    const { data: crewProf } = await supabase
-      .from("crew_profiles")
-      .select("name")
-      .eq("id", user.id)
-      .maybeSingle();
-    notify({
-      event: "new_application",
-      recipient_id: id, // boat owner
-      profile_type: "boat",
-      sailor_name: crewProf?.name || "A sailor",
-      regatta_name: regatta.name,
-      position_role: pos.role,
-    });
+    // Notify the boat owner (the server works out the details from the application)
+    notify({ event: "new_application", position_id: pos.id });
   }
 
   if (loading) {

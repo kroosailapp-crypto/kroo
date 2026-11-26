@@ -42,11 +42,10 @@ function RaceInviteModal({ crew, regattas, onClose }) {
         seen_by_boat: true,
       });
       notify({
-        event: "race_invite",
+        event: "new_invite",
         recipient_id: crew.id,
         profile_type: "crew",
-        regatta_name: selectedPosition.regattaName,
-        position_role: selectedPosition.role,
+        position_id: selectedPosition.id,
       });
     }
     setSending(false);
