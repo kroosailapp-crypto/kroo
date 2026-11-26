@@ -50,13 +50,13 @@ export default function DeleteAccountPage() {
             <button
               type="submit"
               disabled={!email.trim()}
-              className="w-full lg:w-auto py-3.5 rounded-2xl text-sm font-semibold text-white"
+              className="w-full lg:w-auto px-6 py-3.5 rounded-2xl text-sm font-semibold text-white"
               style={{ backgroundColor: email.trim() ? "#e00" : "#ccc" }}
             >
               Request Account Deletion
             </button>
             <p className="text-xs text-center text-gray-400">
-              Contact us at <a href="mailto:kroosailapp@gmail.com" className="underline">kroosailapp@gmail.com</a> for any questions.
+              Contact us at <a href="mailto:contact@kroosail.com" className="underline">contact@kroosail.com</a> for any questions.
             </p>
           </form>
         )}

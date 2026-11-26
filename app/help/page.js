@@ -19,8 +19,8 @@ export default function HelpPage() {
           <h2 className="text-base font-semibold text-gray-900 mb-1">Contact Us</h2>
           <p className="text-sm text-gray-600">
             Email us at{" "}
-            <a href="mailto:kroosailapp@gmail.com" className="text-blue-600 underline">
-              kroosailapp@gmail.com
+            <a href="mailto:contact@kroosail.com" className="text-blue-600 underline">
+              contact@kroosail.com
             </a>{" "}
             and we&apos;ll get back to you within 24 hours.
           </p>
@@ -41,8 +41,8 @@ export default function HelpPage() {
           <h2 className="text-base font-semibold text-gray-900 mb-1">Reporting Abuse</h2>
           <p className="text-sm text-gray-600">
             If you encounter inappropriate content or an abusive user, please email{" "}
-            <a href="mailto:kroosailapp@gmail.com" className="text-blue-600 underline">
-              kroosailapp@gmail.com
+            <a href="mailto:contact@kroosail.com" className="text-blue-600 underline">
+              contact@kroosail.com
             </a>{" "}
             with the details. We review all reports within 24 hours and will remove violating
             content and users immediately upon confirmation.
@@ -63,8 +63,8 @@ export default function HelpPage() {
           <p className="text-sm text-gray-600">
             Kroo collects only the information necessary to connect sailors and boat owners.
             We do not sell your data. For questions about your data, email{" "}
-            <a href="mailto:kroosailapp@gmail.com" className="text-blue-600 underline">
-              kroosailapp@gmail.com
+            <a href="mailto:contact@kroosail.com" className="text-blue-600 underline">
+              contact@kroosail.com
             </a>.
           </p>
         </section>
@@ -82,7 +82,7 @@ export default function HelpPage() {
             </div>
             <div>
               <p className="text-sm font-medium text-gray-800">How do I block someone?</p>
-              <p className="text-sm text-gray-600">To block a user, email us at kroosailapp@gmail.com with the user&apos;s name and we will block them from your feed immediately.</p>
+              <p className="text-sm text-gray-600">To block a user, email us at contact@kroosail.com with the user&apos;s name and we will block them from your feed immediately.</p>
             </div>
           </div>
         </section>

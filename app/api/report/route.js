@@ -70,7 +70,7 @@ export async function POST(request) {
     },
     body: JSON.stringify({
       from: "Kroo Finder <hello@updates.kroosail.com>",
-      to: ["kroosailapp@gmail.com"],
+      to: ["contact@kroosail.com"],
       subject: `[Report] ${profileLabel}: ${reported_name}`,
       html,
     }),
